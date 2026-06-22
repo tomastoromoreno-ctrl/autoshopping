@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@autoshopping/shared": "*",
     "@next/swc-win32-x64-msvc": "^14.2.33",
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
