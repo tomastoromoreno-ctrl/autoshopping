@@ -36,7 +36,7 @@ export default function PromotionsPage() {
   const [loading, setLoading] = useState(false);
 
   const load = () => {
-    api.get('/promotions').then((res) => setPromotions(res.data || [])).catch(() => {});
+    api.get<{ data: Promotion[] }>('/promotions').then((res) => setPromotions(res.data || [])).catch(() => {});
   };
 
   useEffect(() => { load(); }, []);
