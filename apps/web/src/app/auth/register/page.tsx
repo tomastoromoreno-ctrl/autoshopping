@@ -40,6 +40,7 @@ export default function RegisterPage() {
           <h1 className="text-xl font-bold text-slate-900">Registro exitoso</h1>
           <p className="mt-2 text-sm text-slate-500">Revisa tu correo para confirmar tu cuenta</p>
           <Link href="/auth/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ir a iniciar sesión</Link>
+          <Link href="/onboarding" className="mt-2 inline-block text-sm text-blue-600 hover:underline">Crear mi tienda ahora →</Link>
         </div>
       </div>
     );

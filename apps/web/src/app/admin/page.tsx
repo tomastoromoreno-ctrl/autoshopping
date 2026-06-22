@@ -26,7 +26,18 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<AdminStats>('/admin/stats').then(setStats).catch(() => {}).finally(() => setLoading(false));
+    api.get<any>('/admin/stats').then((data) => {
+      setStats({
+        totalTenants: data.total_tenants ?? 0,
+        activeTenants: data.active_tenants ?? 0,
+        totalUsers: data.total_users ?? 0,
+        totalOrders: data.total_orders ?? 0,
+        totalRevenue: data.total_revenue ?? 0,
+        ordersByStatus: data.orders_by_status ?? {},
+        tenantsByStatus: data.tenants_by_status ?? {},
+        recentOrders: data.recent_orders ?? [],
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
   const statCards = [

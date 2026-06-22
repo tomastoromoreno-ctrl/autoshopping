@@ -54,6 +54,12 @@ export class TenantsController {
     return this.tenants.create({ ...dto, userId: req.user.id });
   }
 
+  @Post('verify-subdomain')
+  @UseGuards(AuthGuard)
+  checkSubdomain(@Body() dto: SubdomainDto) {
+    return this.tenants.verifySubdomain(dto.subdomain);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   findById(@Param('id') id: string) {

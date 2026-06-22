@@ -25,17 +25,17 @@ export default function CTA() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/auth/register"
+              href="/onboarding"
               className="group inline-flex items-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               Crear mi tienda gratis
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
-              href="#features"
+              href="/pricing"
               className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 backdrop-blur-sm px-8 py-4 text-base font-semibold text-white hover:bg-white/20 transition-all duration-300"
             >
-              Hablar con ventas
+              Ver precios
             </Link>
           </div>
         </motion.div>

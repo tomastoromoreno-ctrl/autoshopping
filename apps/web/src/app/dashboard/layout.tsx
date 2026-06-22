@@ -18,25 +18,39 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role: string; tenant_id: string | null } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/auth/login');
-      return;
-    }
+    if (!token) { router.push('/auth/login'); return; }
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      setUser({ name: payload.user_metadata?.name || payload.email || 'Usuario', email: payload.email || '' });
-    } catch {}
+      const role = payload.user_metadata?.role || payload.role;
+      const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
+
+      if (role === 'super_admin') { router.push('/admin'); return; }
+      if (!tenantId) { router.push('/onboarding'); return; }
+
+      setUser({
+        name: payload.user_metadata?.name || payload.email || 'Usuario',
+        email: payload.email || '',
+        role: role || 'store_owner',
+        tenant_id: tenantId,
+      });
+    } catch { router.push('/auth/login'); return; }
+    setChecking(false);
   }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     router.push('/auth/login');
   };
+
+  if (checking) {
+    return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -55,6 +69,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             );
           })}
         </nav>
+        <div className="absolute bottom-0 left-0 right-0 border-t p-4">
+          <Link href="/admin" className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600">
+            Panel Super Admin
+          </Link>
+        </div>
       </aside>
       <div className={`fixed inset-0 z-30 bg-black/50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col">

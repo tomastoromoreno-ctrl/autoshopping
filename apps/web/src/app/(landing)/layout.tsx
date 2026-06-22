@@ -33,7 +33,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
             <Link href="#features" className="text-sm text-slate-300 hover:text-white transition-colors">
               Características
             </Link>
-            <Link href="#pricing" className="text-sm text-slate-300 hover:text-white transition-colors">
+            <Link href="/pricing" className="text-sm text-slate-300 hover:text-white transition-colors">
               Precios
             </Link>
             <Link
@@ -43,7 +43,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
               Iniciar sesión
             </Link>
             <Link
-              href="/auth/register"
+              href="/onboarding"
               className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all"
             >
               Crear tienda
@@ -64,13 +64,13 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
               <Link href="#features" className="block text-sm text-slate-300 hover:text-white py-2" onClick={() => setIsMenuOpen(false)}>
                 Características
               </Link>
-              <Link href="#pricing" className="block text-sm text-slate-300 hover:text-white py-2" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/pricing" className="block text-sm text-slate-300 hover:text-white py-2" onClick={() => setIsMenuOpen(false)}>
                 Precios
               </Link>
               <Link href="/auth/login" className="block text-sm text-slate-300 hover:text-white py-2" onClick={() => setIsMenuOpen(false)}>
                 Iniciar sesión
               </Link>
-              <Link href="/auth/register" className="block text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-2 text-center" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/onboarding" className="block text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg px-4 py-2 text-center" onClick={() => setIsMenuOpen(false)}>
                 Crear tienda
               </Link>
             </div>
