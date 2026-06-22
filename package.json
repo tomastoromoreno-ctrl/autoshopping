@@ -2,26 +2,13 @@
   "name": "autoshopping",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
-    "db:migrate": "npm run migrate -w packages/database",
-    "db:seed": "npm run seed -w packages/database"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.0"
+    "dev": "cd apps/web && npm run dev",
+    "build": "cd apps/web && npm run build",
+    "api:dev": "cd apps/api && npm run dev",
+    "api:build": "cd apps/api && npm run build"
   },
   "dependencies": {
-    "caniuse-lite": "^1.0.30001799",
-    "rxjs": "^7.8.2"
-  },
-  "optionalDependencies": {
-    "@next/swc-win32-x64-msvc": "^16.2.9"
+    "caniuse-lite": "^1.0.30001799"
   }
 }
