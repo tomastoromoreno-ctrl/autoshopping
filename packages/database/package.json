@@ -1,0 +1,12 @@
+{
+  "name": "@autoshopping/database",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "migrate": "node src/migrate.mjs",
+    "seed": "node src/seed.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}

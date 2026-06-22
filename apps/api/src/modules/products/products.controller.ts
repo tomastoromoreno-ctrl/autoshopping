@@ -1,0 +1,246 @@
+import {
+  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, BadRequestException,
+} from '@nestjs/common';
+import {
+  IsString, IsOptional, IsBoolean, IsNumber, IsUUID, IsArray, IsObject, IsInt, Min,
+} from 'class-validator';
+import { ProductsService } from './products.service';
+import { AuthGuard } from '../../common/guards/auth.guard';
+
+class CreateProductDto {
+  @IsUUID()
+  @IsOptional()
+  category_id?: string;
+
+  @IsString()
+  name: string;
+
+  @IsString()
+  slug: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsNumber()
+  price: number;
+
+  @IsNumber()
+  @IsOptional()
+  compare_at_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  cost_price?: number;
+
+  @IsInt()
+  @IsOptional()
+  stock?: number;
+
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
+}
+
+class UpdateProductDto {
+  @IsUUID()
+  @IsOptional()
+  category_id?: string;
+
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  slug?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsNumber()
+  @IsOptional()
+  price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  compare_at_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  cost_price?: number;
+
+  @IsInt()
+  @IsOptional()
+  stock?: number;
+
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
+}
+
+class CreateVariantDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @IsOptional()
+  price?: number;
+
+  @IsInt()
+  @IsOptional()
+  stock?: number;
+
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsObject()
+  @IsOptional()
+  attributes?: Record<string, any>;
+}
+
+class UpdateVariantDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsNumber()
+  @IsOptional()
+  price?: number;
+
+  @IsInt()
+  @IsOptional()
+  stock?: number;
+
+  @IsString()
+  @IsOptional()
+  sku?: string;
+
+  @IsObject()
+  @IsOptional()
+  attributes?: Record<string, any>;
+}
+
+class ListProductsQuery {
+  @IsUUID()
+  @IsOptional()
+  category_id?: string;
+
+  @IsString()
+  @IsOptional()
+  search?: string;
+
+  @IsNumber()
+  @IsOptional()
+  min_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  max_price?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  page?: number;
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  limit?: number;
+}
+
+@Controller('products')
+export class ProductsController {
+  constructor(private readonly products: ProductsService) {}
+
+  @Get()
+  @UseGuards(AuthGuard)
+  findMyTenant(@Req() req: any, @Query() query: ListProductsQuery) {
+    const tenantId = req.user?.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    return this.products.findByTenant(tenantId, query);
+  }
+
+  @Post()
+  @UseGuards(AuthGuard)
+  create(@Req() req: any, @Body() dto: CreateProductDto) {
+    const tenantId = req.user?.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    return this.products.create({ ...dto, tenant_id: tenantId });
+  }
+
+  @Get(':tenantId')
+  findByTenant(
+    @Param('tenantId') tenantId: string,
+    @Query() query: ListProductsQuery,
+  ) {
+    return this.products.findByTenant(tenantId, query);
+  }
+
+  @Get('single/:id')
+  findById(@Param('id') id: string) {
+    return this.products.findByIdWithVariants(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard)
+  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+    return this.products.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  delete(@Param('id') id: string) {
+    return this.products.delete(id);
+  }
+
+  @Post(':id/variants')
+  @UseGuards(AuthGuard)
+  addVariant(@Param('id') id: string, @Body() dto: CreateVariantDto) {
+    return this.products.addVariant(id, dto);
+  }
+
+  @Get(':id/variants')
+  getVariants(@Param('id') id: string) {
+    return this.products.getVariants(id);
+  }
+
+  @Patch('variants/:variantId')
+  @UseGuards(AuthGuard)
+  updateVariant(@Param('variantId') variantId: string, @Body() dto: UpdateVariantDto) {
+    return this.products.updateVariant(variantId, dto);
+  }
+
+  @Delete('variants/:variantId')
+  @UseGuards(AuthGuard)
+  deleteVariant(@Param('variantId') variantId: string) {
+    return this.products.deleteVariant(variantId);
+  }
+
+  @Get(':tenantId/featured')
+  getFeatured(@Param('tenantId') tenantId: string) {
+    return this.products.getFeatured(tenantId);
+  }
+}
