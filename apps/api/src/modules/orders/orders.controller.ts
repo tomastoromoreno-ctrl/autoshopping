@@ -54,6 +54,10 @@ class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   payment_status?: string;
+
+  @IsString()
+  @IsOptional()
+  tracking?: string;
 }
 
 @Controller('orders')

@@ -1,11 +1,15 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { EmailService } from '../notifications/email.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    private readonly emailService: EmailService,
   ) {}
 
   async createFromCart(dto: {
@@ -135,7 +139,14 @@ export class OrdersService {
 
     await this.supabase.from('carts').delete().eq('id', cart.id);
 
-    return this.findById(order.id);
+    const fullOrder = await this.findById(order.id);
+
+    // Send confirmation email asynchronously (don't block order creation)
+    this.sendOrderConfirmationEmail(dto.tenant_id, fullOrder).catch((err) =>
+      this.logger.error(`Failed to send confirmation email: ${err.message}`),
+    );
+
+    return fullOrder;
   }
 
   async listByTenant(
@@ -184,11 +195,17 @@ export class OrdersService {
 
   async updateStatus(
     id: string,
-    dto: { status?: string; payment_status?: string },
+    dto: { status?: string; payment_status?: string; tracking?: string },
   ) {
     const updateData: Record<string, any> = {};
     if (dto.status) updateData.status = dto.status;
     if (dto.payment_status) updateData.payment_status = dto.payment_status;
+
+    const { data: previousOrder } = await this.supabase
+      .from('orders')
+      .select('status')
+      .eq('id', id)
+      .single();
 
     const { data, error } = await this.supabase
       .from('orders')
@@ -199,6 +216,14 @@ export class OrdersService {
 
     if (error) throw new BadRequestException(error.message);
     if (!data) throw new NotFoundException('Order not found');
+
+    // Send shipping notification when status changes to 'shipped'
+    if (dto.status === 'shipped' && previousOrder?.status !== 'shipped') {
+      this.sendOrderShippedEmail(data.tenant_id, data, dto.tracking).catch((err) =>
+        this.logger.error(`Failed to send shipping email: ${err.message}`),
+      );
+    }
+
     return data;
   }
 
@@ -212,5 +237,51 @@ export class OrdersService {
 
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  private async sendOrderConfirmationEmail(tenantId: string, order: any) {
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('name, subdomain')
+      .eq('id', tenantId)
+      .single();
+
+    if (!tenant) return;
+
+    await this.emailService.sendOrderConfirmation({
+      orderId: order.id,
+      customerName: order.customer_name,
+      customerEmail: order.customer_email,
+      items: (order.items || []).map((item: any) => ({
+        name: item.product_name,
+        quantity: item.quantity,
+        price: item.unit_price,
+      })),
+      subtotal: order.subtotal,
+      shippingCost: order.shipping_cost,
+      discount: order.discount,
+      total: order.total,
+      storeName: tenant.name,
+      storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
+    });
+  }
+
+  private async sendOrderShippedEmail(tenantId: string, order: any, tracking?: string) {
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('name, subdomain')
+      .eq('id', tenantId)
+      .single();
+
+    if (!tenant) return;
+
+    await this.emailService.sendOrderShipped({
+      orderId: order.id,
+      customerName: order.customer_name,
+      customerEmail: order.customer_email,
+      tracking,
+      storeName: tenant.name,
+      storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
+    });
   }
 }
