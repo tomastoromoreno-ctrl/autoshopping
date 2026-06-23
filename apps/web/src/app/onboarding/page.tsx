@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     if (!token) {
-      router.push('/auth/login');
+      router.push('/auth/register');
       return;
     }
     setTokenVerified(true);
