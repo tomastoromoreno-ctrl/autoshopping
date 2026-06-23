@@ -89,6 +89,10 @@ class UpdateAppearanceDto {
   @IsString()
   @IsOptional()
   btn_text_color?: string;
+
+  @IsString()
+  @IsOptional()
+  text_color?: string;
 }
 
 @Controller('stores')

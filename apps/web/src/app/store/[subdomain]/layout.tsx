@@ -22,6 +22,7 @@ interface StoreData {
   bg_color?: string;
   btn_color?: string;
   btn_text_color?: string;
+  text_color?: string;
   config?: {
     sales_policy?: string;
     shipping_policy?: string;
@@ -117,6 +118,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
   const storeBtn = store.btn_color || store.primary_color || '#3b82f6';
   const storeBtnText = store.btn_text_color || '#ffffff';
   const storeFont = store.font_family || 'Inter';
+  const storeTextColor = store.text_color || '#1e293b';
 
   // Dynamic Google Font Import
   const fontImport = storeFont !== 'Inter'
@@ -134,6 +136,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         ${fontImport}
         body {
           background-color: ${storeBg} !important;
+          color: ${storeTextColor} !important;
           font-family: '${storeFont}', sans-serif !important;
         }
         /* Override primary button and text backgrounds of Tailwind */
@@ -159,6 +162,47 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         }
         a.bg-primary {
           color: ${storeBtnText} !important;
+        }
+
+        /* General page text color overrides (excluding inputs, buttons, white cards/containers, header/footer) */
+        main h1, main h2, main h3, main h4, main h5, main h6, main p, main span:not(.text-white):not(.bg-primary *):not(.bg-red-500 *) {
+          color: ${storeTextColor};
+        }
+
+        /* Overrides for text slate classes directly on page background */
+        main .text-slate-900:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
+        main .text-slate-800:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
+        main .text-slate-700:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
+          color: ${storeTextColor} !important;
+        }
+
+        main .text-slate-600:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
+          color: ${storeTextColor} !important;
+          opacity: 0.85;
+        }
+
+        main .text-slate-500:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
+          color: ${storeTextColor} !important;
+          opacity: 0.7;
+        }
+
+        main .text-slate-400:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
+          color: ${storeTextColor} !important;
+          opacity: 0.6;
+        }
+
+        /* Product Cards theme styling (matching the dashboard preview) */
+        .group.rounded-xl.border.bg-white {
+          background-color: ${storeBg} !important;
+          border-color: ${storeTextColor}1a !important;
+        }
+        .group.rounded-xl.border.bg-white h3,
+        .group.rounded-xl.border.bg-white span:not(.bg-red-500 *):not(.bg-primary *) {
+          color: ${storeTextColor} !important;
+        }
+        .group.rounded-xl.border.bg-white span.line-through {
+          color: ${storeTextColor} !important;
+          opacity: 0.6;
         }
       ` }} />
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">

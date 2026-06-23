@@ -21,7 +21,47 @@ export default function OnboardingPage() {
       router.push('/auth/register');
       return;
     }
-    setTokenVerified(true);
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
+      if (tenantId) {
+        router.push('/dashboard');
+        return;
+      }
+
+      // Check if they have a tenant_id in the public database profile (stale token case)
+      const userId = payload.sub;
+      api.get<{ tenant_id: string | null }>(`/users/profile/${userId}`)
+        .then((profile) => {
+          if (profile && profile.tenant_id) {
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (refreshToken) {
+              api.post<{ access_token: string; refresh_token: string }>('/auth/refresh', { refresh_token: refreshToken })
+                .then((refreshRes) => {
+                  localStorage.setItem('access_token', refreshRes.access_token);
+                  localStorage.setItem('refresh_token', refreshRes.refresh_token);
+                  router.push('/dashboard');
+                })
+                .catch(() => {
+                  localStorage.removeItem('access_token');
+                  localStorage.removeItem('refresh_token');
+                  router.push('/auth/login');
+                });
+            } else {
+              localStorage.removeItem('access_token');
+              router.push('/auth/login');
+            }
+          } else {
+            setTokenVerified(true);
+          }
+        })
+        .catch(() => {
+          setTokenVerified(true);
+        });
+    } catch {
+      router.push('/auth/register');
+      return;
+    }
     if (typeof window !== 'undefined') {
       setDomainSuffix(`.${window.location.host}`);
     }
@@ -53,6 +93,19 @@ export default function OnboardingPage() {
     setError('');
     try {
       await api.post('/tenants', { name: storeName, subdomain });
+      
+      // Refresh token to get the new role and tenant_id in JWT claims
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        try {
+          const refreshRes = await api.post<{ access_token: string; refresh_token: string }>('/auth/refresh', { refresh_token: refreshToken });
+          localStorage.setItem('access_token', refreshRes.access_token);
+          localStorage.setItem('refresh_token', refreshRes.refresh_token);
+        } catch (refreshErr) {
+          console.error('Failed to refresh session token:', refreshErr);
+        }
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);

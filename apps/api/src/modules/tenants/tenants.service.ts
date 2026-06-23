@@ -54,6 +54,11 @@ export class TenantsService {
 
     if (userError) throw new BadRequestException(userError.message);
 
+    // Also update auth user metadata in Supabase Auth so that token refreshes contain the tenant_id
+    await this.supabase.auth.admin.updateUserById(dto.userId, {
+      user_metadata: { role: 'store_owner', tenant_id: tenant.id },
+    });
+
     return tenant;
   }
 

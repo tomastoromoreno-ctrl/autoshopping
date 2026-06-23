@@ -29,7 +29,7 @@ export default function SearchBar({ onSearch, placeholder = 'Buscar productos...
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-10 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+        className="w-full rounded-lg border border-slate-200 bg-white text-slate-900 py-2.5 pl-10 pr-10 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
       />
       {query && (
         <button

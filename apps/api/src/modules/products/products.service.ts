@@ -50,7 +50,7 @@ export class ProductsService {
   ) {
     let query = this.supabase
       .from('products')
-      .select('*', { count: 'exact' })
+      .select('*, category:categories(id,name)', { count: 'exact' })
       .eq('tenant_id', tenantId);
 
     if (filters.category_id) {

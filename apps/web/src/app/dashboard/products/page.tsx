@@ -40,8 +40,16 @@ export default function ProductsPage() {
   const [importStats, setImportStats] = useState({ total: 0, added: 0, updated: 0 });
 
   const load = () => {
-    api.get<{ data: Product[] }>('/products?limit=100').then((res) => setProducts(res.data || [])).catch(() => {});
-    api.get<{ data: Category[] }>('/categories').then((res) => setCategories(res.data || [])).catch(() => {});
+    api.get<{ data: Product[] }>('/products?limit=100')
+      .then((res) => setProducts(res.data || []))
+      .catch((err) => {
+        console.error('[Products] Error cargando productos:', err.message);
+      });
+    api.get<{ data: Category[] }>('/categories')
+      .then((res) => setCategories(res.data || []))
+      .catch((err) => {
+        console.error('[Categories] Error cargando categorías:', err.message);
+      });
   };
 
   useEffect(() => { load(); }, []);
@@ -83,6 +91,13 @@ export default function ProductsPage() {
           return;
         }
 
+        // Helper to parse Chilean-format prices: "$400.000" or "400.000" => 400000
+        const parsePrice = (val: any): number => {
+          if (typeof val === 'number') return val;
+          const cleaned = String(val || '').replace(/\$/g, '').replace(/\./g, '').replace(/,/g, '.').trim();
+          return parseFloat(cleaned) || 0;
+        };
+
         const parsedProducts = [];
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i] as any[];
@@ -91,17 +106,17 @@ export default function ProductsPage() {
           const sku = String(row[0] || '').trim();
           const name = String(row[1] || '').trim();
           const description = String(row[2] || '').trim();
-          const cost_price = parseFloat(row[3]);
-          const price = parseFloat(row[4]);
+          const cost_price = parsePrice(row[3]);
+          const price = parsePrice(row[4]);
           
           if (!name) continue;
-          if (isNaN(price) || price < 0) continue;
+          if (isNaN(price) || price <= 0) continue;
 
           parsedProducts.push({
             sku: sku || null,
             name,
             description: description || '',
-            cost_price: isNaN(cost_price) ? 0 : cost_price,
+            cost_price: cost_price || 0,
             price,
             stock: 999,
           });

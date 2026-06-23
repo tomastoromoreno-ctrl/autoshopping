@@ -73,6 +73,7 @@ export class StoresService {
     bg_color?: string;
     btn_color?: string;
     btn_text_color?: string;
+    text_color?: string;
   }) {
     const { data, error } = await this.supabase
       .from('tenants')
@@ -86,6 +87,7 @@ export class StoresService {
         ...(dto.bg_color !== undefined && { bg_color: dto.bg_color }),
         ...(dto.btn_color !== undefined && { btn_color: dto.btn_color }),
         ...(dto.btn_text_color !== undefined && { btn_text_color: dto.btn_text_color }),
+        ...(dto.text_color !== undefined && { text_color: dto.text_color }),
       })
       .eq('id', tenantId)
       .select()
@@ -101,7 +103,7 @@ export class StoresService {
 
     let query = this.supabase
       .from('tenants')
-      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color');
+      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color, text_color');
 
     if (isUuid) {
       query = query.eq('id', idOrSubdomain);

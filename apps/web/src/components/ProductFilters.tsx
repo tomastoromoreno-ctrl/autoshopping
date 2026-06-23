@@ -164,7 +164,7 @@ function FilterContent({
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="w-full rounded-lg border border-slate-200 bg-white text-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-500"
         >
           {sortOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -222,7 +222,7 @@ function FilterContent({
               placeholder="Mín"
               value={priceRange.min}
               onChange={(e) => onPriceChange(e.target.value, priceRange.max)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-200 bg-white text-slate-900 px-3 py-1.5 text-sm outline-none focus:border-blue-500"
             />
             <span className="text-slate-400">-</span>
             <input
@@ -230,7 +230,7 @@ function FilterContent({
               placeholder="Máx"
               value={priceRange.max}
               onChange={(e) => onPriceChange(priceRange.min, e.target.value)}
-              className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-blue-500"
+              className="w-full rounded-lg border border-slate-200 bg-white text-slate-900 px-3 py-1.5 text-sm outline-none focus:border-blue-500"
             />
           </div>
         )}

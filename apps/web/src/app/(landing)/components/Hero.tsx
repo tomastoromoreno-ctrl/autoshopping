@@ -244,7 +244,6 @@ export default function Hero() {
                   <span>Mi Tienda | AutoShopping</span>
                 </div>
                 <div className="flex-1" />
-                <span className="text-slate-500 text-xs font-mono font-bold">127.0.0.1:3000</span>
               </div>
 
               {/* Address bar */}

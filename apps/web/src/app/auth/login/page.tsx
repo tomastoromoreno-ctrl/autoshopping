@@ -17,8 +17,11 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post<{ access_token: string; user: any }>('/auth/signin', { email, password });
+      const res = await api.post<{ access_token: string; refresh_token?: string; user: any }>('/auth/signin', { email, password });
       localStorage.setItem('access_token', res.access_token);
+      if (res.refresh_token) {
+        localStorage.setItem('refresh_token', res.refresh_token);
+      }
 
       const payload = JSON.parse(atob(res.access_token.split('.')[1]));
       const role = payload.user_metadata?.role || payload.role;

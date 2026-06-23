@@ -13,6 +13,7 @@ interface AppearanceConfig {
   bg_color?: string;
   btn_color?: string;
   btn_text_color?: string;
+  text_color?: string;
 }
 
 export default function AppearancePage() {
@@ -25,6 +26,7 @@ export default function AppearancePage() {
     bg_color: '#ffffff',
     btn_color: '#3b82f6',
     btn_text_color: '#ffffff',
+    text_color: '#1e293b',
   });
   const [storeName, setStoreName] = useState('Mi Tienda');
   const [loading, setLoading] = useState(false);
@@ -49,6 +51,7 @@ export default function AppearancePage() {
         bg_color: res.bg_color || '#ffffff',
         btn_color: res.btn_color || '#3b82f6',
         btn_text_color: res.btn_text_color || '#ffffff',
+        text_color: res.text_color || '#1e293b',
       });
       if (res.name) setStoreName(res.name);
       if (res.logo_url) {
@@ -386,7 +389,7 @@ export default function AppearancePage() {
                   </div>
                 </div>
 
-                <div className="col-span-2">
+                <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-bold">Color de Texto en Botones</label>
                   <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                     <input
@@ -398,9 +401,22 @@ export default function AppearancePage() {
                     <span className="text-xs font-mono font-bold text-slate-700">{form.btn_text_color}</span>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-bold">Color de Texto Principal</label>
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                    <input
+                      type="color"
+                      value={form.text_color || '#1e293b'}
+                      onChange={(e) => setForm({ ...form, text_color: e.target.value })}
+                      className="h-8 w-8 cursor-pointer rounded-lg border-0"
+                    />
+                    <span className="text-xs font-mono font-bold text-slate-700">{form.text_color}</span>
+                  </div>
+                </div>
               </div>
             </div>
-
+ 
             {/* Previsualización en Vivo de la Tienda */}
             <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">Previsualización de Componente</span>
@@ -413,15 +429,19 @@ export default function AppearancePage() {
                   fontFamily: `${form.font_family || 'Inter'}, sans-serif`
                 }}
               >
-                <div className="aspect-square bg-slate-100 rounded-lg flex items-center justify-center text-4xl">
-                  👟
+                <div className="aspect-square rounded-lg overflow-hidden relative bg-slate-100 flex items-center justify-center">
+                  <img 
+                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=600&auto=format&fit=crop" 
+                    alt="Calzado deportivo premium" 
+                    className="w-full h-full object-cover" 
+                  />
                 </div>
                 <div>
-                  <h4 className="text-sm font-extrabold text-slate-800">Calzado Running Flex</h4>
-                  <p className="text-xs text-slate-500 line-clamp-1">Amortiguación reactiva de alto nivel</p>
+                  <h4 className="text-sm font-extrabold transition-colors" style={{ color: form.text_color || '#1e293b' }}>Calzado Running Flex</h4>
+                  <p className="text-xs transition-colors line-clamp-1 opacity-75" style={{ color: form.text_color || '#1e293b' }}>Amortiguación reactiva de alto nivel</p>
                 </div>
                 <div className="flex items-center justify-between font-sans">
-                  <span className="text-sm font-black text-slate-900">$59.990</span>
+                  <span className="text-sm font-black transition-colors" style={{ color: form.text_color || '#1e293b' }}>$59.990</span>
                   <button 
                     type="button"
                     className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
