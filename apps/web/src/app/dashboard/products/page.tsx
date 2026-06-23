@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
+import { Upload, Download, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface Category {
   id: string;
@@ -30,12 +32,136 @@ export default function ProductsPage() {
   const [form, setForm] = useState({ name: '', price: '', stock: '', category_id: '', images: '', slug: '' });
   const [loading, setLoading] = useState(false);
 
+  // Excel importer states
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showManual, setShowManual] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [importProgress, setImportProgress] = useState<'idle' | 'reading' | 'uploading' | 'success' | 'error'>('idle');
+  const [importStats, setImportStats] = useState({ total: 0, added: 0, updated: 0 });
+
   const load = () => {
     api.get<{ data: Product[] }>('/products?limit=100').then((res) => setProducts(res.data || [])).catch(() => {});
     api.get<{ data: Category[] }>('/categories').then((res) => setCategories(res.data || [])).catch(() => {});
   };
 
   useEffect(() => { load(); }, []);
+
+  const downloadTemplate = () => {
+    const headers = [["SKU", "Nombre del producto", "Descripción", "Precio costo", "Precio de venta"]];
+    const sampleData = [
+      ["PROD-001", "Zapatillas Alpha Run Pro", "Zapatillas deportivas con amortiguación reactiva y tejido transpirable.", 35000, 59990],
+      ["PROD-002", "Cortaviento Trail Master", "Chaqueta impermeable ligera con bolsillos térmicos.", 18000, 29990]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet([...headers, ...sampleData]);
+    ws['!cols'] = [
+      { wch: 15 },
+      { wch: 25 },
+      { wch: 45 },
+      { wch: 15 },
+      { wch: 15 }
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Productos");
+    XLSX.writeFile(wb, "Plantilla_Importar_Productos.xlsx");
+  };
+
+  const handleExcelImport = (file: File) => {
+    if (!file) return;
+    setImportProgress('reading');
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        if (rows.length < 2) {
+          alert('El archivo no contiene filas de datos.');
+          setImportProgress('error');
+          return;
+        }
+
+        const parsedProducts = [];
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i] as any[];
+          if (!row || row.length === 0) continue;
+          
+          const sku = String(row[0] || '').trim();
+          const name = String(row[1] || '').trim();
+          const description = String(row[2] || '').trim();
+          const cost_price = parseFloat(row[3]);
+          const price = parseFloat(row[4]);
+          
+          if (!name) continue;
+          if (isNaN(price) || price < 0) continue;
+
+          parsedProducts.push({
+            sku: sku || null,
+            name,
+            description: description || '',
+            cost_price: isNaN(cost_price) ? 0 : cost_price,
+            price,
+            stock: 999,
+          });
+        }
+
+        if (parsedProducts.length === 0) {
+          alert('No se encontraron filas con datos de productos válidos.');
+          setImportProgress('error');
+          return;
+        }
+
+        setImportProgress('uploading');
+        const res = await api.post<any>('/products/bulk', { products: parsedProducts });
+        
+        let added = 0;
+        let updated = 0;
+        if (res.data) {
+          res.data.forEach((r: any) => {
+            if (r.action === 'created') added++;
+            else if (r.action === 'updated') updated++;
+          });
+        } else {
+          added = parsedProducts.length;
+        }
+        
+        setImportStats({ total: parsedProducts.length, added, updated });
+        setImportProgress('success');
+        load();
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || 'Error al procesar el archivo Excel');
+        setImportProgress('error');
+      }
+    };
+
+    reader.onerror = () => {
+      setImportProgress('error');
+    };
+
+    reader.readAsBinaryString(file);
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleExcelImport(e.dataTransfer.files[0]);
+    }
+  };
 
   const filtered = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -102,6 +228,13 @@ export default function ProductsPage() {
           <button onClick={openNew} className="rounded-lg border border-dashed border-slate-300 px-3 sm:px-4 py-2 text-xs sm:text-sm text-slate-600 hover:bg-slate-50">
             + Rápido
           </button>
+          <button 
+            onClick={() => setShowImportModal(true)} 
+            className="rounded-lg border border-slate-300 bg-white px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center gap-1.5 shadow-sm"
+          >
+            <Upload size={14} />
+            Importar Excel
+          </button>
         </div>
       </div>
 
@@ -144,6 +277,166 @@ export default function ProductsPage() {
                 <button type="button" onClick={() => setShowForm(false)} className="rounded-lg border px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancelar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b pb-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                📥 Importar Catálogo (XLSX)
+              </h2>
+              <button 
+                onClick={() => { setShowImportModal(false); setImportProgress('idle'); }}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-4">
+              {/* Plantilla Base Download */}
+              <div className="rounded-xl bg-blue-50/50 border border-blue-100 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Descargar Plantilla Base</h4>
+                  <p className="text-xs text-slate-500 font-medium">Descarga la estructura básica de Excel para completar tus productos.</p>
+                </div>
+                <button 
+                  onClick={downloadTemplate}
+                  className="shrink-0 flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition"
+                >
+                  <Download size={14} />
+                  Descargar Excel
+                </button>
+              </div>
+
+              {/* Drag and drop Area */}
+              {importProgress === 'idle' || importProgress === 'error' ? (
+                <div 
+                  onDragEnter={handleDrag}
+                  onDragOver={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center transition ${
+                    dragActive ? 'border-primary bg-primary/5' : 'border-slate-300 bg-slate-50'
+                  }`}
+                >
+                  <Upload className="w-10 h-10 text-slate-400 mb-2" />
+                  <p className="text-sm font-bold text-slate-700">Arrastra tu archivo Excel aquí</p>
+                  <p className="text-xs text-slate-400 mt-1">Soporta formatos .xlsx y .xls</p>
+                  <div className="mt-4">
+                    <input 
+                      type="file" 
+                      id="excel-file" 
+                      accept=".xlsx, .xls"
+                      onChange={(e) => e.target.files && handleExcelImport(e.target.files[0])}
+                      className="hidden" 
+                    />
+                    <label 
+                      htmlFor="excel-file"
+                      className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-white hover:bg-primary/90 cursor-pointer shadow"
+                    >
+                      Seleccionar Archivo
+                    </label>
+                  </div>
+                </div>
+              ) : importProgress === 'reading' || importProgress === 'uploading' ? (
+                <div className="border border-slate-100 rounded-2xl p-12 flex flex-col items-center justify-center text-center space-y-4 bg-slate-50">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                  <p className="text-sm font-bold text-slate-700">
+                    {importProgress === 'reading' ? 'Leyendo archivo Excel...' : 'Subiendo productos a la base de datos...'}
+                  </p>
+                </div>
+              ) : (
+                <div className="border border-emerald-100 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-3 bg-emerald-50/30">
+                  <span className="text-4xl">🎉</span>
+                  <h4 className="text-base font-bold text-emerald-800">¡Importación Completada!</h4>
+                  <p className="text-xs text-emerald-600 max-w-sm">
+                    Se han procesado un total de {importStats.total} productos de forma exitosa.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-xs font-bold py-2 px-6 rounded-lg bg-white border border-emerald-100 shadow-sm w-full max-w-xs">
+                    <div className="text-center">
+                      <span className="block text-slate-400 text-[10px] uppercase">Nuevos</span>
+                      <span className="text-slate-800 text-lg">{importStats.added}</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-slate-400 text-[10px] uppercase">Actualizados</span>
+                      <span className="text-slate-800 text-lg">{importStats.updated}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => { setShowImportModal(false); setImportProgress('idle'); }}
+                    className="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-5 py-2 text-xs font-bold text-white shadow transition-all"
+                  >
+                    Entendido
+                  </button>
+                </div>
+              )}
+
+              {/* Collapsible Manual */}
+              <div className="border rounded-xl bg-white">
+                <button 
+                  type="button"
+                  onClick={() => setShowManual(!showManual)}
+                  className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <BookOpen size={14} className="text-slate-400" />
+                    Manual del Usuario (Columnas requeridas)
+                  </span>
+                  {showManual ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+                {showManual && (
+                  <div className="p-4 border-t bg-slate-50/50 space-y-3 text-xs text-slate-600 leading-relaxed font-sans">
+                    <p>La primera fila del archivo Excel debe contener los nombres exactos de los campos. A continuación el detalle de cada columna:</p>
+                    <table className="w-full border-collapse border bg-white rounded-lg overflow-hidden shadow-sm">
+                      <thead>
+                        <tr className="bg-slate-100 border-b text-[10px] text-slate-400 font-bold uppercase text-left">
+                          <th className="p-2">Columna</th>
+                          <th className="p-2">Campo</th>
+                          <th className="p-2">Requerido</th>
+                          <th className="p-2">Descripción</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[11px]">
+                        <tr>
+                          <td className="p-2 font-bold font-mono">A</td>
+                          <td className="p-2">SKU</td>
+                          <td className="p-2 text-slate-400">Opcional</td>
+                          <td className="p-2 text-slate-500">Código único de barras o inventario. Si ya existe en tu catálogo, se actualizarán los datos de ese producto en vez de duplicarlo.</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-bold font-mono">B</td>
+                          <td className="p-2">Nombre del producto</td>
+                          <td className="p-2 text-red-500 font-bold">Sí</td>
+                          <td className="p-2 text-slate-500">Nombre comercial del producto. Se generará un enlace (slug) único basado en este campo.</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-bold font-mono">C</td>
+                          <td className="p-2">Descripción</td>
+                          <td className="p-2 text-slate-400">Opcional</td>
+                          <td className="p-2 text-slate-500">Descripción detallada del artículo.</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-bold font-mono">D</td>
+                          <td className="p-2">Precio costo</td>
+                          <td className="p-2 text-slate-400">Opcional</td>
+                          <td className="p-2 text-slate-500">Costo del producto (para reportes de ganancias).</td>
+                        </tr>
+                        <tr>
+                          <td className="p-2 font-bold font-mono">E</td>
+                          <td className="p-2">Precio de venta</td>
+                          <td className="p-2 text-red-500 font-bold">Sí</td>
+                          <td className="p-2 text-slate-500">El precio al público con el cual se venderá el producto en la tienda.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

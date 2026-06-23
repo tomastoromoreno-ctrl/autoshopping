@@ -229,4 +229,97 @@ export class ProductsService {
     if (error) throw new BadRequestException(error.message);
     return data;
   }
+
+  slugify(text: string): string {
+    return text
+      .toString()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
+  }
+
+  async bulkCreate(tenantId: string, products: any[]) {
+    const results = [];
+    for (const p of products) {
+      let existingProduct = null;
+      if (p.sku) {
+        const { data } = await this.supabase
+          .from('products')
+          .select('id, slug')
+          .eq('tenant_id', tenantId)
+          .eq('sku', p.sku)
+          .maybeSingle();
+        existingProduct = data;
+      }
+
+      if (existingProduct) {
+        const { data, error } = await this.supabase
+          .from('products')
+          .update({
+            name: p.name,
+            description: p.description,
+            price: p.price,
+            cost_price: p.cost_price,
+            stock: p.stock !== undefined ? p.stock : 999,
+            is_active: p.is_active !== undefined ? p.is_active : true,
+          })
+          .eq('id', existingProduct.id)
+          .select()
+          .single();
+        if (error) {
+          throw new BadRequestException(`Error actualizando producto con SKU ${p.sku}: ${error.message}`);
+        }
+        results.push({ action: 'updated', product: data });
+      } else {
+        let baseSlug = this.slugify(p.name);
+        if (!baseSlug) baseSlug = 'producto';
+        let uniqueSlug = baseSlug;
+        let counter = 1;
+        let isUnique = false;
+
+        while (!isUnique) {
+          const { data } = await this.supabase
+            .from('products')
+            .select('id')
+            .eq('tenant_id', tenantId)
+            .eq('slug', uniqueSlug)
+            .maybeSingle();
+          if (!data) {
+            isUnique = true;
+          } else {
+            uniqueSlug = `${baseSlug}-${counter}`;
+            counter++;
+          }
+        }
+
+        const { data, error } = await this.supabase
+          .from('products')
+          .insert({
+            tenant_id: tenantId,
+            category_id: p.category_id || null,
+            name: p.name,
+            slug: uniqueSlug,
+            description: p.description || '',
+            price: p.price,
+            cost_price: p.cost_price || 0,
+            stock: p.stock !== undefined ? p.stock : 999,
+            sku: p.sku || null,
+            is_active: p.is_active !== undefined ? p.is_active : true,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          throw new BadRequestException(`Error creando producto ${p.name}: ${error.message}`);
+        }
+        results.push({ action: 'created', product: data });
+      }
+    }
+    return { success: true, count: results.length, data: results };
+  }
 }

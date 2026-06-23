@@ -73,6 +73,22 @@ class UpdateAppearanceDto {
   @IsString()
   @IsOptional()
   name?: string;
+
+  @IsString()
+  @IsOptional()
+  font_family?: string;
+
+  @IsString()
+  @IsOptional()
+  bg_color?: string;
+
+  @IsString()
+  @IsOptional()
+  btn_color?: string;
+
+  @IsString()
+  @IsOptional()
+  btn_text_color?: string;
 }
 
 @Controller('stores')

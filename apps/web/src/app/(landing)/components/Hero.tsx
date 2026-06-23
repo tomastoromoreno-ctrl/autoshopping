@@ -3,7 +3,7 @@
 import { motion, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, Sparkles, TrendingUp, DollarSign, ShoppingBag, Palette, Plus, Check } from 'lucide-react';
+import { ArrowRight, Sparkles, TrendingUp, DollarSign, ShoppingBag, Palette, Plus, Check, Upload, Download, BookOpen } from 'lucide-react';
 
 interface MockProduct {
   id: number;
@@ -49,8 +49,9 @@ export default function Hero() {
   };
 
   // Dashboard Mockup State
-  const [activeTab, setActiveTab] = useState<'sales' | 'products' | 'customize'>('sales');
+  const [activeTab, setActiveTab] = useState<'sales' | 'products' | 'import' | 'customize'>('sales');
   const [mockColor, setMockColor] = useState<'blue' | 'purple' | 'amber' | 'emerald'>('blue');
+  const [mockFont, setMockFont] = useState<string>('Inter');
   const [mockProducts, setMockProducts] = useState<MockProduct[]>([
     { id: 1, name: 'Zapatillas Alpha Run Pro', price: '$45.990', stock: 15, image: '👟', category: 'Calzado' },
     { id: 2, name: 'Cortaviento Impermeable Trail', price: '$29.990', stock: 8, image: '🧥', category: 'Ropa' },
@@ -271,6 +272,7 @@ export default function Hero() {
                   {[
                     { key: 'sales', label: 'Ventas', icon: <TrendingUp size={12} /> },
                     { key: 'products', label: 'Productos', icon: <ShoppingBag size={12} /> },
+                    { key: 'import', label: 'Importación XLSX', icon: <Upload size={12} /> },
                     { key: 'customize', label: 'Personalizar', icon: <Palette size={12} /> },
                   ].map((item) => {
                     const isSelected = activeTab === item.key;
@@ -457,7 +459,54 @@ export default function Hero() {
                     </motion.div>
                   )}
 
-                  {/* Tab 3: Customize Theme Colors */}
+                  {/* Tab 3: Import XLSX */}
+                  {activeTab === 'import' && (
+                    <motion.div
+                      key="import"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-3.5 w-full h-full flex flex-col justify-between"
+                    >
+                      <div>
+                        <h3 className="text-xs font-bold text-slate-900 leading-tight">Importador Masivo XLSX</h3>
+                        <p className="text-[9px] text-slate-400">Sube todos tus productos en segundos mediante Excel</p>
+                      </div>
+
+                      {/* Mock Drop Zone */}
+                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-white shadow-inner">
+                        <Upload className={`w-8 h-8 text-slate-400 mb-2 animate-bounce`} />
+                        <p className="text-[9px] font-bold text-slate-700">Arrastra tu plantilla XLSX aquí</p>
+                        <p className="text-[7px] text-slate-400 mt-0.5">La primera columna debe ser el SKU</p>
+                        
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // Simulate upload
+                            alert("¡Simulación XLSX exitosa! Se han importado 2 nuevos productos a tu catálogo demo.");
+                            // Add some mock products
+                            setMockProducts([
+                              { id: 101, name: 'Shorts Dry-Fit Active', price: '$12.990', stock: 45, image: '🩳', category: 'Ropa' },
+                              { id: 102, name: 'Visera Running Aero', price: '$7.990', stock: 60, image: '🧢', category: 'Accesorios' },
+                              ...mockProducts.slice(0, 1)
+                            ]);
+                            setActiveTab('products');
+                          }}
+                          className={`mt-3 rounded-lg px-3.5 py-1.5 text-[8px] font-extrabold text-white shadow-md transition duration-200 ${selectedClasses.bg} hover:scale-[1.03]`}
+                        >
+                          Cargar Excel Demo
+                        </button>
+                      </div>
+
+                      <div className="rounded-lg bg-blue-50 text-blue-800 p-2.5 text-[8px] flex items-center gap-1.5 border border-blue-100 font-medium">
+                        <span className="text-xs">ℹ️</span>
+                        <p className="leading-relaxed">Los productos con SKUs coincidentes se actualizarán de forma segura.</p>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Tab 4: Customize Theme Colors & Fonts */}
                   {activeTab === 'customize' && (
                     <motion.div
                       key="customize"
@@ -472,48 +521,78 @@ export default function Hero() {
                         <p className="text-[9px] text-slate-400">Personaliza la identidad visual de tu tienda</p>
                       </div>
 
-                      {/* Color selections */}
-                      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-3.5">
-                        <p className="text-[9px] font-bold text-slate-500">Color de Marca Principal</p>
-                        <div className="flex gap-4 justify-center">
-                          {[
-                            { key: 'blue', name: 'Azul Eléctrico', bg: 'bg-blue-600' },
-                            { key: 'purple', name: 'Violeta Neón', bg: 'bg-purple-600' },
-                            { key: 'amber', name: 'Ámbar Cálido', bg: 'bg-amber-600' },
-                            { key: 'emerald', name: 'Menta Esmeralda', bg: 'bg-emerald-600' },
-                          ].map((theme) => {
-                            const isSelected = mockColor === theme.key;
-                            return (
-                              <button
-                                key={theme.key}
-                                onClick={() => setMockColor(theme.key as any)}
-                                className="flex flex-col items-center gap-1.5 cursor-pointer group"
-                              >
-                                <div className={`w-8 h-8 rounded-full ${theme.bg} flex items-center justify-center shadow-md relative transition-transform duration-200 group-hover:scale-110 ${
-                                  isSelected ? 'ring-2 ring-slate-800 ring-offset-2' : ''
-                                }`}>
-                                  {isSelected && <Check size={14} className="text-white font-bold" />}
-                                </div>
-                                <span className={`text-[7px] font-bold ${isSelected ? 'text-slate-800' : 'text-slate-400'}`}>
-                                  {theme.name}
-                                </span>
-                              </button>
-                            );
-                          })}
+                      {/* Options Card */}
+                      <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-sm space-y-3.5">
+                        {/* Font selection */}
+                        <div>
+                          <p className="text-[8px] font-bold text-slate-500 mb-1.5">Tipografía de la Tienda</p>
+                          <div className="flex gap-2 justify-center">
+                            {['Inter', 'Montserrat', 'Playfair'].map((f) => {
+                              const isSel = mockFont === f;
+                              return (
+                                <button
+                                  type="button"
+                                  key={f}
+                                  onClick={() => setMockFont(f)}
+                                  className={`px-2.5 py-1 rounded border text-[8px] font-black transition duration-200 ${
+                                    isSel ? 'border-slate-800 bg-slate-900 text-white shadow-sm' : 'border-slate-200 hover:bg-slate-50'
+                                  }`}
+                                  style={{ fontFamily: f === 'Playfair' ? 'Playfair Display, serif' : f }}
+                                >
+                                  {f}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Color selection */}
+                        <div>
+                          <p className="text-[8px] font-bold text-slate-500 mb-1.5">Color de Marca Principal</p>
+                          <div className="flex gap-4 justify-center">
+                            {[
+                              { key: 'blue', name: 'Azul', bg: 'bg-blue-600' },
+                              { key: 'purple', name: 'Púrpura', bg: 'bg-purple-600' },
+                              { key: 'amber', name: 'Ámbar', bg: 'bg-amber-600' },
+                              { key: 'emerald', name: 'Menta', bg: 'bg-emerald-600' },
+                            ].map((theme) => {
+                              const isSelected = mockColor === theme.key;
+                              return (
+                                <button
+                                  type="button"
+                                  key={theme.key}
+                                  onClick={() => setMockColor(theme.key as any)}
+                                  className="flex flex-col items-center gap-1 cursor-pointer group"
+                                >
+                                  <div className={`w-6.5 h-6.5 rounded-full ${theme.bg} flex items-center justify-center shadow-md relative transition-transform duration-200 group-hover:scale-110 ${
+                                    isSelected ? 'ring-2 ring-slate-800 ring-offset-1' : ''
+                                  }`}>
+                                    {isSelected && <Check size={10} className="text-white font-bold" />}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
                       {/* Real time simulated preview feedback */}
-                      <div className="rounded-lg bg-slate-900 text-white p-3 text-[8px] flex items-center justify-between shadow-sm">
+                      <div 
+                        className="rounded-lg text-white p-3 text-[8px] flex items-center justify-between shadow-sm transition-all duration-300"
+                        style={{ 
+                          backgroundColor: mockColor === 'blue' ? '#2563eb' : mockColor === 'purple' ? '#9333ea' : mockColor === 'amber' ? '#d97706' : '#059669',
+                          fontFamily: mockFont === 'Playfair' ? 'Playfair Display, serif' : mockFont
+                        }}
+                      >
                         <div className="flex items-center gap-2">
                           <span className="text-xs">✨</span>
                           <div>
-                            <p className="font-bold text-slate-100">Vista de Tienda Sincronizada</p>
-                            <p className="text-slate-400 text-[7px]">La tienda cambiará su identidad instantáneamente en producción.</p>
+                            <p className="font-bold text-white">Botón de Tienda Sincronizado</p>
+                            <p className="opacity-85 text-[7px]">Cambios tipográficos y de color en tiempo real.</p>
                           </div>
                         </div>
-                        <span className={`px-2 py-0.5 font-bold rounded-full border border-slate-700 text-white text-[7px]`}>
-                          Listo
+                        <span className="px-2 py-0.5 font-bold rounded-full bg-white/20 text-white text-[7px]">
+                          Activo
                         </span>
                       </div>
                     </motion.div>

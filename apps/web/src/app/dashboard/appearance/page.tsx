@@ -9,6 +9,10 @@ interface AppearanceConfig {
   primary_color: string;
   slogan?: string;
   name?: string;
+  font_family?: string;
+  bg_color?: string;
+  btn_color?: string;
+  btn_text_color?: string;
 }
 
 export default function AppearancePage() {
@@ -17,6 +21,10 @@ export default function AppearancePage() {
     primary_color: '#3b82f6',
     slogan: '',
     name: '',
+    font_family: 'Inter',
+    bg_color: '#ffffff',
+    btn_color: '#3b82f6',
+    btn_text_color: '#ffffff',
   });
   const [storeName, setStoreName] = useState('Mi Tienda');
   const [loading, setLoading] = useState(false);
@@ -37,6 +45,10 @@ export default function AppearancePage() {
         primary_color: res.primary_color || '#3b82f6',
         slogan: res.slogan || '',
         name: res.name || '',
+        font_family: res.font_family || 'Inter',
+        bg_color: res.bg_color || '#ffffff',
+        btn_color: res.btn_color || '#3b82f6',
+        btn_text_color: res.btn_text_color || '#ffffff',
       });
       if (res.name) setStoreName(res.name);
       if (res.logo_url) {
@@ -317,28 +329,111 @@ export default function AppearancePage() {
           </div>
         </div>
 
-        {/* Sección de Colores */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
-              <div className="w-5 h-5 rounded-full border border-blue-600 border-t-transparent animate-spin-slow" style={{ borderStyle: 'dotted' }} />
+        {/* Sección de Identidad Visual Avanzada */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm space-y-6">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-900">Color Primario</h2>
-              <p className="text-xs text-slate-500">Define el color de los botones, enlaces y acentos visuales de tu tienda.</p>
+              <h2 className="text-base font-bold text-slate-900">Identidad Visual & Estilos</h2>
+              <p className="text-xs text-slate-500">Personaliza la tipografía y los colores de la interfaz de tu tienda.</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <input
-              type="color"
-              value={form.primary_color}
-              onChange={(e) => setForm({ ...form, primary_color: e.target.value })}
-              className="h-12 w-12 cursor-pointer rounded-xl border border-slate-200"
-            />
-            <div>
-              <span className="text-sm font-bold text-slate-800 font-mono">{form.primary_color}</span>
-              <p className="text-xs text-slate-400">Este color se adaptará en todo tu catálogo.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Controles de Configuración */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider font-bold">Fuente Tipográfica</label>
+                <select
+                  value={form.font_family || 'Inter'}
+                  onChange={(e) => setForm({ ...form, font_family: e.target.value })}
+                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white transition-all font-semibold text-slate-800"
+                >
+                  <option value="Inter">Inter (Sans-serif moderna)</option>
+                  <option value="Montserrat">Montserrat (Geométrica y elegante)</option>
+                  <option value="Outfit">Outfit (Minimalista y estilizada)</option>
+                  <option value="Poppins">Poppins (Redondeada y amigable)</option>
+                  <option value="Playfair Display">Playfair Display (Clásica Serif)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-bold">Color de Fondo</label>
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                    <input
+                      type="color"
+                      value={form.bg_color || '#ffffff'}
+                      onChange={(e) => setForm({ ...form, bg_color: e.target.value })}
+                      className="h-8 w-8 cursor-pointer rounded-lg border-0"
+                    />
+                    <span className="text-xs font-mono font-bold text-slate-700">{form.bg_color}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-bold">Color de Botones</label>
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                    <input
+                      type="color"
+                      value={form.btn_color || '#3b82f6'}
+                      onChange={(e) => setForm({ ...form, btn_color: e.target.value })}
+                      className="h-8 w-8 cursor-pointer rounded-lg border-0"
+                    />
+                    <span className="text-xs font-mono font-bold text-slate-700">{form.btn_color}</span>
+                  </div>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-bold">Color de Texto en Botones</label>
+                  <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                    <input
+                      type="color"
+                      value={form.btn_text_color || '#ffffff'}
+                      onChange={(e) => setForm({ ...form, btn_text_color: e.target.value })}
+                      className="h-8 w-8 cursor-pointer rounded-lg border-0"
+                    />
+                    <span className="text-xs font-mono font-bold text-slate-700">{form.btn_text_color}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Previsualización en Vivo de la Tienda */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-center">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3 block">Previsualización de Componente</span>
+              
+              {/* Product Card Preview */}
+              <div 
+                className="p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 transition-colors"
+                style={{ 
+                  backgroundColor: form.bg_color || '#ffffff',
+                  fontFamily: `${form.font_family || 'Inter'}, sans-serif`
+                }}
+              >
+                <div className="aspect-square bg-slate-100 rounded-lg flex items-center justify-center text-4xl">
+                  👟
+                </div>
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-800">Calzado Running Flex</h4>
+                  <p className="text-xs text-slate-500 line-clamp-1">Amortiguación reactiva de alto nivel</p>
+                </div>
+                <div className="flex items-center justify-between font-sans">
+                  <span className="text-sm font-black text-slate-900">$59.990</span>
+                  <button 
+                    type="button"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                    style={{ 
+                      backgroundColor: form.btn_color || '#3b82f6',
+                      color: form.btn_text_color || '#ffffff'
+                    }}
+                  >
+                    Agregar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

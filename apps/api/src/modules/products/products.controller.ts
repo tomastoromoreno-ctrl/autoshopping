@@ -195,6 +195,14 @@ export class ProductsController {
     return this.products.create({ ...dto, tenant_id: tenantId });
   }
 
+  @Post('bulk')
+  @UseGuards(AuthGuard)
+  bulkCreate(@Req() req: any, @Body() body: { products: CreateProductDto[] }) {
+    const tenantId = req.user?.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    return this.products.bulkCreate(tenantId, body.products);
+  }
+
   @Get(':tenantId')
   findByTenant(
     @Param('tenantId') tenantId: string,

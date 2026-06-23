@@ -18,6 +18,10 @@ interface StoreData {
   primary_color?: string;
   description?: string;
   slogan?: string;
+  font_family?: string;
+  bg_color?: string;
+  btn_color?: string;
+  btn_text_color?: string;
   config?: {
     sales_policy?: string;
     shipping_policy?: string;
@@ -109,13 +113,54 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     );
   }
 
+  const storeBg = store.bg_color || '#ffffff';
+  const storeBtn = store.btn_color || store.primary_color || '#3b82f6';
+  const storeBtnText = store.btn_text_color || '#ffffff';
+  const storeFont = store.font_family || 'Inter';
+
+  // Dynamic Google Font Import
+  const fontImport = storeFont !== 'Inter'
+    ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(storeFont)}:wght@400;500;600;700;900&display=swap');`
+    : '';
+
   return (
-    <div className="flex min-h-screen flex-col" style={{ '--store-primary': store.primary_color || '#3b82f6' } as React.CSSProperties}>
+    <div className="flex min-h-screen flex-col" style={{ '--store-primary': storeBtn } as React.CSSProperties}>
       <StoreJsonLd
         storeName={store.name}
         storeUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app'}/store/${params.subdomain}`}
         description={store.description}
       />
+      <style dangerouslySetInnerHTML={{ __html: `
+        ${fontImport}
+        body {
+          background-color: ${storeBg} !important;
+          font-family: '${storeFont}', sans-serif !important;
+        }
+        /* Override primary button and text backgrounds of Tailwind */
+        .bg-primary {
+          background-color: ${storeBtn} !important;
+        }
+        .text-primary {
+          color: ${storeBtn} !important;
+        }
+        .hover\\:bg-primary\\/90:hover {
+          background-color: ${storeBtn} !important;
+          opacity: 0.9;
+        }
+        /* Override text color on primary bg */
+        .bg-primary.text-white {
+          color: ${storeBtnText} !important;
+        }
+        .bg-primary.text-slate-900 {
+          color: ${storeBtnText} !important;
+        }
+        button.bg-primary {
+          color: ${storeBtnText} !important;
+        }
+        a.bg-primary {
+          color: ${storeBtnText} !important;
+        }
+      ` }} />
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href={`/store/${params.subdomain}`} className="flex items-center gap-2 min-w-0">
