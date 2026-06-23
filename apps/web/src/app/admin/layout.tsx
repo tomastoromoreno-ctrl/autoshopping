@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      const role = payload.role || payload.user_metadata?.role;
+      const role = payload.user_metadata?.role || payload.role;
       if (role !== 'super_admin' && role !== 'superadmin') {
         router.push('/dashboard');
         return;
