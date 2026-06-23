@@ -43,6 +43,7 @@ export class ProductsService {
       min_price?: number;
       max_price?: number;
       is_active?: boolean;
+      sort?: string;
       page?: number;
       limit?: number;
     },
@@ -57,7 +58,7 @@ export class ProductsService {
     }
 
     if (filters.search) {
-      query = query.ilike('name', `%${filters.search}%`);
+      query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
     }
 
     if (filters.min_price !== undefined) {
@@ -73,11 +74,23 @@ export class ProductsService {
     }
 
     const page = filters.page || 1;
-    const limit = filters.limit || 20;
+    const limit = filters.limit || 50;
     const offset = (page - 1) * limit;
 
+    let sortField = 'created_at';
+    let sortAsc = false;
+
+    switch (filters.sort) {
+      case 'price_asc': sortField = 'price'; sortAsc = true; break;
+      case 'price_desc': sortField = 'price'; sortAsc = false; break;
+      case 'name_asc': sortField = 'name'; sortAsc = true; break;
+      case 'name_desc': sortField = 'name'; sortAsc = false; break;
+      case 'oldest': sortField = 'created_at'; sortAsc = true; break;
+      default: sortField = 'created_at'; sortAsc = false; break;
+    }
+
     const { data, error, count } = await query
-      .order('created_at', { ascending: false })
+      .order(sortField, { ascending: sortAsc })
       .range(offset, offset + limit - 1);
 
     if (error) throw new BadRequestException(error.message);

@@ -160,6 +160,10 @@ class ListProductsQuery {
   @IsOptional()
   is_active?: boolean;
 
+  @IsString()
+  @IsOptional()
+  sort?: string;
+
   @IsInt()
   @Min(1)
   @IsOptional()

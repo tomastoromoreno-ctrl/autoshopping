@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
+import SearchBar from '@/components/SearchBar';
+import ProductFilters from '@/components/ProductFilters';
 import { getSessionId } from '@/lib/session';
 
 interface Product {
@@ -13,6 +15,7 @@ interface Product {
   compare_at_price?: number | null;
   images?: { url: string }[];
   stock?: number;
+  category_id?: string;
 }
 
 interface Category {
@@ -34,15 +37,47 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [categories, setCategories] = useState<Category[]>([]);
   const [store, setStore] = useState<StoreData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [sortBy, setSortBy] = useState('newest');
+
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const queryParams = new URLSearchParams();
+      queryParams.set('is_active', 'true');
+      if (searchQuery) queryParams.set('search', searchQuery);
+      if (selectedCategory) queryParams.set('category_id', selectedCategory);
+      if (priceRange.min) queryParams.set('min_price', priceRange.min);
+      if (priceRange.max) queryParams.set('max_price', priceRange.max);
+      if (sortBy) queryParams.set('sort', sortBy);
+      queryParams.set('limit', '50');
+
+      const res = await fetch(`${apiUrl}/products/${params.subdomain}?${queryParams.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : data.data || data.products || [];
+        setProducts(items);
+        setTotalCount(data.total || items.length);
+      }
+    } catch (err) {
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery, selectedCategory, priceRange, sortBy, apiUrl, params.subdomain]);
 
   useEffect(() => {
     async function load() {
       try {
-        const [storeRes, productsRes, categoriesRes] = await Promise.all([
+        const [storeRes, categoriesRes] = await Promise.all([
           fetch(`${apiUrl}/stores/${params.subdomain}/public`),
-          fetch(`${apiUrl}/products/${params.subdomain}/featured`).catch(() => null),
           fetch(`${apiUrl}/categories/${params.subdomain}`).catch(() => null),
         ]);
 
@@ -51,27 +86,42 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           setStore(storeData);
         }
 
-        if (productsRes?.ok) {
-          const data = await productsRes.json();
-          setProducts(Array.isArray(data) ? data : data.products || data.data || []);
-        }
-
         if (categoriesRes?.ok) {
           const data = await categoriesRes.json();
           setCategories(Array.isArray(data) ? data : data.categories || data.data || []);
         }
       } catch (err) {
         console.error('Error loading store data:', err);
-      } finally {
-        setLoading(false);
       }
     }
 
     load();
   }, [params.subdomain, apiUrl]);
 
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const handlePriceChange = useCallback((min: string, max: string) => {
+    setPriceRange({ min, max });
+  }, []);
+
+  const handleApplyFilters = useCallback(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+    setPriceRange({ min: '', max: '' });
+    setSortBy('newest');
+  }, []);
+
   function handleAddToCart(product: Product) {
-    const sessionId = getSessionId();
     const cartKey = `cart_${params.subdomain}`;
     const existing = localStorage.getItem(cartKey);
     const cart = existing ? JSON.parse(existing) : [];
@@ -94,7 +144,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     window.dispatchEvent(new Event('cart-updated'));
   }
 
-  if (loading) {
+  if (loading && !store) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -124,29 +174,118 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         </div>
       </section>
 
-      {categories.length > 0 && (
-        <section className="border-b px-4 py-3 sm:py-4 sm:px-6 lg:px-8">
-          <div className="mx-auto flex max-w-7xl flex-nowrap sm:flex-wrap gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/store/${params.subdomain}?categoria=${cat.slug}`}
-                className="rounded-full border bg-white px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-slate-600 hover:border-primary hover:text-primary whitespace-nowrap flex-shrink-0"
-              >
-                {cat.name}
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section id="productos" className="px-4 py-8 sm:py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Productos destacados</h2>
+          {/* Search + Filters header */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex-1 max-w-md">
+                <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} />
+              </div>
+              <div className="hidden lg:block">
+                <ProductFilters
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  priceRange={priceRange}
+                  sortBy={sortBy}
+                  onCategoryChange={setSelectedCategory}
+                  onPriceChange={handlePriceChange}
+                  onSortChange={setSortBy}
+                  onApply={handleApplyFilters}
+                  onClear={handleClearFilters}
+                  productCount={totalCount}
+                />
+              </div>
+            </div>
+
+            {/* Category chips (mobile) */}
+            {categories.length > 0 && (
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-2 lg:hidden">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    !selectedCategory ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-600'
+                  }`}
+                >
+                  Todas
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                    className={`flex-shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      selectedCategory === cat.id ? 'border-blue-500 bg-blue-50 text-blue-600' : 'border-slate-200 text-slate-600'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Mobile filter button */}
+            <div className="mt-4 lg:hidden">
+              <ProductFilters
+                categories={categories}
+                selectedCategory={selectedCategory}
+                priceRange={priceRange}
+                sortBy={sortBy}
+                onCategoryChange={setSelectedCategory}
+                onPriceChange={handlePriceChange}
+                onSortChange={setSortBy}
+                onApply={handleApplyFilters}
+                onClear={handleClearFilters}
+                productCount={totalCount}
+              />
+            </div>
+          </div>
+
+          {/* Active filters display */}
+          {(searchQuery || selectedCategory || priceRange.min || priceRange.max) && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-500">Filtros activos:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700">
+                  "{searchQuery}"
+                  <button onClick={() => setSearchQuery('')} className="hover:text-blue-900">×</button>
+                </span>
+              )}
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700">
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <button onClick={() => setSelectedCategory(null)} className="hover:text-blue-900">×</button>
+                </span>
+              )}
+              {(priceRange.min || priceRange.max) && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs text-blue-700">
+                  ${priceRange.min || '0'} - ${priceRange.max || '∞'}
+                  <button onClick={() => setPriceRange({ min: '', max: '' })} className="hover:text-blue-900">×</button>
+                </span>
+              )}
+              <button onClick={handleClearFilters} className="text-xs text-red-500 hover:underline">
+                Limpiar todo
+              </button>
+            </div>
+          )}
+
+          {/* Products grid */}
           {products.length === 0 ? (
-            <p className="mt-8 text-center text-slate-500">No hay productos disponibles por el momento.</p>
+            <div className="py-16 text-center">
+              <p className="text-lg font-medium text-slate-900">No se encontraron productos</p>
+              <p className="mt-1 text-sm text-slate-500">
+                {searchQuery ? 'Intenta con otros términos de búsqueda' : 'Prueba ajustando los filtros'}
+              </p>
+              {(searchQuery || selectedCategory || priceRange.min || priceRange.max) && (
+                <button
+                  onClick={handleClearFilters}
+                  className="mt-4 text-sm font-medium text-blue-600 hover:underline"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
           ) : (
-            <div className="mt-6 sm:mt-8 grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
                 <Link key={product.id} href={`/store/${params.subdomain}/product/${product.slug}`}>
                   <ProductCard product={product} onAddToCart={handleAddToCart} />
