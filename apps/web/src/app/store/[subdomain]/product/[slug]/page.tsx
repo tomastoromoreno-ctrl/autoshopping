@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Minus, Plus, Truck } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
+import ProductJsonLd from '@/components/JsonLd';
 
 interface ProductImage {
   url: string;
@@ -37,6 +38,7 @@ export default function ProductDetailPage({
 }) {
   const router = useRouter();
   const [product, setProduct] = useState<Product | null>(null);
+  const [store, setStore] = useState<{ name: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -44,6 +46,13 @@ export default function ProductDetailPage({
   const [addedToCart, setAddedToCart] = useState(false);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+  useEffect(() => {
+    fetch(`${apiUrl}/stores/${params.subdomain}/public`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setStore(data); })
+      .catch(() => {});
+  }, [params.subdomain, apiUrl]);
 
   useEffect(() => {
     async function loadProduct() {
@@ -60,13 +69,18 @@ export default function ProductDetailPage({
             const found = items.find(
               (p: any) => p.slug === params.slug || p.id === params.slug
             );
-            if (found) setProduct(found);
+            if (found) {
+              setProduct(found);
+              updateSeoMeta(found);
+            }
           }
           return;
         }
 
         const data = await res.json();
-        setProduct(data.product || data.data || data);
+        const p = data.product || data.data || data;
+        setProduct(p);
+        updateSeoMeta(p);
       } catch (err) {
         console.error('Error loading product:', err);
       } finally {
@@ -76,6 +90,37 @@ export default function ProductDetailPage({
 
     loadProduct();
   }, [params.subdomain, params.slug, apiUrl]);
+
+  function updateSeoMeta(p: Product) {
+    if (!p) return;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app';
+    const productUrl = `${siteUrl}/store/${params.subdomain}/product/${p.slug}`;
+    const imageUrl = p.images?.[0]?.url || `${siteUrl}/placeholder.svg`;
+
+    document.title = `${p.name} | Tienda`;
+
+    const setMeta = (name: string, content: string) => {
+      let el = document.querySelector(`meta[name="${name}"], meta[property="${name}"]`) as HTMLMetaElement;
+      if (!el) {
+        el = document.createElement('meta');
+        if (name.startsWith('og:')) el.setAttribute('property', name);
+        else el.setAttribute('name', name);
+        document.head.appendChild(el);
+      }
+      el.setAttribute('content', content);
+    };
+
+    setMeta('description', p.description || `${p.name} - $${p.price}`);
+    setMeta('og:title', p.name);
+    setMeta('og:description', p.description || `${p.name} - $${p.price}`);
+    setMeta('og:image', imageUrl);
+    setMeta('og:url', productUrl);
+    setMeta('og:type', 'product');
+    setMeta('twitter:card', 'summary_large_image');
+    setMeta('twitter:title', p.name);
+    setMeta('twitter:description', p.description || `${p.name} - $${p.price}`);
+    setMeta('twitter:image', imageUrl);
+  }
 
   function getEffectivePrice(): number {
     if (selectedVariant?.price) return selectedVariant.price;
@@ -151,6 +196,11 @@ export default function ProductDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+      <ProductJsonLd
+        subdomain={params.subdomain}
+        product={product}
+        storeName={store?.name || 'Tienda'}
+      />
       <button
         onClick={() => router.back()}
         className="mb-6 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
