@@ -12,6 +12,7 @@ export default function OnboardingPage() {
   const [subdomainCheck, setSubdomainCheck] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [tokenVerified, setTokenVerified] = useState(false);
   const [domainSuffix, setDomainSuffix] = useState('.localhost:3000');
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function OnboardingPage() {
       router.push('/auth/login');
       return;
     }
+    setTokenVerified(true);
     if (typeof window !== 'undefined') {
       setDomainSuffix(`.${window.location.host}`);
     }
@@ -58,6 +60,14 @@ export default function OnboardingPage() {
       setLoading(false);
     }
   };
+
+  if (!tokenVerified) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4">
