@@ -10,7 +10,7 @@ export class EmailService {
   async sendOrderConfirmation(order: { customer_email: string; customer_name: string; id: string; total: number; items: any[] }) {
     try {
       await this.supabase.from('email_logs').insert({
-        to: order.customer_email,
+        to_email: order.customer_email,
         subject: `Pedido #${order.id.slice(0, 8)} confirmado`,
         type: 'order_confirmation',
         status: 'sent',
@@ -23,7 +23,7 @@ export class EmailService {
   async sendOrderShipped(order: { customer_email: string; id: string; tracking?: string }) {
     try {
       await this.supabase.from('email_logs').insert({
-        to: order.customer_email,
+        to_email: order.customer_email,
         subject: `Pedido #${order.id.slice(0, 8)} enviado`,
         type: 'order_shipped',
         status: 'sent',
@@ -36,7 +36,7 @@ export class EmailService {
   async sendWelcome(user: { email: string; name: string }) {
     try {
       await this.supabase.from('email_logs').insert({
-        to: user.email,
+        to_email: user.email,
         subject: 'Bienvenido a AutoShopping',
         type: 'welcome',
         status: 'sent',
