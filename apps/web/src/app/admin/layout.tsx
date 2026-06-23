@@ -17,6 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -34,7 +35,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setUser({ name: payload.user_metadata?.name || payload.email || 'Super Admin', email: payload.email || '' });
     } catch {
       router.push('/auth/login');
+      return;
     }
+    setChecking(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -42,6 +45,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     localStorage.removeItem('access_token');
     router.push('/auth/login');
   };
+
+  if (checking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">

@@ -1,5 +1,3 @@
-const { withSentryConfig } = require('@sentry/nextjs');
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -7,6 +5,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
+  productionBrowserSourceMaps: false,
   async rewrites() {
     return [
       {
@@ -17,12 +16,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(nextConfig, {
-  org: 'autoshopping',
-  project: 'web',
-  silent: true,
-  widenClientFileUpload: true,
-  hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
-});
+module.exports = nextConfig;
