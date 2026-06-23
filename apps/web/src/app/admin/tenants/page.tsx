@@ -39,13 +39,19 @@ export default function AdminTenantsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
-  
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', subdomain: '', ownerId: '' });
   const [availableUsers, setAvailableUsers] = useState<OwnerUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [createError, setCreateError] = useState('');
   const [creating, setCreating] = useState(false);
+  const [domainSuffix, setDomainSuffix] = useState('.localhost:3000');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setDomainSuffix(`.${window.location.host}`);
+    }
+  }, []);
 
   const fetchTenants = async () => {
     setLoading(true);
@@ -284,7 +290,7 @@ export default function AdminTenantsPage() {
                     onChange={(e) => setCreateForm({ ...createForm, subdomain: e.target.value })}
                     className="flex-1 px-3 py-2 text-sm outline-none"
                   />
-                  <span className="bg-slate-50 px-3 py-2 text-sm text-slate-500 border-l font-mono">.localhost:3000</span>
+                  <span className="bg-slate-50 px-3 py-2 text-sm text-slate-500 border-l font-mono">{domainSuffix}</span>
                 </div>
               </div>
 

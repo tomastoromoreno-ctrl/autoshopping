@@ -86,6 +86,11 @@ export default function RegisterPage() {
             <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">Inicia sesión</Link>
           </p>
         </div>
+        <div className="mt-4 text-center">
+          <Link href="/" className="text-sm font-medium text-slate-500 hover:text-slate-700 transition inline-flex items-center gap-1.5">
+            ← Volver al inicio
+          </Link>
+        </div>
       </div>
     </div>
   );

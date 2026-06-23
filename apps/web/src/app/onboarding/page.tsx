@@ -12,6 +12,13 @@ export default function OnboardingPage() {
   const [subdomainCheck, setSubdomainCheck] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [domainSuffix, setDomainSuffix] = useState('.localhost:3000');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setDomainSuffix(`.${window.location.host}`);
+    }
+  }, []);
 
   const slugify = (text: string) =>
     text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').replace(/(^-|-$)/g, '');
@@ -75,12 +82,12 @@ export default function OnboardingPage() {
                 <input type="text" value={subdomain} onChange={(e) => setSubdomain(slugify(e.target.value))}
                   placeholder="mitienda" required minLength={3} maxLength={30}
                   className="flex-1 rounded-l-lg border-0 px-3 py-2.5 text-sm outline-none" />
-                <span className="flex items-center rounded-r-lg border-l bg-slate-50 px-3 text-sm text-slate-500">.tutienda.cl</span>
+                <span className="flex items-center rounded-r-lg border-l bg-slate-50 px-3 text-sm text-slate-500">{domainSuffix}</span>
               </div>
               {subdomain.length >= 3 && (
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs">
                   {subdomainCheck === 'checking' && <><Loader2 className="h-3 w-3 animate-spin text-slate-400" /><span className="text-slate-400">Verificando...</span></>}
-                  {subdomainCheck === 'available' && <><Check className="h-3 w-3 text-green-500" /><span className="text-green-600">{subdomain}.tutienda.cl está disponible</span></>}
+                  {subdomainCheck === 'available' && <><Check className="h-3 w-3 text-green-500" /><span className="text-green-600">{subdomain}{domainSuffix} está disponible</span></>}
                   {subdomainCheck === 'taken' && <><span className="text-red-500">Este subdominio ya está en uso</span></>}
                 </div>
               )}
