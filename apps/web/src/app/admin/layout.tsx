@@ -35,7 +35,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     } catch {
       router.push('/auth/login');
     }
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');

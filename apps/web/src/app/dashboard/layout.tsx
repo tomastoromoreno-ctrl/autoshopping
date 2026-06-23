@@ -45,7 +45,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       });
     } catch { router.push('/auth/login'); return; }
     setChecking(false);
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
