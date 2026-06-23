@@ -15,6 +15,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { InvoicingModule } from './modules/invoicing/invoicing.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import { SupabaseModule } from './common/supabase.module';
 
 @Module({
@@ -36,6 +37,7 @@ import { SupabaseModule } from './common/supabase.module';
     NotificationsModule,
     BlogModule,
     InvoicingModule,
+    ReviewsModule,
   ],
 })
 export class AppModule {}

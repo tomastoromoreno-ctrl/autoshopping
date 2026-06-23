@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, Minus, Plus, Truck } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
 import ProductJsonLd from '@/components/JsonLd';
+import ProductReviews from '@/components/ProductReviews';
 
 interface ProductImage {
   url: string;
@@ -335,6 +336,8 @@ export default function ProductDetailPage({
               </p>
             </div>
           )}
+
+          <ProductReviews productId={product.id} />
         </div>
       </div>
     </div>
