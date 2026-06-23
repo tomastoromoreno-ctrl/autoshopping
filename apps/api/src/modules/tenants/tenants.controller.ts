@@ -55,7 +55,6 @@ export class TenantsController {
   }
 
   @Post('verify-subdomain')
-  @UseGuards(AuthGuard)
   checkSubdomain(@Body() dto: SubdomainDto) {
     return this.tenants.verifySubdomain(dto.subdomain);
   }

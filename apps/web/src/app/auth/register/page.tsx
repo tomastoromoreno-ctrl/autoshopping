@@ -38,9 +38,8 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm rounded-xl border bg-white p-8 text-center shadow-sm">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 text-xl">✓</div>
           <h1 className="text-xl font-bold text-slate-900">Registro exitoso</h1>
-          <p className="mt-2 text-sm text-slate-500">Revisa tu correo para confirmar tu cuenta</p>
-          <Link href="/auth/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Ir a iniciar sesión</Link>
-          <Link href="/onboarding" className="mt-2 inline-block text-sm text-blue-600 hover:underline">Crear mi tienda ahora →</Link>
+          <p className="mt-2 text-sm text-slate-500">Registrado correctamente. Por favor, inicia sesión para configurar tu tienda.</p>
+          <Link href="/auth/login" className="mt-4 inline-block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">Ir a iniciar sesión</Link>
         </div>
       </div>
     );

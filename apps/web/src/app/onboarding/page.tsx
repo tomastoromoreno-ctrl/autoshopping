@@ -15,10 +15,15 @@ export default function OnboardingPage() {
   const [domainSuffix, setDomainSuffix] = useState('.localhost:3000');
 
   useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
     if (typeof window !== 'undefined') {
       setDomainSuffix(`.${window.location.host}`);
     }
-  }, []);
+  }, [router]);
 
   const slugify = (text: string) =>
     text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').replace(/(^-|-$)/g, '');
