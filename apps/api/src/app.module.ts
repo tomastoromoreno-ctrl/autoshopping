@@ -12,6 +12,9 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { BlogModule } from './modules/blog/blog.module';
+import { InvoicingModule } from './modules/invoicing/invoicing.module';
 import { SupabaseModule } from './common/supabase.module';
 
 @Module({
@@ -30,6 +33,9 @@ import { SupabaseModule } from './common/supabase.module';
     PaymentsModule,
     WebhooksModule,
     AdminModule,
+    NotificationsModule,
+    BlogModule,
+    InvoicingModule,
   ],
 })
 export class AppModule {}

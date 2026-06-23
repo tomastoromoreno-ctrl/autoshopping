@@ -114,6 +114,85 @@ export class StoresService {
     return { ...tenant, config };
   }
 
+  async getAnalytics(tenantId: string, days: number = 30) {
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const sinceISO = since.toISOString();
+
+    // Revenue by day
+    const { data: revenueData } = await this.supabase
+      .from('orders')
+      .select('total, created_at')
+      .eq('tenant_id', tenantId)
+      .not('status', 'in', '("cancelled","pending")')
+      .gte('created_at', sinceISO)
+      .order('created_at', { ascending: true });
+
+    // Orders by status
+    const { data: ordersByStatus } = await this.supabase
+      .from('orders')
+      .select('status')
+      .eq('tenant_id', tenantId)
+      .gte('created_at', sinceISO);
+
+    const statusCounts: Record<string, number> = {};
+    (ordersByStatus || []).forEach((o: any) => {
+      statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
+    });
+
+    // Revenue by day aggregation
+    const revenueByDay: { date: string; revenue: number }[] = [];
+    (revenueData || []).forEach((row: any) => {
+      const day = row.created_at.split('T')[0];
+      const existing = revenueByDay.find((r) => r.date === day);
+      if (existing) existing.revenue += Number(row.total);
+      else revenueByDay.push({ date: day, revenue: Number(row.total) });
+    });
+
+    // Total stats
+    const totalRevenue = revenueByDay.reduce((sum, r) => sum + r.revenue, 0);
+    const totalOrders = (ordersByStatus || []).length;
+
+    // Unique customers
+    const { data: customerData } = await this.supabase
+      .from('orders')
+      .select('customer_email')
+      .eq('tenant_id', tenantId)
+      .gte('created_at', sinceISO);
+    const uniqueCustomers = new Set((customerData || []).map((c: any) => c.customer_email)).size;
+
+    // Top products
+    const { data: topProducts } = await this.supabase
+      .from('order_items')
+      .select('product_name, quantity, price, orders!inner(tenant_id, created_at)')
+      .eq('orders.tenant_id', tenantId)
+      .gte('orders.created_at', sinceISO);
+
+    const productSales: Record<string, { name: string; quantity: number; revenue: number }> = {};
+    (topProducts || []).forEach((item: any) => {
+      const key = item.product_name;
+      if (productSales[key]) {
+        productSales[key].quantity += item.quantity;
+        productSales[key].revenue += item.quantity * item.price;
+      } else {
+        productSales[key] = { name: key, quantity: item.quantity, revenue: item.quantity * item.price };
+      }
+    });
+
+    const topProductsList = Object.values(productSales)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    return {
+      totalRevenue,
+      totalOrders,
+      uniqueCustomers,
+      ordersByStatus: statusCounts,
+      revenueByDay,
+      topProducts: topProductsList,
+    };
+  }
+
   async getDashboardStats(tenantId: string) {
     const { count: totalProducts } = await this.supabase
       .from('products')

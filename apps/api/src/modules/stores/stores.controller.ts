@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Patch, Param, Body, UseGuards, Req, BadRequestException,
+  Controller, Get, Post, Patch, Param, Body, UseGuards, Req, BadRequestException, Query,
 } from '@nestjs/common';
 import {
   IsString, IsOptional, IsBoolean, IsNumber, IsUUID,
@@ -120,6 +120,13 @@ export class DashboardController {
     if (!tenantId) throw new BadRequestException('No tenant associated with user');
     return this.stores.getDashboardStats(tenantId);
   }
+
+  @Get('analytics')
+  async getAnalytics(@Req() req: any, @Query('days') days?: string) {
+    const tenantId = req.user?.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    return this.stores.getAnalytics(tenantId, days ? parseInt(days) : 30);
+  }
 }
 
 @Controller('config')
@@ -153,5 +160,13 @@ export class ConfigController {
     const tenantId = req.user.tenant_id;
     if (!tenantId) throw new BadRequestException('No tenant associated with user');
     return this.stores.updateAppearance(tenantId, dto);
+  }
+
+  @Post('verify-domain')
+  async verifyDomain(@Req() req: any, @Body() body: { domain: string }) {
+    const tenantId = req.user.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    await this.stores.updateConfig(tenantId, { custom_domain: body.domain } as any);
+    return { status: 'verification_started', domain: body.domain };
   }
 }

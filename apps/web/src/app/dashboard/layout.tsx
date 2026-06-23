@@ -10,8 +10,12 @@ const navItems = [
   { href: '/dashboard/categories', label: 'Categorías', icon: '◎' },
   { href: '/dashboard/promotions', label: 'Promociones', icon: '★' },
   { href: '/dashboard/orders', label: 'Órdenes', icon: '☰' },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: '📊' },
+  { href: '/dashboard/blog', label: 'Blog', icon: '✎' },
+  { href: '/dashboard/invoicing', label: 'Facturación SII', icon: '📄' },
   { href: '/dashboard/config', label: 'Configuración', icon: '⚙' },
   { href: '/dashboard/appearance', label: 'Apariencia', icon: '◐' },
+  { href: '/dashboard/domain', label: 'Dominio', icon: '🌐' },
   { href: '/dashboard/users', label: 'Usuarios', icon: '♢' },
 ];
 
