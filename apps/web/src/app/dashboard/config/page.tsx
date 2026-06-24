@@ -15,6 +15,8 @@ interface StoreConfig {
   free_shipping_min: number;
   sales_policy: string;
   shipping_policy: string;
+  whatsapp_number: string;
+  whatsapp_message: string;
 }
 
 export default function ConfigPage() {
@@ -30,6 +32,8 @@ export default function ConfigPage() {
     free_shipping_min: 0,
     sales_policy: '',
     shipping_policy: '',
+    whatsapp_number: '',
+    whatsapp_message: 'Hola, me gustaría hacer una consulta sobre un producto.',
   });
   const [loading, setLoading] = useState(false);
 
@@ -143,6 +147,31 @@ export default function ConfigPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border bg-white p-5 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">WhatsApp Business</h2>
+          <p className="mt-1 text-sm text-slate-500">Botón flotante de WhatsApp que aparece en tu tienda para que los clientes te contacten directamente.</p>
+          <div className="mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Número de WhatsApp</label>
+              <input type="tel" placeholder="Ej: 56912345678" value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
+                aria-label="Número de WhatsApp"
+                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+              <p className="mt-1 text-xs text-slate-400">Incluye el código de país sin el signo +. Ej: 56912345678</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Mensaje predeterminado</label>
+              <textarea
+                value={form.whatsapp_message}
+                onChange={(e) => setForm({ ...form, whatsapp_message: e.target.value })}
+                rows={3}
+                placeholder="Hola, me gustaría hacer una consulta sobre un producto..."
+                className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+              />
+              <p className="mt-1 text-xs text-slate-400">Mensaje que el cliente verá al abrir WhatsApp. Déjalo vacío para usar el predeterminado.</p>
+            </div>
           </div>
         </div>
 

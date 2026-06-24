@@ -49,6 +49,8 @@ export class StoresService {
     free_shipping_min?: number | null;
     sales_policy?: string;
     shipping_policy?: string;
+    whatsapp_number?: string;
+    whatsapp_message?: string;
   }) {
     const { data, error } = await this.supabase
       .from('store_configs')
@@ -135,7 +137,7 @@ export class StoresService {
 
     const { data: config } = await this.supabase
       .from('store_configs')
-      .select('currency, payment_provider, shipping_enabled, shipping_cost, free_shipping_min, sales_policy, shipping_policy')
+      .select('currency, payment_provider, shipping_enabled, shipping_cost, free_shipping_min, sales_policy, shipping_policy, whatsapp_number, whatsapp_message')
       .eq('tenant_id', tenant.id)
       .single();
 

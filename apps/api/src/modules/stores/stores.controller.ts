@@ -53,6 +53,14 @@ class UpdateStoreConfigDto {
   @IsString()
   @IsOptional()
   shipping_policy?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsapp_number?: string;
+
+  @IsString()
+  @IsOptional()
+  whatsapp_message?: string;
 }
 
 class UpdateAppearanceDto {

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import CartIcon from '@/components/CartIcon';
 import StoreMobileNav from '@/components/StoreMobileNav';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import { StoreJsonLd } from '@/components/JsonLd';
 
 interface StoreLayoutProps {
@@ -34,6 +35,8 @@ interface StoreData {
   config?: {
     sales_policy?: string;
     shipping_policy?: string;
+    whatsapp_number?: string;
+    whatsapp_message?: string;
   };
 }
 
@@ -254,6 +257,14 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
       )}
 
       <main className="flex-1">{children}</main>
+
+      {/* WhatsApp floating button */}
+      {store.config?.whatsapp_number && (
+        <WhatsAppButton
+          phoneNumber={store.config.whatsapp_number}
+          message={store.config.whatsapp_message}
+        />
+      )}
 
       {/* Footer */}
       {store.footer_style === 'columns' ? (
