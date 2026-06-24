@@ -300,4 +300,19 @@ export class ProductsController {
     const tenantId = await this.resolveTenantId(subdomain);
     return this.products.getBestSellers(tenantId, limit ? parseInt(limit) : 10);
   }
+
+  @Post(':id/view')
+  async trackView(@Param('id') id: string, @Body('visitor_id') visitorId: string) {
+    return this.products.trackView(id, visitorId || 'anonymous');
+  }
+
+  @Get(':id/stats')
+  async getProductStats(@Param('id') id: string) {
+    return this.products.getProductStats(id);
+  }
+
+  @Get(':id/prev-next')
+  async getPrevNext(@Param('id') id: string) {
+    return this.products.getPrevNext(id);
+  }
 }

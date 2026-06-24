@@ -353,4 +353,105 @@ export class ProductsService {
     }
     return { success: true, count: results.length, data: results };
   }
+
+  async trackView(productId: string, visitorId: string) {
+    // Upsert view (unique per product + visitor + day)
+    const today = new Date().toISOString().split('T')[0];
+    await this.supabase
+      .from('product_views')
+      .upsert(
+        { product_id: productId, visitor_id: visitorId, viewed_at: new Date().toISOString() },
+        { onConflict: 'product_id,visitor_id,viewed_at', ignoreDuplicates: true }
+      )
+      .select()
+      .maybeSingle();
+
+    // Increment view_count on products
+    try {
+      await this.supabase.rpc('increment_view_count', { pid: productId });
+    } catch {
+      // Fallback: manual increment
+      const { data } = await this.supabase
+        .from('products')
+        .select('view_count')
+        .eq('id', productId)
+        .single();
+      if (data) {
+        await this.supabase
+          .from('products')
+          .update({ view_count: (data.view_count || 0) + 1 })
+          .eq('id', productId);
+      }
+    }
+
+    return { ok: true };
+  }
+
+  async getProductStats(productId: string) {
+    // Get view count
+    const { data: product } = await this.supabase
+      .from('products')
+      .select('view_count, sales_count, stock')
+      .eq('id', productId)
+      .single();
+
+    // Get unique viewers in last 24h
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count: recentViewers } = await this.supabase
+      .from('product_views')
+      .select('*', { count: 'exact', head: true })
+      .eq('product_id', productId)
+      .gte('viewed_at', since);
+
+    // Get sales in last 48h
+    const since48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const { count: recentSales } = await this.supabase
+      .from('order_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('product_id', productId)
+      .gte('created_at', since48h);
+
+    return {
+      view_count: product?.view_count || 0,
+      sales_count: product?.sales_count || 0,
+      stock: product?.stock ?? null,
+      recent_viewers: recentViewers || 0,
+      recent_sales: recentSales || 0,
+    };
+  }
+
+  async getPrevNext(productId: string) {
+    // Get current product's tenant and name
+    const { data: current } = await this.supabase
+      .from('products')
+      .select('id, tenant_id, name, slug, price, compare_at_price, images')
+      .eq('id', productId)
+      .single();
+
+    if (!current) return { prev: null, next: null };
+
+    // Get prev (product before, by name)
+    const { data: prev } = await this.supabase
+      .from('products')
+      .select('id, name, slug, price, compare_at_price, images')
+      .eq('tenant_id', current.tenant_id)
+      .eq('is_active', true)
+      .lt('name', current.name)
+      .order('name', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // Get next (product after, by name)
+    const { data: next } = await this.supabase
+      .from('products')
+      .select('id, name, slug, price, compare_at_price, images')
+      .eq('tenant_id', current.tenant_id)
+      .eq('is_active', true)
+      .gt('name', current.name)
+      .order('name', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    return { prev: prev || null, next: next || null };
+  }
 }
