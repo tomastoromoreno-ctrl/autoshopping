@@ -62,12 +62,12 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
 
   if (!banners || banners.length === 0) {
     return (
-      <section className="relative w-full min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
-        <div className="mx-auto max-w-7xl h-full flex flex-col items-center justify-center px-6 py-16 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
+      <section className="relative w-full min-h-[120px] sm:min-h-[160px] lg:min-h-[200px] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700">
+        <div className="mx-auto max-w-7xl h-full flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 text-center">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-heading font-bold text-white mb-2">
             {storeName}
           </h2>
-          <p className="text-lg sm:text-xl text-white opacity-90">
+          <p className="text-sm sm:text-base text-white opacity-90">
             Bienvenido a nuestra tienda
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
 
   return (
     <section
-      className="relative w-full min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] rounded-2xl overflow-hidden group"
+      className="relative w-full min-h-[120px] sm:min-h-[160px] lg:min-h-[200px] rounded-2xl overflow-hidden group"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -88,7 +88,7 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${banner.image_url})` }}
         >
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-black/40" />
         </div>
       ) : (
         <div
@@ -97,27 +97,27 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
         />
       )}
 
-      <div className="relative z-10 mx-auto max-w-7xl h-full flex flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="relative z-10 mx-auto max-w-7xl h-full flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 text-center">
         {banners.map((b, i) => (
           <div
             key={b.id}
-            className={`absolute inset-0 flex flex-col items-center justify-center px-6 py-16 text-center transition-all duration-500 ${
+            className={`absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 text-center transition-all duration-500 ${
               i === current ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             style={{ color: b.text_color || '#ffffff' }}
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-4">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-heading font-bold mb-1 sm:mb-2">
               {b.title}
             </h2>
             {b.subtitle && (
-              <p className="text-lg sm:text-xl opacity-90 mb-8 max-w-2xl">
+              <p className="text-xs sm:text-sm lg:text-base opacity-90 mb-3 sm:mb-4 max-w-lg">
                 {b.subtitle}
               </p>
             )}
             {b.link_url && (
               <Link
                 href={b.link_url}
-                className="inline-flex items-center bg-white text-slate-900 rounded-full px-8 py-3 font-semibold hover:bg-gray-100 transition-all"
+                className="inline-flex items-center bg-white/90 text-slate-900 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold hover:bg-white transition-all"
               >
                 {b.btn_text || 'Ver más'}
               </Link>
@@ -131,30 +131,30 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
           <button
             onClick={goPrev}
             aria-label="Anterior"
-            className={`absolute left-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/40 ${
+            className={`absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/40 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={goNext}
             aria-label="Siguiente"
-            className={`absolute right-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/40 ${
+            className={`absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/20 text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/40 ${
               isHovered ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </button>
 
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+          <div className="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
             {banners.map((b, i) => (
               <button
                 key={b.id}
                 onClick={() => goTo(i)}
                 aria-label={`Ir al banner ${i + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === current ? 'bg-white w-8' : 'bg-white/50 w-2'
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === current ? 'bg-white w-5 sm:w-6' : 'bg-white/50 w-1.5'
                 }`}
               />
             ))}
