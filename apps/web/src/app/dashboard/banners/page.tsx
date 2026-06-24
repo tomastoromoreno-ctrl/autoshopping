@@ -39,8 +39,8 @@ export default function BannersPage() {
   const [loading, setLoading] = useState(false);
 
   const load = () => {
-    api.get<{ data: Banner[] }>('/banners')
-      .then((res) => setBanners(res.data || []))
+    api.get<Banner[]>('/banners')
+      .then((res) => setBanners(Array.isArray(res) ? res : []))
       .catch(() => {});
   };
 
