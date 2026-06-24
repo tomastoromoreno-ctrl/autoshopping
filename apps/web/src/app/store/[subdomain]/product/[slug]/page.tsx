@@ -7,11 +7,6 @@ import { getSessionId } from '@/lib/session';
 import ProductJsonLd from '@/components/JsonLd';
 import ProductReviews from '@/components/ProductReviews';
 
-interface ProductImage {
-  url: string;
-  alt?: string;
-}
-
 interface ProductVariant {
   id: string;
   name: string;
@@ -26,7 +21,7 @@ interface Product {
   description?: string;
   price: number;
   compare_at_price?: number | null;
-  images?: ProductImage[];
+  images?: string[];
   stock?: number;
   sku?: string;
   variants?: ProductVariant[];
@@ -96,7 +91,7 @@ export default function ProductDetailPage({
     if (!p) return;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app';
     const productUrl = `${siteUrl}/store/${params.subdomain}/product/${p.slug}`;
-    const imageUrl = p.images?.[0]?.url || `${siteUrl}/placeholder.svg`;
+    const imageUrl = p.images?.[0] || `${siteUrl}/placeholder.svg`;
 
     document.title = `${p.name} | Tienda`;
 
@@ -155,7 +150,7 @@ export default function ProductDetailPage({
         variant_name: selectedVariant?.name,
         name: product.name,
         price: getEffectivePrice(),
-        image: product.images?.[0]?.url || '/placeholder.svg',
+        image: product.images?.[0] || '/placeholder.svg',
         quantity,
         slug: product.slug,
       });
@@ -214,14 +209,14 @@ export default function ProductDetailPage({
         <div className="space-y-4">
           <div className="aspect-square overflow-hidden rounded-xl bg-slate-100">
             <img
-              src={product.images?.[selectedImage]?.url || '/placeholder.svg'}
-              alt={product.images?.[selectedImage]?.alt || product.name}
+              src={product.images?.[selectedImage] || '/placeholder.svg'}
+              alt={product.name}
               className="h-full w-full object-cover"
             />
           </div>
           {product.images && product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
-              {product.images.map((img, idx) => (
+              {product.images.map((imgUrl, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
@@ -230,8 +225,8 @@ export default function ProductDetailPage({
                   }`}
                 >
                   <img
-                    src={img.url}
-                    alt={img.alt || ''}
+                    src={imgUrl}
+                    alt={product.name}
                     className="h-full w-full object-cover"
                   />
                 </button>
@@ -292,6 +287,7 @@ export default function ProductDetailPage({
           <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="flex items-center rounded-lg border">
               <button
+                aria-label="Disminuir cantidad"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
                 className="flex h-10 w-10 items-center justify-center text-slate-600 hover:text-slate-900 disabled:opacity-50"
@@ -302,6 +298,7 @@ export default function ProductDetailPage({
                 {quantity}
               </span>
               <button
+                aria-label="Aumentar cantidad"
                 onClick={() => setQuantity(Math.min(stock === Infinity ? 99 : stock, quantity + 1))}
                 disabled={quantity >= (stock === Infinity ? 99 : stock)}
                 className="flex h-10 w-10 items-center justify-center text-slate-600 hover:text-slate-900 disabled:opacity-50"

@@ -111,6 +111,7 @@ export default function OrdersPage() {
                     <div className="mt-3">
                       <label className="text-xs font-medium text-slate-500">Actualizar estado</label>
                       <select onChange={(e) => handleStatusUpdate(order.id, e.target.value)} value={order.status}
+                        aria-label="Actualizar estado"
                         className="mt-1 w-full rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-primary">
                         {statuses.filter((s) => s !== 'all').map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>

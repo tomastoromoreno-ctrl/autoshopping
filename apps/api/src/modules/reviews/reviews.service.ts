@@ -26,6 +26,7 @@ export class ReviewsService {
       .select('id')
       .eq('product_id', dto.product_id)
       .eq('user_id', dto.user_id)
+      .eq('tenant_id', dto.tenant_id)
       .single();
 
     if (existing.data) {
@@ -77,7 +78,7 @@ export class ReviewsService {
       .from('reviews')
       .select(`
         *,
-        users:user_id (name, avatar_url)
+        users:user_id(name, avatar_url)
       `, { count: 'exact' })
       .eq('product_id', productId)
       .eq('is_active', true)

@@ -13,7 +13,7 @@ interface Product {
   slug: string;
   price: number;
   compare_at_price?: number | null;
-  images?: { url: string }[];
+  images?: string[];
   stock?: number;
   category_id?: string;
 }
@@ -136,7 +136,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         product_id: product.id,
         name: product.name,
         price: product.price,
-        image: product.images?.[0]?.url || '/placeholder.svg',
+        image: product.images?.[0] || '/placeholder.svg',
         quantity: 1,
         slug: product.slug,
       });

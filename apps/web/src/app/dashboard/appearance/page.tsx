@@ -216,6 +216,7 @@ export default function AppearancePage() {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 accept="image/*"
+                aria-label="Subir logo"
                 className="hidden"
               />
 
@@ -245,6 +246,7 @@ export default function AppearancePage() {
                       step="0.1"
                       value={zoom}
                       onChange={(e) => setZoom(parseFloat(e.target.value))}
+                      aria-label="Zoom"
                       className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                   </div>
@@ -262,6 +264,7 @@ export default function AppearancePage() {
                       step="1"
                       value={offsetX}
                       onChange={(e) => setOffsetX(parseInt(e.target.value))}
+                      aria-label="Eje Horizontal (X)"
                       className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                   </div>
@@ -279,6 +282,7 @@ export default function AppearancePage() {
                       step="1"
                       value={offsetY}
                       onChange={(e) => setOffsetY(parseInt(e.target.value))}
+                      aria-label="Eje Vertical (Y)"
                       className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                   </div>
@@ -352,6 +356,7 @@ export default function AppearancePage() {
                 <select
                   value={form.font_family || 'Inter'}
                   onChange={(e) => setForm({ ...form, font_family: e.target.value })}
+                  aria-label="Fuente tipográfica"
                   className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:bg-white transition-all font-semibold text-slate-800"
                 >
                   <option value="Inter">Inter (Sans-serif moderna)</option>
@@ -370,6 +375,7 @@ export default function AppearancePage() {
                       type="color"
                       value={form.bg_color || '#ffffff'}
                       onChange={(e) => setForm({ ...form, bg_color: e.target.value })}
+                      aria-label="Color de fondo"
                       className="h-8 w-8 cursor-pointer rounded-lg border-0"
                     />
                     <span className="text-xs font-mono font-bold text-slate-700">{form.bg_color}</span>
@@ -383,6 +389,7 @@ export default function AppearancePage() {
                       type="color"
                       value={form.btn_color || '#3b82f6'}
                       onChange={(e) => setForm({ ...form, btn_color: e.target.value })}
+                      aria-label="Color de botones"
                       className="h-8 w-8 cursor-pointer rounded-lg border-0"
                     />
                     <span className="text-xs font-mono font-bold text-slate-700">{form.btn_color}</span>
@@ -396,6 +403,7 @@ export default function AppearancePage() {
                       type="color"
                       value={form.btn_text_color || '#ffffff'}
                       onChange={(e) => setForm({ ...form, btn_text_color: e.target.value })}
+                      aria-label="Color de texto en botones"
                       className="h-8 w-8 cursor-pointer rounded-lg border-0"
                     />
                     <span className="text-xs font-mono font-bold text-slate-700">{form.btn_text_color}</span>
@@ -409,6 +417,7 @@ export default function AppearancePage() {
                       type="color"
                       value={form.text_color || '#1e293b'}
                       onChange={(e) => setForm({ ...form, text_color: e.target.value })}
+                      aria-label="Color de texto principal"
                       className="h-8 w-8 cursor-pointer rounded-lg border-0"
                     />
                     <span className="text-xs font-mono font-bold text-slate-700">{form.text_color}</span>

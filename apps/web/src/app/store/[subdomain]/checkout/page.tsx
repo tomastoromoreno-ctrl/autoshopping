@@ -194,13 +194,14 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
               <div className="mt-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Nombre completo *</label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    required
-                    className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
+                   <input
+                     type="text"
+                     value={customerName}
+                     onChange={(e) => setCustomerName(e.target.value)}
+                     required
+                     aria-label="Nombre completo"
+                     className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
@@ -210,6 +211,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       value={customerEmail}
                       onChange={(e) => setCustomerEmail(e.target.value)}
                       required
+                      aria-label="Email"
                       className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -219,6 +221,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       type="tel"
                       value={customerPhone}
                       onChange={(e) => setCustomerPhone(e.target.value)}
+                      aria-label="Teléfono"
                       className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -237,6 +240,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
                       required
+                      aria-label="Dirección"
                       className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -248,6 +252,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         value={shippingCity}
                         onChange={(e) => setShippingCity(e.target.value)}
                         required
+                        aria-label="Ciudad"
                         className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
@@ -257,6 +262,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         type="text"
                         value={shippingState}
                         onChange={(e) => setShippingState(e.target.value)}
+                        aria-label="Estado"
                         className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
@@ -266,6 +272,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         type="text"
                         value={shippingZip}
                         onChange={(e) => setShippingZip(e.target.value)}
+                        aria-label="Código postal"
                         className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>

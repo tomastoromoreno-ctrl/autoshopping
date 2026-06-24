@@ -73,7 +73,7 @@ export default function ProductFilters({
           <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl">
             <div className="flex items-center justify-between border-b p-4">
               <h2 className="font-semibold text-slate-900">Filtros</h2>
-              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button aria-label="Cerrar filtros" onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -162,6 +162,7 @@ function FilterContent({
       <div>
         <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Ordenar por</label>
         <select
+          aria-label="Ordenar por"
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
           className="w-full rounded-lg border border-slate-200 bg-white text-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-500"

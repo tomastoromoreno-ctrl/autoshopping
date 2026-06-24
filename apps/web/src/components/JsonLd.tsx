@@ -8,7 +8,7 @@ interface ProductJsonLdProps {
     name: string;
     description?: string;
     price: number;
-    images?: { url: string }[];
+    images?: string[];
     slug: string;
     sku?: string;
     stock?: number;
@@ -19,7 +19,7 @@ interface ProductJsonLdProps {
 export default function ProductJsonLd({ subdomain, product, storeName }: ProductJsonLdProps) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app';
   const productUrl = `${siteUrl}/store/${subdomain}/product/${product.slug}`;
-  const imageUrl = product.images?.[0]?.url || `${siteUrl}/placeholder.svg`;
+  const imageUrl = product.images?.[0] || `${siteUrl}/placeholder.svg`;
 
   const jsonLd = {
     '@context': 'https://schema.org',

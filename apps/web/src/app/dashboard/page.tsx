@@ -183,6 +183,7 @@ export default function DashboardPage() {
                     type="text"
                     readOnly
                     value={getStoreUrl()}
+                    aria-label="URL de la tienda"
                     className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono text-slate-600 outline-none select-all"
                   />
                   <button

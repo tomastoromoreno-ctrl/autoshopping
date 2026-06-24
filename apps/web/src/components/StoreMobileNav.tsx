@@ -30,6 +30,7 @@ export default function StoreMobileNav({ subdomain }: StoreMobileNavProps) {
             <div className="flex items-center justify-between border-b px-4 py-3">
               <span className="text-sm font-bold text-slate-900">Menú</span>
               <button
+                aria-label="Cerrar menú"
                 onClick={() => setOpen(false)}
                 className="rounded-lg p-1.5 text-slate-400 hover:text-slate-600"
               >

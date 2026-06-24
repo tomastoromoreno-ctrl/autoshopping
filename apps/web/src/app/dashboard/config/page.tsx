@@ -60,6 +60,7 @@ export default function ConfigPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700">Moneda</label>
               <select value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                aria-label="Moneda"
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
                 <option value="CLP">CLP (Peso chileno)</option>
                 <option value="ARS">ARS (Peso argentino)</option>
@@ -69,6 +70,7 @@ export default function ConfigPage() {
             <div>
               <label className="block text-sm font-medium text-slate-700">Proveedor de pago</label>
               <select value={form.payment_provider} onChange={(e) => setForm({ ...form, payment_provider: e.target.value })}
+                aria-label="Proveedor de pago"
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
                 <option value="mercadopago">MercadoPago</option>
                 <option value="transbank">Transbank</option>
@@ -84,11 +86,13 @@ export default function ConfigPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">Access Token</label>
                 <input type="password" value={form.mercadopago_access_token} onChange={(e) => setForm({ ...form, mercadopago_access_token: e.target.value })}
+                  aria-label="Access Token de MercadoPago"
                   className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Public Key</label>
                 <input type="password" value={form.mercadopago_public_key} onChange={(e) => setForm({ ...form, mercadopago_public_key: e.target.value })}
+                  aria-label="Public Key de MercadoPago"
                   className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
             </div>
@@ -102,11 +106,13 @@ export default function ConfigPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700">API Key</label>
                 <input type="password" value={form.transbank_api_key} onChange={(e) => setForm({ ...form, transbank_api_key: e.target.value })}
+                  aria-label="API Key de Transbank"
                   className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700">Código de Comercio</label>
                 <input type="text" value={form.transbank_commerce_code} onChange={(e) => setForm({ ...form, transbank_commerce_code: e.target.value })}
+                  aria-label="Código de Comercio de Transbank"
                   className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
             </div>
@@ -126,11 +132,13 @@ export default function ConfigPage() {
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Costo de envío</label>
                   <input type="number" step="0.01" value={form.shipping_cost} onChange={(e) => setForm({ ...form, shipping_cost: Number(e.target.value) })}
+                    aria-label="Costo de envío"
                     className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Envío gratis desde</label>
                   <input type="number" step="0.01" value={form.free_shipping_min} onChange={(e) => setForm({ ...form, free_shipping_min: Number(e.target.value) })}
+                    aria-label="Envío gratis desde"
                     className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
               </>

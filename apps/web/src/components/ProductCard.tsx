@@ -6,7 +6,7 @@ interface Product {
   slug: string;
   price: number;
   compare_at_price?: number | null;
-  images?: { url: string }[];
+  images?: string[];
   stock?: number;
 }
 
@@ -16,7 +16,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const imageUrl = product.images?.[0]?.url || '/placeholder.svg';
+  const imageUrl = product.images?.[0] || '/placeholder.svg';
   const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
   const discountPercent = hasDiscount
     ? Math.round(((product.compare_at_price! - product.price) / product.compare_at_price!) * 100)

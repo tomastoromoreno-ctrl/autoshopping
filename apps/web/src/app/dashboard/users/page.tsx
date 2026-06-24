@@ -61,6 +61,7 @@ export default function UsersPage() {
                 <td className="px-4 py-3 text-slate-500">{user.email}</td>
                 <td className="px-4 py-3">
                   <select value={user.role} onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                    aria-label="Rol del usuario"
                     className="rounded-lg border px-2 py-1 text-xs outline-none focus:border-primary">
                     <option value="admin">admin</option>
                     <option value="manager">manager</option>

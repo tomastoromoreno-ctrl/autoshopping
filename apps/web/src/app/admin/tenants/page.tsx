@@ -157,6 +157,7 @@ export default function AdminTenantsPage() {
           )}
         </form>
         <select
+          aria-label="Filtrar por estado"
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
@@ -298,6 +299,7 @@ export default function AdminTenantsPage() {
                 <label className="block text-sm font-medium text-slate-700">Usuario Propietario (Dueño)</label>
                 <select
                   required
+                  aria-label="Seleccionar usuario propietario"
                   value={createForm.ownerId}
                   onChange={(e) => setCreateForm({ ...createForm, ownerId: e.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"

@@ -99,6 +99,7 @@ export default function PromotionsPage() {
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
               <div className="flex gap-3">
                 <select value={form.discount_type} onChange={(e) => setForm({ ...form, discount_type: e.target.value })}
+                  aria-label="Tipo de descuento"
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
                   <option value="percentage">Porcentaje</option>
                   <option value="fixed">Monto fijo</option>
@@ -112,11 +113,13 @@ export default function PromotionsPage() {
                 <div className="w-full">
                   <label className="mb-1 block text-xs text-slate-500">Fecha inicio</label>
                   <input type="date" value={form.starts_at ? form.starts_at.split('T')[0] : ''} onChange={(e) => setForm({ ...form, starts_at: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                    aria-label="Fecha inicio"
                     className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
                 <div className="w-full">
                   <label className="mb-1 block text-xs text-slate-500">Fecha fin</label>
                   <input type="date" value={form.ends_at ? form.ends_at.split('T')[0] : ''} onChange={(e) => setForm({ ...form, ends_at: e.target.value ? new Date(e.target.value + 'T23:59:59').toISOString() : '' })}
+                    aria-label="Fecha fin"
                     className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
               </div>

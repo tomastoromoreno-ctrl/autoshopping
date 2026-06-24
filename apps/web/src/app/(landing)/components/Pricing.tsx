@@ -119,6 +119,7 @@ export default function Pricing() {
               
               <input
                 type="range"
+                aria-label="Ventas mensuales estimadas"
                 min="500000"
                 max="25000000"
                 step="500000"

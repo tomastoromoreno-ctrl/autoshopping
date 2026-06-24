@@ -161,6 +161,7 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
               <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto mt-2 sm:mt-0">
                 <div className="flex items-center rounded-lg border">
                   <button
+                    aria-label="Disminuir cantidad"
                     onClick={() => updateQuantity(item.cart_item_key, -1)}
                     disabled={item.quantity <= 1}
                     className="flex h-8 w-8 items-center justify-center text-slate-600 hover:text-slate-900 disabled:opacity-50"
@@ -171,6 +172,7 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
                     {item.quantity}
                   </span>
                   <button
+                    aria-label="Aumentar cantidad"
                     onClick={() => updateQuantity(item.cart_item_key, 1)}
                     className="flex h-8 w-8 items-center justify-center text-slate-600 hover:text-slate-900"
                   >
@@ -178,6 +180,7 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
                   </button>
                 </div>
                 <button
+                  aria-label="Eliminar producto"
                   onClick={() => removeItem(item.cart_item_key)}
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
                 >

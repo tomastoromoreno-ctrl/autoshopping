@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 
 interface Review {
   id: string;
+  user_id: string;
   rating: number;
   title?: string;
   comment?: string;
@@ -22,10 +23,9 @@ interface ReviewStats {
 
 interface ProductReviewsProps {
   productId: string;
-  currentUserId?: string;
 }
 
-export default function ProductReviews({ productId, currentUserId }: ProductReviewsProps) {
+export default function ProductReviews({ productId }: ProductReviewsProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +36,17 @@ export default function ProductReviews({ productId, currentUserId }: ProductRevi
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(payload.sub || payload.id || null);
+      }
+    } catch {}
+  }, []);
 
   const loadReviews = async () => {
     try {
@@ -259,7 +270,7 @@ export default function ProductReviews({ productId, currentUserId }: ProductRevi
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400">{new Date(review.created_at).toLocaleDateString('es-CL')}</span>
-                  {currentUserId && currentUserId === review.users?.name && (
+                  {currentUserId && currentUserId === review.user_id && (
                     <button onClick={() => handleDelete(review.id)} className="text-slate-400 hover:text-red-500">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

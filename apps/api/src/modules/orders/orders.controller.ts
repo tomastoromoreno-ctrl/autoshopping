@@ -79,16 +79,16 @@ export class OrdersController {
     return this.orders.listByTenant(tenantId, query);
   }
 
-  @Get(':tenantId')
-  @UseGuards(AuthGuard)
-  listByTenant(
-    @Param('tenantId') tenantId: string,
-    @Query() query: ListOrdersQuery,
+  @Get('customer/:email')
+  getByEmail(
+    @Param('email') email: string,
+    @Query('tenant_id') tenantId: string,
   ) {
-    return this.orders.listByTenant(tenantId, query);
+    return this.orders.findByEmail(email, tenantId);
   }
 
   @Get('single/:id')
+  @UseGuards(AuthGuard)
   getById(@Param('id') id: string) {
     return this.orders.findById(id);
   }
@@ -102,11 +102,12 @@ export class OrdersController {
     return this.orders.updateStatus(id, dto);
   }
 
-  @Get('customer/:email')
-  getByEmail(
-    @Param('email') email: string,
-    @Query('tenant_id') tenantId: string,
+  @Get(':tenantId')
+  @UseGuards(AuthGuard)
+  listByTenant(
+    @Param('tenantId') tenantId: string,
+    @Query() query: ListOrdersQuery,
   ) {
-    return this.orders.findByEmail(email, tenantId);
+    return this.orders.listByTenant(tenantId, query);
   }
 }

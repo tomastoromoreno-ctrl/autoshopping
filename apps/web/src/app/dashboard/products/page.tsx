@@ -278,6 +278,7 @@ export default function ProductsPage() {
         <input type="text" placeholder="Buscar productos..." value={search} onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border px-3 py-2 text-sm w-full sm:w-64 outline-none focus:border-primary" />
         <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}
+          aria-label="Filtrar por categoría"
           className="rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary w-full sm:w-auto">
           <option value="">Todas las categorías</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -300,6 +301,7 @@ export default function ProductsPage() {
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+                aria-label="Categoría del producto"
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
                 <option value="">Sin categoría</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

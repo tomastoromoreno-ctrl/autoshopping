@@ -92,6 +92,7 @@ export default function CategoriesPage() {
               <input type="text" placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
               <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+                aria-label="Categoría padre"
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
                 <option value="">Sin padre (raíz)</option>
                 {categories.filter((c) => !c.parent_id).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
