@@ -4,6 +4,7 @@ import {
 import {
   IsString, IsOptional, IsBoolean, IsNumber, IsUUID, IsArray, IsObject, IsInt, Min,
 } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 import { ProductsService } from './products.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -148,14 +149,17 @@ class ListProductsQuery {
   @IsOptional()
   search?: string;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   min_price?: number;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   max_price?: number;
 
+  @Transform(({ value }: { value: string }) => value === 'true' ? true : value === 'false' ? false : undefined)
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
@@ -164,11 +168,13 @@ class ListProductsQuery {
   @IsOptional()
   sort?: string;
 
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @IsOptional()
   page?: number;
 
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @IsOptional()

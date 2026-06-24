@@ -31,6 +31,8 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ name: '', price: '', stock: '', category_id: '', images: '', slug: '' });
   const [loading, setLoading] = useState(false);
+  const [sortCol, setSortCol] = useState<'name' | 'price' | 'stock'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   // Excel importer states
   const [showImportModal, setShowImportModal] = useState(false);
@@ -183,6 +185,25 @@ export default function ProductsPage() {
     const matchCat = !filterCategory || p.category?.id === filterCategory;
     return matchSearch && matchCat;
   });
+
+  const handleSort = (col: 'name' | 'price' | 'stock') => {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('asc'); }
+  };
+
+  const sortedFiltered = [...filtered].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    if (sortCol === 'name') return a.name.localeCompare(b.name) * dir;
+    if (sortCol === 'price') return (a.price - b.price) * dir;
+    if (sortCol === 'stock') return ((a.stock ?? 0) - (b.stock ?? 0)) * dir;
+    return 0;
+  });
+
+  const SortIcon = ({ col }: { col: 'name' | 'price' | 'stock' }) => (
+    <span className="ml-1 inline-block text-xs">
+      {sortCol === col ? (sortDir === 'asc' ? '↑' : '↓') : <span className="text-slate-300">↕</span>}
+    </span>
+  );
 
   const openNew = () => {
     setEditing(null);
@@ -461,22 +482,34 @@ export default function ProductsPage() {
           <thead>
             <tr className="border-b bg-slate-50 text-slate-500">
               <th className="px-4 py-3 font-medium">Imagen</th>
-              <th className="px-4 py-3 font-medium">Nombre</th>
-              <th className="px-4 py-3 font-medium">Precio</th>
-              <th className="px-4 py-3 font-medium">Stock</th>
+              <th className="px-4 py-3 font-medium">
+                <button onClick={() => handleSort('name')} className="flex items-center hover:text-slate-800">
+                  Nombre<SortIcon col="name" />
+                </button>
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <button onClick={() => handleSort('price')} className="flex items-center hover:text-slate-800">
+                  Precio<SortIcon col="price" />
+                </button>
+              </th>
+              <th className="px-4 py-3 font-medium">
+                <button onClick={() => handleSort('stock')} className="flex items-center hover:text-slate-800">
+                  Stock<SortIcon col="stock" />
+                </button>
+              </th>
               <th className="px-4 py-3 font-medium">Categoría</th>
               <th className="px-4 py-3 font-medium">Estado</th>
               <th className="px-4 py-3 font-medium">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => (
+            {sortedFiltered.map((p) => (
               <tr key={p.id} className="border-b last:border-b-0 hover:bg-slate-50">
                 <td className="px-4 py-3">
                   {p.images?.[0] ? <img src={p.images[0]} alt="" className="h-10 w-10 rounded-lg object-cover" /> : <div className="h-10 w-10 rounded-lg bg-slate-100" />}
                 </td>
                 <td className="px-4 py-3 font-medium text-slate-900">{p.name}</td>
-                <td className="px-4 py-3">${p.price.toLocaleString()}</td>
+                <td className="px-4 py-3">${p.price.toLocaleString('es-CL')}</td>
                 <td className="px-4 py-3">{p.stock}</td>
                 <td className="px-4 py-3 text-slate-500">{p.category?.name || '-'}</td>
                 <td className="px-4 py-3">
@@ -490,7 +523,7 @@ export default function ProductsPage() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && (
+            {sortedFiltered.length === 0 && (
               <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">No hay productos</td></tr>
             )}
           </tbody>

@@ -37,6 +37,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [categories, setCategories] = useState<Category[]>([]);
   const [store, setStore] = useState<StoreData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [storeNotFound, setStoreNotFound] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,7 +52,6 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const fetchProducts = useCallback(async () => {
     try {
       const queryParams = new URLSearchParams();
-      queryParams.set('is_active', 'true');
       if (searchQuery) queryParams.set('search', searchQuery);
       if (selectedCategory) queryParams.set('category_id', selectedCategory);
       if (priceRange.min) queryParams.set('min_price', priceRange.min);
@@ -84,6 +84,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         if (storeRes.ok) {
           const storeData = await storeRes.json();
           setStore(storeData);
+        } else {
+          setStoreNotFound(true);
         }
 
         if (categoriesRes?.ok) {
@@ -144,7 +146,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     window.dispatchEvent(new Event('cart-updated'));
   }
 
-  if (loading && !store) {
+  // Show spinner while still loading — never flash 404 prematurely
+  if (loading && !store && !storeNotFound) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -152,7 +155,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     );
   }
 
-  if (!store) {
+  if (storeNotFound || (!loading && !store)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center">
         <h1 className="text-4xl font-bold text-slate-900">404</h1>
@@ -160,6 +163,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       </div>
     );
   }
+
+  if (!store) return null;
 
   return (
     <>
