@@ -108,6 +108,18 @@ export class ProductsService {
     return data;
   }
 
+  async findBySlug(tenantId: string, slug: string) {
+    const { data, error } = await this.supabase
+      .from('products')
+      .select('*, category:categories(id,name)')
+      .eq('tenant_id', tenantId)
+      .eq('slug', slug)
+      .single();
+
+    if (error || !data) throw new NotFoundException('Product not found');
+    return data;
+  }
+
   async findByIdWithVariants(id: string) {
     const { data: product, error: productError } = await this.supabase
       .from('products')

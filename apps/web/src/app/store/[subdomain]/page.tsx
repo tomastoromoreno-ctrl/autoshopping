@@ -74,6 +74,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [showError, setShowError] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -156,6 +157,15 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     load();
   }, [params.subdomain, apiUrl]);
 
+  // Only show error state after 5s if store never loaded
+  useEffect(() => {
+    if (!loading && !store) {
+      const timer = setTimeout(() => setShowError(true), 5000);
+      return () => clearTimeout(timer);
+    }
+    if (store) setShowError(false);
+  }, [loading, store]);
+
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -202,7 +212,19 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     window.dispatchEvent(new Event('cart-updated'));
   }
 
-  if (loading && !store) {
+  if (!store) {
+    if (showError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 mb-6">
+            <Package className="h-10 w-10 text-slate-400" />
+          </div>
+          <h1 className="text-4xl font-heading font-bold text-slate-900">Tienda no disponible</h1>
+          <p className="mt-2 text-lg text-slate-500">No se pudo cargar la tienda</p>
+          <button onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90">Reintentar</button>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -224,19 +246,6 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (!store) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 mb-6">
-          <Package className="h-10 w-10 text-slate-400" />
-        </div>
-        <h1 className="text-4xl font-heading font-bold text-slate-900">Tienda no disponible</h1>
-        <p className="mt-2 text-lg text-slate-500">No se pudo cargar la tienda</p>
-        <button onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90">Reintentar</button>
       </div>
     );
   }

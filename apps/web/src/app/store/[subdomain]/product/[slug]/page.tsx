@@ -88,19 +88,14 @@ export default function ProductDetailPage({
   useEffect(() => {
     async function loadProduct() {
       try {
-        const res = await fetch(`${apiUrl}/products/${params.subdomain}?slug=${params.slug}`).catch(() => null);
+        // Always fetch the product list and find by slug
+        const listRes = await fetch(`${apiUrl}/products/${params.subdomain}`).catch(() => null);
         let p: Product | null = null;
 
-        if (res?.ok) {
-          const data = await res.json();
-          p = data.product || data.data || data;
-        } else {
-          const listRes = await fetch(`${apiUrl}/products/${params.subdomain}`).catch(() => null);
-          if (listRes?.ok) {
-            const data = await listRes.json();
-            const items = Array.isArray(data) ? data : data.products || data.data || [];
-            p = items.find((item: any) => item.slug === params.slug || item.id === params.slug) || null;
-          }
+        if (listRes?.ok) {
+          const data = await listRes.json();
+          const items: any[] = Array.isArray(data) ? data : data.products || data.data || [];
+          p = items.find((item: any) => item.slug === params.slug || item.id === params.slug) || null;
         }
 
         if (p) {
