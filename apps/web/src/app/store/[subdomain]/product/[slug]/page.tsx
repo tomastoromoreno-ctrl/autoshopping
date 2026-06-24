@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, Minus, Plus, Truck } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
+import { formatPrice } from '@/lib/format';
 import ProductJsonLd from '@/components/JsonLd';
 import ProductReviews from '@/components/ProductReviews';
 
@@ -242,11 +243,11 @@ export default function ProductDetailPage({
 
           <div className="mt-3 sm:mt-4 flex items-baseline gap-2 sm:gap-3">
             <span className="text-2xl sm:text-3xl font-bold text-slate-900">
-              ${effectivePrice.toFixed(2)}
+              ${formatPrice(effectivePrice)}
             </span>
             {hasDiscount && (
               <span className="text-lg text-slate-500 line-through">
-                ${Number(product.compare_at_price).toFixed(2)}
+                ${formatPrice(product.compare_at_price)}
               </span>
             )}
           </div>
@@ -279,7 +280,7 @@ export default function ProductDetailPage({
                     disabled={variant.stock !== undefined && variant.stock <= 0}
                   >
                     {variant.name}
-                    {variant.price ? ` - $${variant.price.toFixed(2)}` : ''}
+                    {variant.price ? ` - ${formatPrice(variant.price)}` : ''}
                   </button>
                 ))}
               </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search, Package, Clock, ChevronRight } from 'lucide-react';
+import { formatPrice } from '@/lib/format';
 
 interface OrderItem {
   product_id: string;
@@ -156,7 +157,7 @@ export default function OrdersPage({ params }: { params: { subdomain: string } }
                       </div>
                     </div>
                     <span className="text-lg font-bold text-slate-900">
-                      ${Number(order.total).toFixed(2)}
+                      ${formatPrice(order.total)}
                     </span>
                   </div>
 
@@ -170,7 +171,7 @@ export default function OrdersPage({ params }: { params: { subdomain: string } }
                               <span className="text-slate-400">x{item.quantity}</span>
                             </span>
                             <span className="font-medium text-slate-900">
-                              ${(item.price * item.quantity).toFixed(2)}
+                              ${formatPrice(item.price * item.quantity)}
                             </span>
                           </div>
                         ))}

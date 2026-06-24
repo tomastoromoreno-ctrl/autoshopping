@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CreditCard, Building2, Wallet } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
+import { formatPrice } from '@/lib/format';
 
 interface CartItem {
   cart_item_key: string;
@@ -329,7 +330,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       <p className="text-xs text-slate-500">x{item.quantity}</p>
                     </div>
                     <span className="text-xs font-semibold text-slate-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${formatPrice(item.price * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -337,20 +338,20 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
               <div className="mt-4 space-y-2 border-t pt-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">${formatPrice(subtotal)}</span>
                 </div>
                 {storeConfig?.shipping_enabled && (
                   <div className="flex justify-between">
                     <span className="text-slate-600">Envío</span>
                     <span className="font-medium">
-                      {shipping === 0 ? 'Gratis' : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? 'Gratis' : `${formatPrice(shipping)}`}
                     </span>
                   </div>
                 )}
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-base font-bold text-slate-900">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${formatPrice(total)}</span>
                   </div>
                 </div>
               </div>

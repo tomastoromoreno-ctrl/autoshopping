@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
+import { formatPrice } from '@/lib/format';
 
 interface CartItem {
   cart_item_key: string;
@@ -155,7 +156,7 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
                   <p className="mt-0.5 text-xs text-slate-500">{item.variant_name}</p>
                 )}
                 <p className="mt-1 text-sm font-semibold text-slate-900">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ${formatPrice(item.price * item.quantity)}
                 </p>
               </div>
               <div className="flex items-center gap-2 sm:gap-3 self-end sm:self-auto mt-2 sm:mt-0">
@@ -214,7 +215,7 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
               )}
               {couponDiscount > 0 && (
                 <p className="mt-1 text-xs text-green-600">
-                  Cupón aplicado: -${discount.toFixed(2)}
+                  Cupón aplicado: -${formatPrice(discount)}
                 </p>
               )}
             </div>
@@ -224,24 +225,24 @@ export default function CartPage({ params }: { params: { subdomain: string } }) 
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium text-slate-900">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium text-slate-900">${formatPrice(subtotal)}</span>
                 </div>
                 {couponDiscount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>Descuento</span>
-                    <span>-${discount.toFixed(2)}</span>
+                    <span>-${formatPrice(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-slate-600">Envío</span>
                   <span className="font-medium text-slate-900">
-                    {shipping === 0 ? 'Gratis' : `$${shipping.toFixed(2)}`}
+                    {shipping === 0 ? 'Gratis' : `${formatPrice(shipping)}`}
                   </span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-base font-bold text-slate-900">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${formatPrice(total)}</span>
                   </div>
                 </div>
               </div>

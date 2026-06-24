@@ -1,5 +1,7 @@
 'use client';
 
+import { formatPrice } from '@/lib/format';
+
 interface Product {
   id: string;
   name: string;
@@ -49,11 +51,11 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <h3 className="text-xs sm:text-sm font-medium text-slate-900 line-clamp-2">{product.name}</h3>
         <div className="mt-1 sm:mt-2 flex items-center gap-1 sm:gap-2">
           <span className="text-sm sm:text-lg font-bold text-slate-900">
-            ${Number(product.price).toFixed(2)}
+            ${formatPrice(product.price)}
           </span>
           {hasDiscount && (
             <span className="text-[10px] sm:text-sm text-slate-500 line-through">
-              ${Number(product.compare_at_price).toFixed(2)}
+              ${formatPrice(product.compare_at_price)}
             </span>
           )}
         </div>
