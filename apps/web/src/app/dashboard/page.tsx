@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
-import { Copy, Check, Download, ExternalLink, Share2 } from 'lucide-react';
+import { Copy, Check, Download, ExternalLink, Share2, TrendingUp, ShoppingBag, DollarSign, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface DashboardStats {
   totalProducts: number;
@@ -17,6 +18,31 @@ interface RecentOrder {
   total: number;
   status: string;
   created_at: string;
+}
+
+// Animated counter
+function AnimatedNumber({ value, prefix = '' }: { value: number; prefix?: string }) {
+  const [display, setDisplay] = useState(0);
+  const ref = useRef<number>(0);
+
+  useEffect(() => {
+    const start = ref.current;
+    const end = value;
+    const duration = 800;
+    const startTime = Date.now();
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + (end - start) * eased));
+      if (progress < 1) requestAnimationFrame(animate);
+      else ref.current = end;
+    };
+    animate();
+  }, [value]);
+
+  return <span>{prefix}{display.toLocaleString('es-CL')}</span>;
 }
 
 export default function DashboardPage() {
@@ -68,44 +94,92 @@ export default function DashboardPage() {
   };
 
   const statCards = [
-    { label: 'Total productos', value: stats?.totalProducts ?? 0 },
-    { label: 'Total órdenes', value: stats?.totalOrders ?? 0 },
-    { label: 'Ingresos totales', value: `$${(stats?.totalRevenue ?? 0).toLocaleString()}` },
-    { label: 'Órdenes pendientes', value: stats?.pendingOrders ?? 0 },
+    { label: 'Total productos', value: stats?.totalProducts ?? 0, icon: ShoppingBag, color: 'from-blue-500 to-blue-600', change: '+12%', up: true },
+    { label: 'Total órdenes', value: stats?.totalOrders ?? 0, icon: TrendingUp, color: 'from-indigo-500 to-indigo-600', change: '+8%', up: true },
+    { label: 'Ingresos totales', value: stats?.totalRevenue ?? 0, prefix: '$', icon: DollarSign, color: 'from-emerald-500 to-emerald-600', change: '+24%', up: true },
+    { label: 'Órdenes pendientes', value: stats?.pendingOrders ?? 0, icon: Clock, color: 'from-amber-500 to-orange-500', change: stats?.pendingOrders ? `${stats.pendingOrders}` : '0', up: false },
   ];
 
   const statusColors: Record<string, string> = {
-    pending: 'text-yellow-600 bg-yellow-50',
-    confirmed: 'text-blue-600 bg-blue-50',
-    processing: 'text-indigo-600 bg-indigo-50',
-    shipped: 'text-purple-600 bg-purple-50',
-    delivered: 'text-green-600 bg-green-50',
-    cancelled: 'text-red-600 bg-red-50',
+    pending: 'text-yellow-700 bg-yellow-50 border-yellow-200',
+    confirmed: 'text-blue-700 bg-blue-50 border-blue-200',
+    processing: 'text-indigo-700 bg-indigo-50 border-indigo-200',
+    shipped: 'text-purple-700 bg-purple-50 border-purple-200',
+    delivered: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+    cancelled: 'text-red-700 bg-red-50 border-red-200',
+  };
+
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente',
+    confirmed: 'Confirmado',
+    processing: 'Procesando',
+    shipped: 'Enviado',
+    delivered: 'Entregado',
+    cancelled: 'Cancelado',
   };
 
   return (
     <div className="space-y-8">
-      <div>
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+      >
         <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Dashboard</h1>
         <p className="text-xs sm:text-sm text-slate-500">Bienvenido al panel de administración de tu tienda.</p>
-      </div>
+      </motion.div>
 
-      {/* Tarjetas de Estadísticas */}
+      {/* Animated Stat Cards */}
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col justify-between">
-            <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
-            <span className="mt-1 sm:mt-2 text-2xl sm:text-3xl font-black text-slate-955 tracking-tight">{card.value}</span>
-          </div>
-        ))}
+        {statCards.map((card, i) => {
+          const Icon = card.icon;
+          return (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, delay: i * 0.1, ease: 'easeOut' }}
+              whileHover={{ y: -4, scale: 1.02 }}
+              className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm flex flex-col justify-between cursor-default group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">{card.label}</span>
+                <div className={`p-2 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-sm transition-transform duration-200 group-hover:scale-110`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="flex items-end justify-between">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  <AnimatedNumber value={card.value} prefix={card.prefix} />
+                </span>
+                <span className={`flex items-center gap-0.5 text-[10px] font-bold ${card.up ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {card.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {card.change}
+                </span>
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Grilla Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 items-start">
         {/* Columna Izquierda: Órdenes Recientes */}
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight">Órdenes recientes</h2>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-lg font-bold text-slate-900 tracking-tight"
+          >
+            Órdenes recientes
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.4 }}
+            className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm"
+          >
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -117,19 +191,27 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-4 font-mono text-xs text-slate-500">#{order.id.slice(0, 8)}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-800">{order.customer_name}</td>
-                    <td className="px-5 py-4 font-black text-slate-900">${order.total.toLocaleString()}</td>
-                    <td className="px-5 py-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 text-xs text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
-                  </tr>
-                ))}
+                <AnimatePresence>
+                  {recentOrders.map((order, i) => (
+                    <motion.tr
+                      key={order.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + i * 0.05, duration: 0.3 }}
+                      className="hover:bg-slate-50/50 transition-colors duration-150"
+                    >
+                      <td className="px-5 py-4 font-mono text-xs text-slate-500">#{order.id.slice(0, 8)}</td>
+                      <td className="px-5 py-4 font-semibold text-slate-800">{order.customer_name}</td>
+                      <td className="px-5 py-4 font-black text-slate-900">${order.total.toLocaleString()}</td>
+                      <td className="px-5 py-4">
+                        <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${statusColors[order.status] || 'text-slate-600 bg-slate-50 border-slate-200'}`}>
+                          {statusLabels[order.status] || order.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-xs text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
                 {recentOrders.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-5 py-10 text-center text-sm font-semibold text-slate-400">
@@ -139,36 +221,53 @@ export default function DashboardPage() {
                 )}
               </tbody>
             </table>
-          </div>
+          </motion.div>
         </div>
 
         {/* Columna Derecha: Compartir Tienda Widget */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight">Compartir tu Tienda</h2>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="text-lg font-bold text-slate-900 tracking-tight"
+          >
+            Compartir tu Tienda
+          </motion.h2>
           {tenant ? (
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center text-center space-y-5">
-              <div className="p-3 rounded-xl bg-blue-50 text-blue-600">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.4 }}
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col items-center text-center space-y-5"
+            >
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20"
+              >
                 <Share2 className="w-6 h-6" />
-              </div>
+              </motion.div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900">Enlace de tu e-commerce</h3>
                 <p className="text-xs text-slate-500 mt-0.5">Comparte el acceso directo a tu catálogo público.</p>
               </div>
 
               {/* QR Code Container */}
-              <div className="relative w-40 h-40 rounded-2xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center p-2 shadow-inner">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="relative w-40 h-40 rounded-2xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center p-2 shadow-inner"
+              >
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(getStoreUrl())}`}
                   alt="Código QR de la tienda"
                   className="w-full h-full object-contain"
                 />
-              </div>
+              </motion.div>
 
-              {/* Botones de acción QR */}
               <button
                 type="button"
                 onClick={handleDownloadQR}
-                className="flex items-center justify-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                className="flex items-center justify-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
               >
                 <Download className="w-3.5 h-3.5" />
                 Descargar Código QR
@@ -176,7 +275,6 @@ export default function DashboardPage() {
 
               <hr className="w-full border-slate-100" />
 
-              {/* Input de URL y Copiar */}
               <div className="w-full space-y-2">
                 <div className="flex gap-2">
                   <input
@@ -186,10 +284,11 @@ export default function DashboardPage() {
                     aria-label="URL de la tienda"
                     className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono text-slate-600 outline-none select-all"
                   />
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     type="button"
                     onClick={handleCopyLink}
-                    className={`rounded-xl px-3 py-2 text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+                    className={`rounded-xl px-3 py-2 text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1 ${
                       copied
                         ? 'bg-emerald-500 text-white shadow-emerald-500/20 shadow-md'
                         : 'bg-slate-900 text-white hover:bg-slate-800'
@@ -197,20 +296,22 @@ export default function DashboardPage() {
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {copied ? 'Copiado' : 'Copiar'}
-                  </button>
+                  </motion.button>
                 </div>
 
-                <a
+                <motion.a
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   href={getStoreUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full rounded-xl border border-slate-200 hover:border-slate-300 bg-white py-2.5 text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-1.5 hover:bg-slate-50"
+                  className="w-full rounded-xl border border-slate-200 hover:border-slate-300 bg-white py-2.5 text-xs font-bold text-slate-700 transition-all duration-200 flex items-center justify-center gap-1.5 hover:bg-slate-50"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   Visitar Tienda Pública
-                </a>
+                </motion.a>
               </div>
-            </div>
+            </motion.div>
           ) : (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-400">
               Cargando datos de la tienda...
