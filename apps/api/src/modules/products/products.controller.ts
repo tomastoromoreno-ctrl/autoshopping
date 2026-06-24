@@ -97,6 +97,14 @@ class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  is_featured?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  is_new?: boolean;
 }
 
 class CreateVariantDto {

@@ -139,6 +139,8 @@ export class ProductsService {
     sku?: string;
     images?: string[];
     is_active?: boolean;
+    is_featured?: boolean;
+    is_new?: boolean;
   }) {
     const { data, error } = await this.supabase
       .from('products')

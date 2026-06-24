@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Upload, Download, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, Download, BookOpen, ChevronDown, ChevronUp, Star, Sparkles } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface Category {
@@ -20,6 +20,8 @@ interface Product {
   category: Category | null;
   status: string;
   images: string[];
+  is_featured?: boolean;
+  is_new?: boolean;
 }
 
 export default function ProductsPage() {
@@ -29,7 +31,7 @@ export default function ProductsPage() {
   const [filterCategory, setFilterCategory] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', price: '', stock: '', category_id: '', images: '', slug: '' });
+  const [form, setForm] = useState({ name: '', price: '', stock: '', category_id: '', images: '', slug: '', is_featured: false, is_new: false });
   const [loading, setLoading] = useState(false);
   const [sortCol, setSortCol] = useState<'name' | 'price' | 'stock'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -207,13 +209,13 @@ export default function ProductsPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', price: '', stock: '', category_id: '', images: '', slug: '' });
+    setForm({ name: '', price: '', stock: '', category_id: '', images: '', slug: '', is_featured: false, is_new: false });
     setShowForm(true);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, price: String(p.price), stock: String(p.stock), category_id: p.category?.id || '', images: p.images?.join(', ') || '', slug: p.slug });
+    setForm({ name: p.name, price: String(p.price), stock: String(p.stock), category_id: p.category?.id || '', images: p.images?.join(', ') || '', slug: p.slug, is_featured: p.is_featured || false, is_new: p.is_new || false });
     setShowForm(true);
   };
 
@@ -228,6 +230,8 @@ export default function ProductsPage() {
         stock: Number(form.stock),
         category_id: form.category_id || null,
         images: form.images ? form.images.split(',').map((s: string) => s.trim()) : [],
+        is_featured: form.is_featured,
+        is_new: form.is_new,
       };
       if (editing) {
         await api.patch(`/products/${editing.id}`, body);
@@ -247,6 +251,24 @@ export default function ProductsPage() {
     if (!confirm('¿Eliminar este producto?')) return;
     try {
       await api.delete(`/products/${id}`);
+      load();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const toggleFeatured = async (id: string, current: boolean) => {
+    try {
+      await api.patch(`/products/${id}`, { is_featured: !current });
+      load();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const toggleNew = async (id: string, current: boolean) => {
+    try {
+      await api.patch(`/products/${id}`, { is_new: !current });
       load();
     } catch (err: any) {
       alert(err.message);
@@ -308,6 +330,16 @@ export default function ProductsPage() {
               </select>
               <input type="text" placeholder="URLs de imágenes (separadas por coma)" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })}
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} className="rounded border-slate-300" />
+                  <Star className="h-4 w-4 text-amber-400" /> Destacado
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} className="rounded border-slate-300" />
+                  <Sparkles className="h-4 w-4 text-blue-400" /> Nuevo
+                </label>
+              </div>
               <div className="flex gap-2 pt-2">
                 <button type="submit" disabled={loading} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">
                   {loading ? 'Guardando...' : 'Guardar'}
@@ -501,6 +533,8 @@ export default function ProductsPage() {
               </th>
               <th className="px-4 py-3 font-medium">Categoría</th>
               <th className="px-4 py-3 font-medium">Estado</th>
+              <th className="px-4 py-3 font-medium">Destacado</th>
+              <th className="px-4 py-3 font-medium">Nuevo</th>
               <th className="px-4 py-3 font-medium">Acciones</th>
             </tr>
           </thead>
@@ -518,6 +552,16 @@ export default function ProductsPage() {
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${p.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>{p.status}</span>
                 </td>
                 <td className="px-4 py-3">
+                  <button onClick={() => toggleFeatured(p.id, p.is_featured || false)} className="transition-colors hover:scale-110" title={p.is_featured ? 'Quitar de destacados' : 'Marcar como destacado'}>
+                    <Star className={`h-5 w-5 ${p.is_featured ? 'fill-amber-400 text-amber-400' : 'text-slate-300 hover:text-amber-300'}`} />
+                  </button>
+                </td>
+                <td className="px-4 py-3">
+                  <button onClick={() => toggleNew(p.id, p.is_new || false)} className="transition-colors hover:scale-110" title={p.is_new ? 'Quitar de nuevos' : 'Marcar como nuevo'}>
+                    <Sparkles className={`h-5 w-5 ${p.is_new ? 'fill-blue-400 text-blue-400' : 'text-slate-300 hover:text-blue-300'}`} />
+                  </button>
+                </td>
+                <td className="px-4 py-3">
                   <div className="flex gap-2">
                     <button onClick={() => openEdit(p)} className="text-xs text-primary hover:underline">Editar</button>
                     <button onClick={() => handleDelete(p.id)} className="text-xs text-red-500 hover:underline">Eliminar</button>
@@ -526,7 +570,7 @@ export default function ProductsPage() {
               </tr>
             ))}
             {sortedFiltered.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">No hay productos</td></tr>
+              <tr><td colSpan={9} className="px-4 py-8 text-center text-slate-400">No hay productos</td></tr>
             )}
           </tbody>
         </table>

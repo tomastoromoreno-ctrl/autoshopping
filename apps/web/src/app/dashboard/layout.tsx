@@ -8,6 +8,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '◉' },
   { href: '/dashboard/products', label: 'Productos', icon: '◈' },
   { href: '/dashboard/categories', label: 'Categorías', icon: '◎' },
+  { href: '/dashboard/banners', label: 'Banners', icon: '🖼' },
   { href: '/dashboard/promotions', label: 'Promociones', icon: '★' },
   { href: '/dashboard/orders', label: 'Órdenes', icon: '☰' },
   { href: '/dashboard/analytics', label: 'Analytics', icon: '📊' },
