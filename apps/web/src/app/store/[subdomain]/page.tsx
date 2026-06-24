@@ -47,6 +47,17 @@ interface Banner {
   text_color?: string;
 }
 
+interface Promotion {
+  id: string;
+  name: string;
+  description?: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  min_purchase?: number;
+  starts_at: string;
+  ends_at: string;
+}
+
 const sortOptions = [
   { value: 'newest', label: 'Más recientes' },
   { value: 'price_asc', label: 'Menor precio' },
@@ -60,6 +71,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [store, setStore] = useState<StoreData | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
@@ -107,9 +119,11 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           fetch(`${apiUrl}/products/${params.subdomain}/featured?limit=8`).catch(() => null),
         ]);
 
+        let storeId: string | null = null;
         if (storeRes.ok) {
           const storeData = await storeRes.json();
           setStore(storeData);
+          storeId = storeData.id;
         }
 
         if (categoriesRes?.ok) {
@@ -125,6 +139,14 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         if (featuredRes?.ok) {
           const data = await featuredRes.json();
           setFeatured(Array.isArray(data) ? data : data.data || data.products || []);
+        }
+
+        // Fetch active promotions
+        if (storeId) {
+          fetch(`${apiUrl}/promotions/${storeId}/active`)
+            .then((r) => r.ok ? r.json() : [])
+            .then((data) => { setPromotions(Array.isArray(data) ? data : data.promotions || data.data || []); })
+            .catch(() => {});
         }
       } catch (err) {
         console.error('Error loading store data:', err);
@@ -475,6 +497,47 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           />
         </div>
       </section>
+
+      {/* 4.5. Active Promotions */}
+      {promotions.length > 0 && (
+        <section className="px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
+              </span>
+              <h2 className="text-2xl font-heading font-bold store-text">Promociones activas</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {promotions.map((promo) => {
+                const endsDate = new Date(promo.ends_at);
+                const now = new Date();
+                const hoursLeft = Math.max(0, Math.floor((endsDate.getTime() - now.getTime()) / (1000 * 60 * 60)));
+                const daysLeft = Math.floor(hoursLeft / 24);
+                return (
+                  <div key={promo.id} className="relative overflow-hidden rounded-2xl border border-red-100 bg-gradient-to-br from-red-50 to-orange-50 p-5">
+                    <div className="absolute top-3 right-3 rounded-full bg-red-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      {promo.discount_type === 'percentage' ? `${promo.discount_value}% OFF` : `$${promo.discount_value} OFF`}
+                    </div>
+                    <h3 className="text-lg font-heading font-bold text-slate-900 pr-20">{promo.name}</h3>
+                    {promo.description && <p className="mt-1 text-sm text-slate-600 line-clamp-2">{promo.description}</p>}
+                    <div className="mt-3 flex items-center gap-3 text-xs text-slate-500">
+                      {promo.min_purchase && (
+                        <span className="rounded-full bg-white/80 px-2.5 py-1 font-medium">Compra mínima: ${promo.min_purchase.toLocaleString('es-CL')}</span>
+                      )}
+                      {hoursLeft > 0 && (
+                        <span className={`rounded-full px-2.5 py-1 font-medium ${hoursLeft < 24 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-white/80 text-slate-600'}`}>
+                          {daysLeft > 0 ? `${daysLeft}d ${hoursLeft % 24}h restantes` : `${hoursLeft}h restantes`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 5. All Products heading */}
       <section className="px-4 sm:px-6 lg:px-8 pt-6 pb-2">
