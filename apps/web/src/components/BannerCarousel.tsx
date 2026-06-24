@@ -62,7 +62,7 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
 
   if (!banners || banners.length === 0) {
     return (
-      <section       className="relative w-full max-w-4xl mx-auto aspect-[4/2] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.25),0_4px_12px_rgb(0,0,0,0.15)] ring-1 ring-black/5">
+      <section       className="relative w-full aspect-[4/2] rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.25),0_4px_12px_rgb(0,0,0,0.15)] ring-1 ring-black/5">
         <div className="mx-auto max-w-7xl h-full flex flex-col items-center justify-center px-4 sm:px-6 py-6 sm:py-8 text-center">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-heading font-bold text-white mb-2">
             {storeName}
@@ -79,7 +79,7 @@ export default function BannerCarousel({ banners, storeName }: BannerCarouselPro
 
   return (
     <section
-      className="relative w-full max-w-4xl mx-auto aspect-[4/2] rounded-2xl overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.25),0_4px_12px_rgb(0,0,0,0.15)] ring-1 ring-black/5"
+      className="relative w-full aspect-[4/2] rounded-2xl overflow-hidden group shadow-[0_8px_30px_rgb(0,0,0,0.25),0_4px_12px_rgb(0,0,0,0.15)] ring-1 ring-black/5"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

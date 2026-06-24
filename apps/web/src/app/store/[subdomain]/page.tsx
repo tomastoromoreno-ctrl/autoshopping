@@ -245,8 +245,12 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 1. Banner Carousel - Full width hero */}
-      <BannerCarousel banners={banners} storeName={store.name} />
+      {/* 1. Banner Carousel - Centered */}
+      <section className="px-4 sm:px-6 lg:px-8 pt-4">
+        <div className="mx-auto max-w-4xl">
+          <BannerCarousel banners={banners} storeName={store.name} />
+        </div>
+      </section>
 
       {/* 2. Category Showcase - Horizontal scroll */}
       <section className="px-4 sm:px-6 lg:px-8 pt-6">
