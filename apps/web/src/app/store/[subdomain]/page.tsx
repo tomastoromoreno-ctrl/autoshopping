@@ -185,10 +185,25 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
   if (loading && !store && !storeNotFound) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
-          <p className="text-sm font-medium text-slate-500">Cargando tienda...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="space-y-6">
+            <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
+            <div className="flex gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="h-10 w-24 animate-pulse rounded-full bg-slate-100" />)}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1,2,3,4,5,6].map(i => (
+                <div key={i} className="rounded-2xl border border-slate-100 bg-white overflow-hidden">
+                  <div className="aspect-square animate-pulse bg-slate-100" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
