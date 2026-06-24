@@ -4,6 +4,12 @@ import { useEffect, useState, useRef } from 'react';
 import { api } from '@/lib/api';
 import { Upload, Move, ZoomIn, Sparkles, Palette, Type, Layout, CreditCard, Instagram, Facebook, MessageCircle, Twitter, Music } from 'lucide-react';
 
+const GoogleFontsImport = () => (
+  <style dangerouslySetInnerHTML={{ __html: `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Montserrat:wght@400;500;600;700;900&family=Outfit:wght@400;500;600;700;900&family=Poppins:wght@400;500;600;700;900&family=Playfair+Display:wght@400;500;600;700;900&display=swap');
+  ` }} />
+);
+
 const colorPresets = [
   { name: 'Nike Sport', bg: '#ffffff', btn: '#111111', btnText: '#ffffff', text: '#111111', primary: '#111111' },
   { name: 'Adidas Classic', bg: '#ffffff', btn: '#000000', btnText: '#ffffff', text: '#000000', primary: '#000000' },
@@ -168,6 +174,7 @@ export default function AppearancePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      <GoogleFontsImport />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Apariencia</h1>
@@ -226,14 +233,14 @@ export default function AppearancePage() {
                 key={font.value}
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, font_family: font.value }))}
-                className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                className={`w-full flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
                   form.font_family === font.value
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                <span className="text-sm font-bold text-slate-700">{font.label}</span>
-                <span className="text-sm text-slate-600" style={{ fontFamily: `${font.value}, sans-serif` }}>
+                <span className="text-sm font-bold text-slate-700 mb-1 sm:mb-0">{font.label}</span>
+                <span className="text-lg sm:text-xl font-bold text-slate-800 leading-tight" style={{ fontFamily: `'${font.value}', sans-serif` }}>
                   {font.sample}
                 </span>
               </button>
