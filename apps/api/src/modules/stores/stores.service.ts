@@ -74,6 +74,15 @@ export class StoresService {
     btn_color?: string;
     btn_text_color?: string;
     text_color?: string;
+    header_style?: string;
+    footer_style?: string;
+    card_style?: string;
+    social_instagram?: string;
+    social_facebook?: string;
+    social_whatsapp?: string;
+    social_twitter?: string;
+    social_tiktok?: string;
+    color_preset?: string;
   }) {
     const { data, error } = await this.supabase
       .from('tenants')
@@ -88,6 +97,15 @@ export class StoresService {
         ...(dto.btn_color !== undefined && { btn_color: dto.btn_color }),
         ...(dto.btn_text_color !== undefined && { btn_text_color: dto.btn_text_color }),
         ...(dto.text_color !== undefined && { text_color: dto.text_color }),
+        ...(dto.header_style !== undefined && { header_style: dto.header_style }),
+        ...(dto.footer_style !== undefined && { footer_style: dto.footer_style }),
+        ...(dto.card_style !== undefined && { card_style: dto.card_style }),
+        ...(dto.social_instagram !== undefined && { social_instagram: dto.social_instagram }),
+        ...(dto.social_facebook !== undefined && { social_facebook: dto.social_facebook }),
+        ...(dto.social_whatsapp !== undefined && { social_whatsapp: dto.social_whatsapp }),
+        ...(dto.social_twitter !== undefined && { social_twitter: dto.social_twitter }),
+        ...(dto.social_tiktok !== undefined && { social_tiktok: dto.social_tiktok }),
+        ...(dto.color_preset !== undefined && { color_preset: dto.color_preset }),
       })
       .eq('id', tenantId)
       .select()
@@ -103,7 +121,7 @@ export class StoresService {
 
     let query = this.supabase
       .from('tenants')
-      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color, text_color');
+      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color, text_color, header_style, footer_style, card_style, social_instagram, social_facebook, social_whatsapp, social_twitter, social_tiktok, color_preset');
 
     if (isUuid) {
       query = query.eq('id', idOrSubdomain);

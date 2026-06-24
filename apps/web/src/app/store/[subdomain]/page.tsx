@@ -33,6 +33,7 @@ interface StoreData {
   logo?: string;
   primary_color?: string;
   description?: string;
+  card_style?: 'standard' | 'compact' | 'horizontal';
 }
 
 interface Banner {
@@ -459,6 +460,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             products={featured}
             subdomain={params.subdomain}
             onAddToCart={handleAddToCart}
+            cardStyle={store.card_style}
           />
         </div>
       </section>
@@ -501,7 +503,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
               {products.map((product) => (
                 <Link key={product.id} href={`/store/${params.subdomain}/product/${product.slug}`}>
-                  <ProductCard product={product} onAddToCart={handleAddToCart} />
+                  <ProductCard product={product} onAddToCart={handleAddToCart} cardStyle={store.card_style} />
                 </Link>
               ))}
             </div>

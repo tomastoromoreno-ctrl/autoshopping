@@ -95,6 +95,42 @@ class UpdateAppearanceDto {
   @IsString()
   @IsOptional()
   text_color?: string;
+
+  @IsString()
+  @IsOptional()
+  header_style?: string;
+
+  @IsString()
+  @IsOptional()
+  footer_style?: string;
+
+  @IsString()
+  @IsOptional()
+  card_style?: string;
+
+  @IsString()
+  @IsOptional()
+  social_instagram?: string;
+
+  @IsString()
+  @IsOptional()
+  social_facebook?: string;
+
+  @IsString()
+  @IsOptional()
+  social_whatsapp?: string;
+
+  @IsString()
+  @IsOptional()
+  social_twitter?: string;
+
+  @IsString()
+  @IsOptional()
+  social_tiktok?: string;
+
+  @IsString()
+  @IsOptional()
+  color_preset?: string;
 }
 
 @Controller('stores')
