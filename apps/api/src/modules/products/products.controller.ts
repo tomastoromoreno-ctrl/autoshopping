@@ -1,10 +1,12 @@
 import {
-  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, BadRequestException,
+  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, BadRequestException, Inject, NotFoundException,
 } from '@nestjs/common';
 import {
   IsString, IsOptional, IsBoolean, IsNumber, IsUUID, IsArray, IsObject, IsInt, Min,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { ProductsService } from './products.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -183,7 +185,10 @@ class ListProductsQuery {
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly products: ProductsService) {}
+  constructor(
+    private readonly products: ProductsService,
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
@@ -209,11 +214,27 @@ export class ProductsController {
     return this.products.bulkCreate(tenantId, body.products);
   }
 
-  @Get(':tenantId')
-  findByTenant(
-    @Param('tenantId') tenantId: string,
+  @Get(':subdomain')
+  async findByTenant(
+    @Param('subdomain') subdomain: string,
     @Query() query: ListProductsQuery,
   ) {
+    // Subdomain could be either a UUID tenant_id (legacy) or a subdomain string
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomain);
+    let tenantId = subdomain;
+
+    if (!isUuid) {
+      // Resolve subdomain -> tenant_id via tenants table
+      const { data: tenant } = await this.supabase
+        .from('tenants')
+        .select('id')
+        .eq('subdomain', subdomain)
+        .maybeSingle();
+
+      if (!tenant) throw new NotFoundException(`Tienda '${subdomain}' no encontrada`);
+      tenantId = tenant.id;
+    }
+
     return this.products.findByTenant(tenantId, query);
   }
 
