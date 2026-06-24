@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 
 interface CartIconProps {
   storeSubdomain: string;
@@ -39,11 +39,12 @@ export default function CartIcon({ storeSubdomain }: CartIconProps) {
   return (
     <Link
       href={`/store/${storeSubdomain}/cart`}
-      className="relative flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900"
+      className="relative flex items-center justify-center rounded-xl p-2 text-slate-600 transition-all duration-200 ease-out hover:bg-slate-100 hover:text-slate-900"
+      aria-label={`Carrito de compras${itemCount > 0 ? ` - ${itemCount} items` : ''}`}
     >
-      <ShoppingCart className="h-5 w-5" />
+      <ShoppingBag className="h-5 w-5 transition-transform duration-200 ease-out" strokeWidth={1.75} />
       {itemCount > 0 && (
-        <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+        <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm transition-all duration-300 ease-out">
           {itemCount > 99 ? '99+' : itemCount}
         </span>
       )}

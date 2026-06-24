@@ -107,18 +107,17 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
   }
 
   const storeBg = store.bg_color || '#ffffff';
-  const storeBtn = store.btn_color || store.primary_color || '#3b82f6';
+  const storeBtn = store.btn_color || store.primary_color || '#2563eb';
   const storeBtnText = store.btn_text_color || '#ffffff';
   const storeFont = store.font_family || 'Inter';
-  const storeTextColor = store.text_color || '#1e293b';
+  const storeTextColor = store.text_color || '#0f172a';
 
-  // Dynamic Google Font Import
   const fontImport = storeFont !== 'Inter'
     ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(storeFont)}:wght@400;500;600;700;900&display=swap');`
     : '';
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ '--store-primary': storeBtn } as React.CSSProperties}>
+    <div className="flex min-h-screen flex-col bg-white" style={{ '--store-primary': storeBtn } as React.CSSProperties}>
       <StoreJsonLd
         storeName={store.name}
         storeUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app'}/store/${params.subdomain}`}
@@ -129,9 +128,8 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         body {
           background-color: ${storeBg} !important;
           color: ${storeTextColor} !important;
-          font-family: '${storeFont}', sans-serif !important;
+          font-family: '${storeFont}', 'Inter', sans-serif !important;
         }
-        /* Override primary button and text backgrounds of Tailwind */
         .bg-primary {
           background-color: ${storeBtn} !important;
         }
@@ -142,7 +140,6 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
           background-color: ${storeBtn} !important;
           opacity: 0.9;
         }
-        /* Override text color on primary bg */
         .bg-primary.text-white {
           color: ${storeBtnText} !important;
         }
@@ -155,35 +152,26 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         a.bg-primary {
           color: ${storeBtnText} !important;
         }
-
-        /* General page text color overrides (excluding inputs, buttons, white cards/containers, header/footer) */
         main h1, main h2, main h3, main h4, main h5, main h6, main p, main span:not(.text-white):not(.bg-primary *):not(.bg-red-500 *) {
           color: ${storeTextColor};
         }
-
-        /* Overrides for text slate classes directly on page background */
         main .text-slate-900:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
         main .text-slate-800:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
         main .text-slate-700:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
           color: ${storeTextColor} !important;
         }
-
         main .text-slate-600:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
           color: ${storeTextColor} !important;
           opacity: 0.85;
         }
-
         main .text-slate-500:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
           color: ${storeTextColor} !important;
           opacity: 0.7;
         }
-
         main .text-slate-400:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
           color: ${storeTextColor} !important;
           opacity: 0.6;
         }
-
-        /* Product Cards theme styling (matching the dashboard preview) */
         .group.rounded-xl.border.bg-white {
           background-color: ${storeBg} !important;
           border-color: ${storeTextColor}1a !important;
@@ -197,67 +185,97 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
           opacity: 0.6;
         }
       ` }} />
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link href={`/store/${params.subdomain}`} className="flex items-center gap-2 min-w-0">
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo - Left */}
+          <Link
+            href={`/store/${params.subdomain}`}
+            className="flex items-center gap-2.5 min-w-0 transition-opacity duration-200 hover:opacity-80"
+          >
             {(store.logo || store.logo_url) && (
-              <img src={store.logo || store.logo_url} alt={store.name} className="h-7 w-7 sm:h-8 sm:w-8 rounded object-cover flex-shrink-0" />
+              <img
+                src={store.logo || store.logo_url}
+                alt={store.name}
+                className="h-8 w-8 rounded-xl object-cover flex-shrink-0"
+              />
             )}
-            <span className="text-lg sm:text-xl font-bold truncate" style={{ color: store.primary_color || '#3b82f6' }}>
+            <span
+              className="text-lg font-bold truncate sm:text-xl"
+              style={{ color: storeBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
               {store.name}
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden sm:flex items-center gap-4 md:gap-6">
+          {/* Desktop Nav - Center */}
+          <nav className="hidden sm:flex items-center gap-1">
             <Link
               href={`/store/${params.subdomain}`}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+              className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
             >
               Inicio
             </Link>
             <Link
               href={`/store/${params.subdomain}#productos`}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900"
+              className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
             >
               Productos
             </Link>
-            <CartIcon storeSubdomain={params.subdomain} />
           </nav>
 
-          {/* Mobile nav */}
-          <div className="flex sm:hidden items-center gap-2">
+          {/* Right - Cart + Mobile Menu */}
+          <div className="flex items-center gap-1">
             <CartIcon storeSubdomain={params.subdomain} />
-            <StoreMobileNav subdomain={params.subdomain} />
+            <StoreMobileNav
+              subdomain={params.subdomain}
+              storeName={store.name}
+              storeLogo={store.logo || store.logo_url}
+            />
           </div>
         </div>
       </header>
+
       <main className="flex-1">{children}</main>
-      <footer className="border-t bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8 text-center sm:px-6 lg:px-8">
-          <p className="text-sm font-medium" style={{ color: store.primary_color || '#3b82f6' }}>
-            {store.name}
-          </p>
-          {store.description && (
-            <p className="mt-1 text-xs text-slate-500">{store.description}</p>
-          )}
-          <p className="mt-3 sm:mt-4 text-xs text-slate-400">
-            &copy; {new Date().getFullYear()} {store.name}. Todos los derechos reservados.
-          </p>
-          {(store.config?.sales_policy || store.config?.shipping_policy) && (
-            <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 text-xs text-slate-500">
-              {store.config?.sales_policy && (
-                <Link href={`/store/${params.subdomain}/policies/sales`} className="hover:underline hover:text-slate-900">
-                  Políticas de Venta
-                </Link>
-              )}
-              {store.config?.shipping_policy && (
-                <Link href={`/store/${params.subdomain}/policies/shipping`} className="hover:underline hover:text-slate-900">
-                  Políticas de Envío
-                </Link>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-100 bg-slate-50/80">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center text-center">
+            <Link
+              href={`/store/${params.subdomain}`}
+              className="text-base font-bold transition-opacity duration-200 hover:opacity-80"
+              style={{ color: storeBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              {store.name}
+            </Link>
+            {store.description && (
+              <p className="mt-2 max-w-md text-sm text-slate-500">{store.description}</p>
+            )}
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+              {(store.config?.sales_policy || store.config?.shipping_policy) && (
+                <>
+                  {store.config?.sales_policy && (
+                    <Link href={`/store/${params.subdomain}/policies/sales`} className="transition-colors duration-200 hover:text-slate-600">
+                      Políticas de Venta
+                    </Link>
+                  )}
+                  {store.config?.sales_policy && store.config?.shipping_policy && (
+                    <span className="text-slate-300">|</span>
+                  )}
+                  {store.config?.shipping_policy && (
+                    <Link href={`/store/${params.subdomain}/policies/shipping`} className="transition-colors duration-200 hover:text-slate-600">
+                      Políticas de Envío
+                    </Link>
+                  )}
+                </>
               )}
             </div>
-          )}
+            <p className="mt-4 text-xs text-slate-300">
+              &copy; {new Date().getFullYear()} {store.name}. Todos los derechos reservados.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

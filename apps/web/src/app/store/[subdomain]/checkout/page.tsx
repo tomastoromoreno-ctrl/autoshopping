@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, CreditCard, Building2, Wallet } from 'lucide-react';
+import { ArrowLeft, CreditCard, Building2, Wallet, Truck, Shield, Check } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
 import { formatPrice } from '@/lib/format';
 
@@ -165,20 +165,28 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
     wallet: <Wallet className="h-5 w-5" />,
   };
 
+  const steps = [
+    { label: 'Datos', active: true },
+    { label: 'Envío', active: storeConfig?.shipping_enabled },
+    { label: 'Pago', active: true },
+  ];
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8">
+    <div className="container-tight py-8 sm:py-12">
       <button
         onClick={() => router.back()}
-        className="mb-6 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900"
+        className="mb-6 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Volver al carrito
       </button>
 
-      <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Checkout</h1>
+      <div className="mb-8">
+        <h1 className="text-2xl sm:text-3xl font-heading font-bold text-slate-900">Checkout</h1>
+      </div>
 
       {items.length === 0 ? (
-        <div className="mt-8 text-center">
+        <div className="card p-12 text-center">
           <p className="text-slate-500">No hay productos en tu carrito.</p>
           <button
             onClick={() => router.push(`/store/${params.subdomain}`)}
@@ -188,188 +196,289 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-8 grid gap-8 lg:grid-cols-5">
-          <div className="space-y-8 lg:col-span-3">
-            <section>
-              <h2 className="text-lg font-semibold text-slate-900">Información del cliente</h2>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700">Nombre completo *</label>
-                   <input
-                     type="text"
-                     value={customerName}
-                     onChange={(e) => setCustomerName(e.target.value)}
-                     required
-                     aria-label="Nombre completo"
-                     className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                   />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700">Email *</label>
-                    <input
-                      type="email"
-                      value={customerEmail}
-                      onChange={(e) => setCustomerEmail(e.target.value)}
-                      required
-                      aria-label="Email"
-                      className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700">Teléfono</label>
-                    <input
-                      type="tel"
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      aria-label="Teléfono"
-                      className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {storeConfig?.shipping_enabled && (
-              <section>
-                <h2 className="text-lg font-semibold text-slate-900">Dirección de envío</h2>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700">Dirección *</label>
-                    <input
-                      type="text"
-                      value={shippingAddress}
-                      onChange={(e) => setShippingAddress(e.target.value)}
-                      required
-                      aria-label="Dirección"
-                      className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700">Ciudad *</label>
-                      <input
-                        type="text"
-                        value={shippingCity}
-                        onChange={(e) => setShippingCity(e.target.value)}
-                        required
-                        aria-label="Ciudad"
-                        className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
+        <>
+          {/* Step Indicator */}
+          <div className="mb-8">
+            <div className="flex items-center justify-center gap-0 max-w-md mx-auto">
+              {steps.map((step, index) => (
+                step.active && (
+                  <div key={step.label} className="flex items-center">
+                    <div className="flex items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                        index === 0 
+                          ? 'bg-primary text-white' 
+                          : 'bg-gray-100 text-slate-400'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <span className={`ml-2 text-sm font-medium ${
+                        index === 0 ? 'text-slate-900' : 'text-slate-400'
+                      }`}>
+                        {step.label}
+                      </span>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700">Estado</label>
-                      <input
-                        type="text"
-                        value={shippingState}
-                        onChange={(e) => setShippingState(e.target.value)}
-                        aria-label="Estado"
-                        className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700">Código postal</label>
-                      <input
-                        type="text"
-                        value={shippingZip}
-                        onChange={(e) => setShippingZip(e.target.value)}
-                        aria-label="Código postal"
-                        className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
+                    {index < steps.filter(s => s.active).length - 1 && (
+                      <div className="w-12 h-0.5 bg-gray-200 mx-3" />
+                    )}
                   </div>
-                </div>
-              </section>
-            )}
-
-            {storeConfig?.payment_methods && storeConfig.payment_methods.length > 0 && (
-              <section>
-                <h2 className="text-lg font-semibold text-slate-900">Método de pago</h2>
-                <div className="mt-4 space-y-2">
-                  {storeConfig.payment_methods.map((method) => (
-                    <label
-                      key={method.id}
-                      className={`flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors ${
-                        selectedPayment === method.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-slate-200 hover:border-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="payment_method"
-                        value={method.id}
-                        checked={selectedPayment === method.id}
-                        onChange={() => setSelectedPayment(method.id)}
-                        className="h-4 w-4 text-primary focus:ring-primary"
-                      />
-                      {paymentIcons[method.type] || <CreditCard className="h-5 w-5" />}
-                      <span className="text-sm font-medium text-slate-900">{method.name}</span>
-                    </label>
-                  ))}
-                </div>
-              </section>
-            )}
+                )
+              ))}
+            </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <div className="sticky top-24 rounded-xl border bg-white p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900">Resumen del pedido</h3>
-              <div className="mt-4 space-y-3">
-                {items.map((item) => (
-                  <div key={item.cart_item_key} className="flex items-center gap-3">
-                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
+          <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-5">
+            {/* Checkout Form - Left Column */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Contact Information */}
+              <div className="card p-6">
+                <h2 className="text-lg font-heading font-semibold text-slate-900 mb-4">Información del cliente</h2>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
+                      Nombre completo *
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      required
+                      aria-label="Nombre completo"
+                      className="input-modern"
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Email *
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        required
+                        aria-label="Email"
+                        className="input-modern"
+                        placeholder="tu@email.com"
                       />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-slate-900 line-clamp-1">{item.name}</p>
-                      <p className="text-xs text-slate-500">x{item.quantity}</p>
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Teléfono
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        aria-label="Teléfono"
+                        className="input-modern"
+                        placeholder="+56 9 1234 5678"
+                      />
                     </div>
-                    <span className="text-xs font-semibold text-slate-900">
-                      ${formatPrice(item.price * item.quantity)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 space-y-2 border-t pt-4 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium">${formatPrice(subtotal)}</span>
-                </div>
-                {storeConfig?.shipping_enabled && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Envío</span>
-                    <span className="font-medium">
-                      {shipping === 0 ? 'Gratis' : `${formatPrice(shipping)}`}
-                    </span>
-                  </div>
-                )}
-                <div className="border-t pt-2">
-                  <div className="flex justify-between text-base font-bold text-slate-900">
-                    <span>Total</span>
-                    <span>${formatPrice(total)}</span>
                   </div>
                 </div>
               </div>
 
-              {error && (
-                <p className="mt-4 text-sm text-red-500">{error}</p>
+              {/* Shipping Address */}
+              {storeConfig?.shipping_enabled && (
+                <div className="card p-6">
+                  <h2 className="text-lg font-heading font-semibold text-slate-900 mb-4">Dirección de envío</h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Dirección *
+                      </label>
+                      <input
+                        id="address"
+                        type="text"
+                        value={shippingAddress}
+                        onChange={(e) => setShippingAddress(e.target.value)}
+                        required
+                        aria-label="Dirección"
+                        className="input-modern"
+                        placeholder="Calle, número, depto"
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div>
+                        <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1.5">
+                          Ciudad *
+                        </label>
+                        <input
+                          id="city"
+                          type="text"
+                          value={shippingCity}
+                          onChange={(e) => setShippingCity(e.target.value)}
+                          required
+                          aria-label="Ciudad"
+                          className="input-modern"
+                          placeholder="Santiago"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">
+                          Región
+                        </label>
+                        <input
+                          id="state"
+                          type="text"
+                          value={shippingState}
+                          onChange={(e) => setShippingState(e.target.value)}
+                          aria-label="Región"
+                          className="input-modern"
+                          placeholder="Metropolitana"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="zip" className="block text-sm font-medium text-slate-700 mb-1.5">
+                          Código postal
+                        </label>
+                        <input
+                          id="zip"
+                          type="text"
+                          value={shippingZip}
+                          onChange={(e) => setShippingZip(e.target.value)}
+                          aria-label="Código postal"
+                          className="input-modern"
+                          placeholder="7500000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
 
+              {/* Payment Method */}
+              {storeConfig?.payment_methods && storeConfig.payment_methods.length > 0 && (
+                <div className="card p-6">
+                  <h2 className="text-lg font-heading font-semibold text-slate-900 mb-4">Método de pago</h2>
+                  <div className="space-y-3">
+                    {storeConfig.payment_methods.map((method) => (
+                      <label
+                        key={method.id}
+                        className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all duration-200 ${
+                          selectedPayment === method.id
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value={method.id}
+                          checked={selectedPayment === method.id}
+                          onChange={() => setSelectedPayment(method.id)}
+                          className="h-4 w-4 text-primary focus:ring-primary"
+                        />
+                        <div className={`p-2 rounded-lg ${
+                          selectedPayment === method.id 
+                            ? 'bg-primary/10 text-primary' 
+                            : 'bg-gray-100 text-slate-500'
+                        }`}>
+                          {paymentIcons[method.type] || <CreditCard className="h-5 w-5" />}
+                        </div>
+                        <span className="text-sm font-medium text-slate-900">{method.name}</span>
+                        {selectedPayment === method.id && (
+                          <Check className="h-5 w-5 text-primary ml-auto" />
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {error && (
+                <div className="p-4 rounded-xl bg-red-50 border border-red-100">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+
+              {/* Submit Button - Mobile */}
               <button
                 type="submit"
                 disabled={submitting}
-                className="mt-6 w-full rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                className="btn-primary w-full lg:hidden"
               >
-                {submitting ? 'Procesando...' : 'Realizar pedido'}
+                {submitting ? 'Procesando...' : `Pagar ${formatPrice(total)}`}
               </button>
             </div>
-          </div>
-        </form>
+
+            {/* Order Summary - Right Column */}
+            <div className="lg:col-span-2">
+              <div className="card p-6 sticky top-24">
+                <h3 className="text-lg font-heading font-semibold text-slate-900 mb-4">Resumen del pedido</h3>
+                
+                {/* Product List */}
+                <div className="space-y-4 mb-4">
+                  {items.map((item) => (
+                    <div key={item.cart_item_key} className="flex items-center gap-3">
+                      <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-slate-900 line-clamp-1">{item.name}</p>
+                        <p className="text-xs text-slate-500">x{item.quantity}</p>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900">
+                        {formatPrice(item.price * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Subtotal</span>
+                    <span className="font-medium">{formatPrice(subtotal)}</span>
+                  </div>
+                  {storeConfig?.shipping_enabled && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Envío</span>
+                      <span className="font-medium">
+                        {shipping === 0 ? 'Gratis' : formatPrice(shipping)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-100 pt-3">
+                    <div className="flex justify-between text-base font-bold text-slate-900">
+                      <span>Total</span>
+                      <span>{formatPrice(total)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button - Desktop */}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="btn-primary w-full mt-6 hidden lg:inline-flex"
+                >
+                  {submitting ? 'Procesando...' : `Pagar ${formatPrice(total)}`}
+                </button>
+
+                {/* Trust Badges */}
+                <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <Truck className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Envío seguro a todo Chile</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-slate-600">
+                    <Shield className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Pago 100% seguro</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </>
       )}
     </div>
   );

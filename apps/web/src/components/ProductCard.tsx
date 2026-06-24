@@ -26,36 +26,41 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const outOfStock = product.stock !== undefined && product.stock <= 0;
 
   return (
-    <div className="group rounded-xl border bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="relative aspect-square overflow-hidden rounded-t-xl bg-slate-100">
+    <div className="product-card group rounded-2xl border border-gray-100 bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover">
+      <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-gray-50">
         <img
           src={imageUrl}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
         />
         {hasDiscount && (
-          <span className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 rounded-full bg-red-500 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-white">
+          <span className="badge absolute left-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-semibold text-white">
             -{discountPercent}%
           </span>
         )}
         {outOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <span className="rounded bg-white px-3 py-1 text-sm font-semibold text-slate-700">
+          <div className="absolute bottom-2 right-2 rounded-full bg-slate-900/80 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+            Agotado
+          </div>
+        )}
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+            <span className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
               Agotado
             </span>
           </div>
         )}
       </div>
-      <div className="p-2.5 sm:p-4">
-        <h3 className="text-xs sm:text-sm font-medium text-slate-900 line-clamp-2">{product.name}</h3>
-        <div className="mt-1 sm:mt-2 flex items-center gap-1 sm:gap-2">
-          <span className="text-sm sm:text-lg font-bold text-slate-900">
-            ${formatPrice(product.price)}
+      <div className="p-4">
+        <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 mb-2">{product.name}</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-slate-900">
+            {formatPrice(product.price)}
           </span>
           {hasDiscount && (
-            <span className="text-[10px] sm:text-sm text-slate-500 line-through">
-              ${formatPrice(product.compare_at_price)}
+            <span className="text-sm text-slate-400 line-through">
+              {formatPrice(product.compare_at_price)}
             </span>
           )}
         </div>
@@ -63,7 +68,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <button
             onClick={() => onAddToCart(product)}
             disabled={outOfStock}
-            className="mt-2 sm:mt-3 w-full rounded-lg bg-primary px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-3 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-medium text-white transition-all duration-300 ease-out hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-slate-900 disabled:active:scale-100"
           >
             {outOfStock ? 'Agotado' : 'Agregar al carrito'}
           </button>
