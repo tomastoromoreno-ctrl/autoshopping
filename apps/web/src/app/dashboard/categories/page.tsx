@@ -55,7 +55,7 @@ export default function CategoriesPage() {
   const [form, setForm] = useState({ name: '', slug: '', parent_id: '', order: '0', active: true });
 
   const load = () => {
-    api.get<{ data: Category[] }>('/categories').then((res) => setCategories(res.data || [])).catch(() => {});
+    api.get<Category[]>('/categories').then((res) => setCategories(Array.isArray(res) ? res : [])).catch(() => {});
   };
 
   useEffect(() => { load(); }, []);
