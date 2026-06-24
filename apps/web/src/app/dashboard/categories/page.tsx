@@ -89,8 +89,9 @@ export default function CategoriesPage() {
             <form onSubmit={handleSubmit} className="mt-4 space-y-3">
               <input type="text" placeholder="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
-              <input type="text" placeholder="Slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+              <input type="text" placeholder="URL amigable (ej: zapatillas-deportivas)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+              <p className="text-xs text-slate-400">Se genera automáticamente. Puedes editarlo si lo deseas.</p>
               <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
                 aria-label="Categoría padre"
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
@@ -119,7 +120,7 @@ export default function CategoriesPage() {
               <thead>
                 <tr className="border-b bg-slate-50 text-slate-500">
                   <th className="px-4 py-3 font-medium">Nombre</th>
-                  <th className="px-4 py-3 font-medium">Slug</th>
+                  <th className="px-4 py-3 font-medium">URL</th>
                   <th className="px-4 py-3 font-medium">Padre</th>
                   <th className="px-4 py-3 font-medium">Orden</th>
                   <th className="px-4 py-3 font-medium">Activa</th>
