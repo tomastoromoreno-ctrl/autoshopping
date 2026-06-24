@@ -61,7 +61,6 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [banners, setBanners] = useState<Banner[]>([]);
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [storeNotFound, setStoreNotFound] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -111,8 +110,6 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         if (storeRes.ok) {
           const storeData = await storeRes.json();
           setStore(storeData);
-        } else {
-          setStoreNotFound(true);
         }
 
         if (categoriesRes?.ok) {
@@ -183,7 +180,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     window.dispatchEvent(new Event('cart-updated'));
   }
 
-  if (loading && !store && !storeNotFound) {
+  if (loading && !store) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -209,19 +206,18 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     );
   }
 
-  if (storeNotFound || (!loading && !store)) {
+  if (!store) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
         <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 mb-6">
           <Package className="h-10 w-10 text-slate-400" />
         </div>
-        <h1 className="text-4xl font-heading font-bold text-slate-900">404</h1>
-        <p className="mt-2 text-lg text-slate-500">Tienda no encontrada</p>
+        <h1 className="text-4xl font-heading font-bold text-slate-900">Tienda no disponible</h1>
+        <p className="mt-2 text-lg text-slate-500">No se pudo cargar la tienda</p>
+        <button onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90">Reintentar</button>
       </div>
     );
   }
-
-  if (!store) return null;
 
   const hasActiveFilters = searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
