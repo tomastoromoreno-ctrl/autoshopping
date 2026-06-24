@@ -230,7 +230,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       <section className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="mx-auto max-w-7xl">
           {/* Desktop: search + sort + filter inline */}
-          <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-3">
             <div className="flex-1 max-w-xl">
               <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} />
             </div>
@@ -238,7 +238,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none rounded-xl border border-gray-200 bg-white text-slate-700 px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 cursor-pointer"
+                className="store-input appearance-none rounded-xl border bg-white px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 cursor-pointer store-text"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -250,7 +250,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
               <select
                 value={selectedCategory || ''}
                 onChange={(e) => setSelectedCategory(e.target.value || null)}
-                className="appearance-none rounded-xl border border-gray-200 bg-white text-slate-700 px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 cursor-pointer"
+                className="store-input appearance-none rounded-xl border bg-white px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 cursor-pointer store-text"
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
@@ -262,7 +262,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             {(priceRange.min || priceRange.max) && (
               <button
                 onClick={() => setPriceRange({ min: '', max: '' })}
-                className="flex items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2.5 text-sm font-medium text-primary-700 transition-colors hover:bg-primary-100"
+                className="store-btn-outline flex items-center gap-1.5 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
                 Precio
@@ -279,8 +279,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                   onClick={() => setSelectedCategory(null)}
                   className={`flex-shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200 ${
                     !selectedCategory
-                      ? 'bg-slate-900 text-white'
-                      : 'border border-gray-200 bg-white text-slate-600'
+                      ? 'store-chip-active'
+                      : 'store-chip-inactive bg-white'
                   }`}
                 >
                   Todos
@@ -291,8 +291,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                     onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
                     className={`flex-shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200 ${
                       selectedCategory === cat.id
-                        ? 'bg-slate-900 text-white'
-                        : 'border border-gray-200 bg-white text-slate-600'
+                        ? 'store-chip-active'
+                        : 'store-chip-inactive bg-white'
                     }`}
                   >
                     {cat.name}
@@ -308,7 +308,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
               </div>
               <button
                 onClick={() => setMobileFiltersOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:border-gray-300 hover:shadow-sm"
+                className="store-btn-outline flex items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-all duration-200 hover:shadow-sm"
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 <span className="hidden sm:inline">Filtros</span>
@@ -385,7 +385,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                 <div className="border-t border-gray-100 px-6 py-4 space-y-3">
                   <button
                     onClick={() => { handleApplyFilters(); setMobileFiltersOpen(false); }}
-                    className="w-full rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-800 active:scale-[0.98]"
+                    className="store-btn w-full rounded-xl py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                   >
                     Aplicar filtros
                   </button>
@@ -467,7 +467,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       <section className="px-4 sm:px-6 lg:px-8 pt-6 pb-2">
         <div className="mx-auto max-w-7xl">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-heading font-bold text-slate-900">Todos los productos</h2>
+            <h2 className="text-2xl font-heading font-bold store-text">Todos los productos</h2>
             <span className="text-sm text-slate-500 font-medium">{totalCount} productos</span>
           </div>
         </div>
@@ -516,7 +516,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           <p className="text-sm text-slate-500 mb-6">Gracias por visitarnos</p>
           <Link
             href="#productos"
-            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-800 active:scale-[0.98]"
+            className="store-btn inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
           >
             Ver catálogo
             <ArrowRight className="h-4 w-4" />

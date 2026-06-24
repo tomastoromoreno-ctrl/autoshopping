@@ -117,7 +117,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     : '';
 
   return (
-    <div className="flex min-h-screen flex-col bg-white" style={{ '--store-primary': storeBtn } as React.CSSProperties}>
+    <div className="flex min-h-screen flex-col bg-white" style={{ '--store-primary': storeBtn, '--store-bg': storeBg, '--store-btn': storeBtn, '--store-btn-text': storeBtnText, '--store-text': storeTextColor } as React.CSSProperties}>
       <StoreJsonLd
         storeName={store.name}
         storeUrl={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app'}/store/${params.subdomain}`}
@@ -125,65 +125,33 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
       />
       <style dangerouslySetInnerHTML={{ __html: `
         ${fontImport}
+        :root {
+          --store-btn: ${storeBtn};
+          --store-btn-text: ${storeBtnText};
+          --store-bg: ${storeBg};
+          --store-text: ${storeTextColor};
+        }
         body {
           background-color: ${storeBg} !important;
           color: ${storeTextColor} !important;
           font-family: '${storeFont}', 'Inter', sans-serif !important;
         }
-        .bg-primary {
-          background-color: ${storeBtn} !important;
-        }
-        .text-primary {
-          color: ${storeBtn} !important;
-        }
-        .hover\\:bg-primary\\/90:hover {
-          background-color: ${storeBtn} !important;
-          opacity: 0.9;
-        }
-        .bg-primary.text-white {
-          color: ${storeBtnText} !important;
-        }
-        .bg-primary.text-slate-900 {
-          color: ${storeBtnText} !important;
-        }
-        button.bg-primary {
-          color: ${storeBtnText} !important;
-        }
-        a.bg-primary {
-          color: ${storeBtnText} !important;
-        }
-        main h1, main h2, main h3, main h4, main h5, main h6, main p, main span:not(.text-white):not(.bg-primary *):not(.bg-red-500 *) {
-          color: ${storeTextColor};
-        }
-        main .text-slate-900:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
-        main .text-slate-800:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select),
-        main .text-slate-700:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
-          color: ${storeTextColor} !important;
-        }
-        main .text-slate-600:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
-          color: ${storeTextColor} !important;
-          opacity: 0.85;
-        }
-        main .text-slate-500:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
-          color: ${storeTextColor} !important;
-          opacity: 0.7;
-        }
-        main .text-slate-400:not(.bg-white *):not(.bg-slate-100 *):not(.bg-slate-50 *):not(button *):not(a *):not(input):not(select) {
-          color: ${storeTextColor} !important;
-          opacity: 0.6;
-        }
-        .group.rounded-xl.border.bg-white {
-          background-color: ${storeBg} !important;
-          border-color: ${storeTextColor}1a !important;
-        }
-        .group.rounded-xl.border.bg-white h3,
-        .group.rounded-xl.border.bg-white span:not(.bg-red-500 *):not(.bg-primary *) {
-          color: ${storeTextColor} !important;
-        }
-        .group.rounded-xl.border.bg-white span.line-through {
-          color: ${storeTextColor} !important;
-          opacity: 0.6;
-        }
+        .store-btn { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
+        .store-btn:hover { opacity: 0.9; }
+        .store-btn-outline { border-color: ${storeBtn} !important; color: ${storeBtn} !important; }
+        .store-btn-outline:hover { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
+        .store-text { color: ${storeTextColor} !important; }
+        .store-text-muted { color: ${storeTextColor} !important; opacity: 0.7; }
+        .store-text-subtle { color: ${storeTextColor} !important; opacity: 0.5; }
+        .store-bg { background-color: ${storeBg} !important; }
+        .store-bg-card { background-color: ${storeBg} !important; border-color: ${storeTextColor}1a !important; }
+        .store-link { color: ${storeBtn} !important; }
+        .store-link:hover { opacity: 0.8; }
+        .store-chip-active { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
+        .store-chip-inactive { border-color: ${storeTextColor}20 !important; color: ${storeTextColor} !important; }
+        .store-chip-inactive:hover { border-color: ${storeTextColor}40 !important; }
+        .store-input { border-color: ${storeTextColor}20 !important; }
+        .store-input:focus { border-color: ${storeBtn} !important; box-shadow: 0 0 0 2px ${storeBtn}20 !important; }
       ` }} />
 
       {/* Header */}

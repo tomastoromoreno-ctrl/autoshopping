@@ -31,7 +31,7 @@ export default function SearchBar({ onSearch, placeholder = 'Buscar productos...
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-gray-200 bg-white text-slate-900 py-2.5 pl-9 pr-9 text-sm font-sans outline-none transition-all duration-200 ease-out hover:border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:shadow-md placeholder:text-slate-400"
+        className="store-input w-full rounded-xl bg-white py-2.5 pl-9 pr-9 text-sm font-sans outline-none transition-all duration-200 ease-out hover:border-gray-300 focus:shadow-md placeholder:text-slate-400 store-text"
       />
       {query && (
         <button

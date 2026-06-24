@@ -28,8 +28,8 @@ export default function CategoryShowcase({
   return (
     <section className="mb-6">
       <div className="mb-4 flex items-center gap-2">
-        <LayoutGrid className="h-5 w-5 text-slate-700" />
-        <h2 className="text-2xl font-heading font-bold text-slate-900">Categorías</h2>
+        <LayoutGrid className="h-5 w-5 store-text" />
+        <h2 className="text-2xl font-heading font-bold store-text">Categorías</h2>
       </div>
 
       <div className="scrollbar-hide flex gap-3 overflow-x-auto pb-2">
@@ -37,14 +37,14 @@ export default function CategoryShowcase({
           onClick={() => onSelectCategory(null)}
           className={`flex min-w-[120px] sm:min-w-[140px] flex-col items-center rounded-2xl border p-4 transition-all duration-300 ${
             selectedCategory === null
-              ? 'border-primary-500 bg-primary-50 shadow-soft scale-[1.02]'
-              : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-soft'
+              ? 'store-chip-active shadow-soft scale-[1.02]'
+              : 'store-chip-inactive bg-white hover:shadow-soft'
           }`}
         >
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-            <Grid3x3 className="h-6 w-6 text-slate-600" />
+            <Grid3x3 className="h-6 w-6 store-text" />
           </div>
-          <span className="text-sm font-semibold text-slate-900">Todos</span>
+          <span className="text-sm font-semibold store-text">Todos</span>
         </button>
 
         {categories.map((category) => (
@@ -53,14 +53,14 @@ export default function CategoryShowcase({
             onClick={() => onSelectCategory(category.id)}
             className={`flex min-w-[120px] sm:min-w-[140px] flex-col items-center rounded-2xl border p-4 transition-all duration-300 ${
               selectedCategory === category.id
-                ? 'border-primary-500 bg-primary-50 shadow-soft scale-[1.02]'
-                : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-soft'
+                ? 'store-chip-active shadow-soft scale-[1.02]'
+                : 'store-chip-inactive bg-white hover:shadow-soft'
             }`}
           >
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100">
-              <Package className="h-6 w-6 text-slate-600" />
+              <Package className="h-6 w-6 store-text" />
             </div>
-            <span className="text-sm font-semibold text-slate-900">{category.name}</span>
+            <span className="text-sm font-semibold store-text">{category.name}</span>
           </button>
         ))}
       </div>

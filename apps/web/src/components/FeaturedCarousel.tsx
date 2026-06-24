@@ -42,7 +42,7 @@ export default function FeaturedCarousel({
     <section className="py-8">
       <div className="mb-6 flex items-center gap-2">
         <Sparkles className="h-6 w-6 text-amber-500" />
-        <h2 className="text-2xl font-heading font-bold text-slate-900">{title}</h2>
+        <h2 className="text-2xl font-heading font-bold store-text">{title}</h2>
       </div>
 
       <div className="group/carousel relative">
@@ -78,7 +78,7 @@ export default function FeaturedCarousel({
               >
                 <Link
                   href={`/store/${subdomain}/product/${product.slug}`}
-                  className="block rounded-2xl border border-gray-100 bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover"
+                  className="block rounded-2xl border border-gray-100 bg-white shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover store-bg-card"
                 >
                   <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-gray-50">
                     <img
@@ -101,11 +101,11 @@ export default function FeaturedCarousel({
                     )}
                   </div>
                   <div className="p-3">
-                    <h3 className="text-sm font-semibold text-slate-900 line-clamp-2">
+                    <h3 className="text-sm font-semibold store-text line-clamp-2">
                       {product.name}
                     </h3>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className="text-lg font-bold text-slate-900">
+                      <span className="text-lg font-bold store-text">
                         {formatPrice(product.price)}
                       </span>
                       {hasDiscount && (
@@ -120,7 +120,7 @@ export default function FeaturedCarousel({
                   <button
                     onClick={() => onAddToCart(product)}
                     disabled={outOfStock}
-                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="store-btn mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <ShoppingCart className="h-4 w-4" />
                     Agregar

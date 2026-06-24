@@ -26,7 +26,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const outOfStock = product.stock !== undefined && product.stock <= 0;
 
   return (
-    <div className="product-card group rounded-2xl border border-gray-100 bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover">
+    <div className="product-card group rounded-2xl border border-gray-100 bg-white shadow-card transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-card-hover store-bg-card">
       <div className="relative aspect-square overflow-hidden rounded-t-2xl bg-gray-50">
         <img
           src={imageUrl}
@@ -53,9 +53,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         )}
       </div>
       <div className="p-4">
-        <h3 className="text-sm font-semibold text-slate-900 line-clamp-2 mb-2">{product.name}</h3>
+        <h3 className="text-sm font-semibold store-text line-clamp-2 mb-2">{product.name}</h3>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-slate-900">
+          <span className="text-lg font-bold store-text">
             {formatPrice(product.price)}
           </span>
           {hasDiscount && (
@@ -68,7 +68,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           <button
             onClick={() => onAddToCart(product)}
             disabled={outOfStock}
-            className="mt-3 w-full rounded-xl bg-slate-900 py-2.5 text-sm font-medium text-white transition-all duration-300 ease-out hover:bg-slate-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-slate-900 disabled:active:scale-100"
+            className="store-btn mt-3 w-full rounded-xl py-2.5 text-sm font-medium transition-all duration-300 ease-out active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
           >
             {outOfStock ? 'Agotado' : 'Agregar al carrito'}
           </button>
