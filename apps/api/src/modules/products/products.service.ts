@@ -355,33 +355,37 @@ export class ProductsService {
   }
 
   async trackView(productId: string, visitorId: string) {
-    // Upsert view (unique per product + visitor + day)
-    const today = new Date().toISOString().split('T')[0];
-    await this.supabase
+    // Check if already viewed today
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { data: existing } = await this.supabase
       .from('product_views')
-      .upsert(
-        { product_id: productId, visitor_id: visitorId, viewed_at: new Date().toISOString() },
-        { onConflict: 'product_id,visitor_id,viewed_at', ignoreDuplicates: true }
-      )
-      .select()
+      .select('id')
+      .eq('product_id', productId)
+      .eq('visitor_id', visitorId)
+      .gte('viewed_at', todayStart.toISOString())
       .maybeSingle();
 
-    // Increment view_count on products
-    try {
-      await this.supabase.rpc('increment_view_count', { pid: productId });
-    } catch {
-      // Fallback: manual increment
-      const { data } = await this.supabase
+    if (!existing) {
+      // Insert new view
+      await this.supabase.from('product_views').insert({
+        product_id: productId,
+        visitor_id: visitorId,
+        viewed_at: new Date().toISOString(),
+      });
+    }
+
+    // Always increment view_count on products
+    const { data } = await this.supabase
+      .from('products')
+      .select('view_count')
+      .eq('id', productId)
+      .single();
+    if (data) {
+      await this.supabase
         .from('products')
-        .select('view_count')
-        .eq('id', productId)
-        .single();
-      if (data) {
-        await this.supabase
-          .from('products')
-          .update({ view_count: (data.view_count || 0) + 1 })
-          .eq('id', productId);
-      }
+        .update({ view_count: (data.view_count || 0) + 1 })
+        .eq('id', productId);
     }
 
     return { ok: true };

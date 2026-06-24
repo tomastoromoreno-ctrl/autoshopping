@@ -7,8 +7,7 @@ CREATE TABLE IF NOT EXISTS product_views (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   visitor_id VARCHAR(100) NOT NULL,
-  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(product_id, visitor_id, DATE(viewed_at))
+  viewed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Index for fast lookups
