@@ -17,6 +17,7 @@ import { BlogModule } from './modules/blog/blog.module';
 import { InvoicingModule } from './modules/invoicing/invoicing.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { BannersModule } from './modules/banners/banners.module';
+import { UploadModule } from './modules/upload/upload.module';
 import { SupabaseModule } from './common/supabase.module';
 
 @Module({
@@ -40,6 +41,7 @@ import { SupabaseModule } from './common/supabase.module';
     InvoicingModule,
     ReviewsModule,
     BannersModule,
+    UploadModule,
   ],
 })
 export class AppModule {}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { Plus, Trash2, Edit, Eye, EyeOff, Image, Palette } from 'lucide-react';
+import ImageUpload from '@/components/ImageUpload';
 
 interface Banner {
   id: string;
@@ -89,8 +90,8 @@ export default function BannersPage() {
       }
       setShowForm(false);
       load();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error guardando');
     } finally {
       setLoading(false);
     }
@@ -101,8 +102,8 @@ export default function BannersPage() {
     try {
       await api.delete(`/banners/${id}`);
       load();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error eliminando');
     }
   };
 
@@ -110,8 +111,8 @@ export default function BannersPage() {
     try {
       await api.post(`/banners/${id}/toggle`);
       load();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error cambiando estado');
     }
   };
 
@@ -157,11 +158,12 @@ export default function BannersPage() {
                     <input type="text" placeholder="Subtítulo (opcional)" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
                       className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                   </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-600">URL de imagen</label>
-                    <input type="url" placeholder="https://..." value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                      className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-                  </div>
+                  <ImageUpload
+                    value={form.image_url}
+                    onChange={(url) => setForm({ ...form, image_url: url })}
+                    folder="banners"
+                    label="Imagen del banner"
+                  />
                   <div>
                     <label className="mb-1 block text-xs font-medium text-slate-600">URL de enlace</label>
                     <input type="url" placeholder="https://..." value={form.link_url} onChange={(e) => setForm({ ...form, link_url: e.target.value })}

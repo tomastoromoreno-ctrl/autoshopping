@@ -55,9 +55,31 @@ async function request<T>(path: string, options: RequestInit = {}, retry = true)
   return res.json();
 }
 
+async function requestFormData<T>(path: string, formData: FormData, retry = true): Promise<T> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body: formData });
+
+  if (res.status === 401 && retry) {
+    const newToken = await refreshAccessToken();
+    if (newToken) return requestFormData<T>(path, formData, false);
+    throw new Error('Sesión expirada');
+  }
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Upload failed' }));
+    throw new Error(error.message || `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: any) => request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   patch: <T>(path: string, body?: any) => request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  postFormData: <T>(path: string, formData: FormData) => requestFormData<T>(path, formData),
 };
