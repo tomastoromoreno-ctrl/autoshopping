@@ -203,6 +203,18 @@ export class StoresService {
     };
   }
 
+  async getBanners(tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('store_banners')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
   async getDashboardStats(tenantId: string) {
     const { count: totalProducts } = await this.supabase
       .from('products')

@@ -190,6 +190,18 @@ export class ProductsController {
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
   ) {}
 
+  private async resolveTenantId(subdomainOrId: string): Promise<string> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomainOrId);
+    if (isUuid) return subdomainOrId;
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('id')
+      .eq('subdomain', subdomainOrId)
+      .maybeSingle();
+    if (!tenant) throw new NotFoundException(`Tienda '${subdomainOrId}' no encontrada`);
+    return tenant.id;
+  }
+
   @Get()
   @UseGuards(AuthGuard)
   findMyTenant(@Req() req: any, @Query() query: ListProductsQuery) {
@@ -219,22 +231,7 @@ export class ProductsController {
     @Param('subdomain') subdomain: string,
     @Query() query: ListProductsQuery,
   ) {
-    // Subdomain could be either a UUID tenant_id (legacy) or a subdomain string
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomain);
-    let tenantId = subdomain;
-
-    if (!isUuid) {
-      // Resolve subdomain -> tenant_id via tenants table
-      const { data: tenant } = await this.supabase
-        .from('tenants')
-        .select('id')
-        .eq('subdomain', subdomain)
-        .maybeSingle();
-
-      if (!tenant) throw new NotFoundException(`Tienda '${subdomain}' no encontrada`);
-      tenantId = tenant.id;
-    }
-
+    const tenantId = await this.resolveTenantId(subdomain);
     return this.products.findByTenant(tenantId, query);
   }
 
@@ -278,8 +275,21 @@ export class ProductsController {
     return this.products.deleteVariant(variantId);
   }
 
-  @Get(':tenantId/featured')
-  getFeatured(@Param('tenantId') tenantId: string) {
-    return this.products.getFeatured(tenantId);
+  @Get(':subdomain/featured')
+  async getFeatured(@Param('subdomain') subdomain: string, @Query('limit') limit?: string) {
+    const tenantId = await this.resolveTenantId(subdomain);
+    return this.products.getFeatured(tenantId, limit ? parseInt(limit) : 10);
+  }
+
+  @Get(':subdomain/new')
+  async getNewArrivals(@Param('subdomain') subdomain: string, @Query('limit') limit?: string) {
+    const tenantId = await this.resolveTenantId(subdomain);
+    return this.products.getNewArrivals(tenantId, limit ? parseInt(limit) : 10);
+  }
+
+  @Get(':subdomain/best-sellers')
+  async getBestSellers(@Param('subdomain') subdomain: string, @Query('limit') limit?: string) {
+    const tenantId = await this.resolveTenantId(subdomain);
+    return this.products.getBestSellers(tenantId, limit ? parseInt(limit) : 10);
   }
 }

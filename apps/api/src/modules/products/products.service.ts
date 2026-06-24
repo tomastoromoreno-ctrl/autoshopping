@@ -218,16 +218,45 @@ export class ProductsService {
     return { message: 'Variant deleted successfully' };
   }
 
-  async getFeatured(tenantId: string) {
+  async getFeatured(tenantId: string, limit: number = 10) {
     const { data, error } = await this.supabase
-      .from('v_products_with_discount')
-      .select('*')
+      .from('products')
+      .select('*, category:categories(id,name)')
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .eq('is_featured', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
 
     if (error) throw new BadRequestException(error.message);
-    return data;
+    return data || [];
+  }
+
+  async getNewArrivals(tenantId: string, limit: number = 10) {
+    const { data, error } = await this.supabase
+      .from('products')
+      .select('*, category:categories(id,name)')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .eq('is_new', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  async getBestSellers(tenantId: string, limit: number = 10) {
+    const { data, error } = await this.supabase
+      .from('products')
+      .select('*, category:categories(id,name)')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
   }
 
   slugify(text: string): string {

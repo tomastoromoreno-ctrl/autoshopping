@@ -1,9 +1,11 @@
 import {
-  Controller, Get, Post, Patch, Param, Body, UseGuards, Req, BadRequestException, Query,
+  Controller, Get, Post, Patch, Param, Body, UseGuards, Req, BadRequestException, Query, Inject, NotFoundException,
 } from '@nestjs/common';
 import {
   IsString, IsOptional, IsBoolean, IsNumber, IsUUID,
 } from 'class-validator';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { StoresService } from './stores.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -97,7 +99,22 @@ class UpdateAppearanceDto {
 
 @Controller('stores')
 export class StoresController {
-  constructor(private readonly stores: StoresService) {}
+  constructor(
+    private readonly stores: StoresService,
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+  ) {}
+
+  private async resolveTenantId(subdomainOrId: string): Promise<string> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomainOrId);
+    if (isUuid) return subdomainOrId;
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('id')
+      .eq('subdomain', subdomainOrId)
+      .maybeSingle();
+    if (!tenant) throw new NotFoundException(`Tienda '${subdomainOrId}' no encontrada`);
+    return tenant.id;
+  }
 
   @Get(':tenantId/config')
   @UseGuards(AuthGuard)
@@ -126,6 +143,12 @@ export class StoresController {
   @Get(':tenantId/public')
   getPublic(@Param('tenantId') tenantId: string) {
     return this.stores.getPublic(tenantId);
+  }
+
+  @Get(':subdomain/banners')
+  async getBanners(@Param('subdomain') subdomain: string) {
+    const tenantId = await this.resolveTenantId(subdomain);
+    return this.stores.getBanners(tenantId);
   }
 }
 
