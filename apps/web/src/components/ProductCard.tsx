@@ -30,6 +30,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           src={imageUrl}
           alt={product.name}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
+          onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
         />
         {hasDiscount && (
           <span className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 rounded-full bg-red-500 px-1.5 sm:px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold text-white">

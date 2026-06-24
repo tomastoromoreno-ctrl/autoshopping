@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" fill="none">
+  <rect width="400" height="400" fill="#F1F5F9"/>
+  <g transform="translate(160, 140)">
+    <path d="M40 0C44.4183 0 48 3.58172 48 8V32C48 36.4183 44.4183 40 40 40H8C3.58172 40 0 36.4183 0 32V8C0 3.58172 3.58172 0 8 0H40Z" fill="#CBD5E1"/>
+    <path d="M6 28L16 18L22 24L30 16L42 28" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="14" cy="14" r="4" fill="#94A3B8"/>
+  </g>
+  <text x="200" y="210" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#94A3B8">Imagen no disponible</text>
+</svg>

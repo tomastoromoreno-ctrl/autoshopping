@@ -212,6 +212,7 @@ export default function ProductDetailPage({
               src={product.images?.[selectedImage] || '/placeholder.svg'}
               alt={product.name}
               className="h-full w-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
             />
           </div>
           {product.images && product.images.length > 1 && (
@@ -228,6 +229,7 @@ export default function ProductDetailPage({
                     src={imgUrl}
                     alt={product.name}
                     className="h-full w-full object-cover"
+                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
                   />
                 </button>
               ))}
