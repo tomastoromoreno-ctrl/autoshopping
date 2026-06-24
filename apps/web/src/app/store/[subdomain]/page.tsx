@@ -270,7 +270,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           {/* Desktop: search + sort + filter inline */}
             <div className="hidden lg:flex items-center gap-3">
             <div className="flex-1 max-w-xl">
-              <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} />
+              <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} subdomain={params.subdomain} apiUrl={apiUrl} />
             </div>
             <div className="relative">
               <select
@@ -342,7 +342,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             {/* Search + filter button row */}
             <div className="flex items-center gap-2">
               <div className="flex-1">
-                <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} />
+                <SearchBar onSearch={handleSearch} placeholder={`Buscar en ${store.name}...`} subdomain={params.subdomain} apiUrl={apiUrl} />
               </div>
               <button
                 onClick={() => setMobileFiltersOpen(true)}
