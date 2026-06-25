@@ -762,7 +762,7 @@ export default function Hero() {
             initial={{ opacity: 0, x: 40, rotateZ: 5 }}
             animate={{ opacity: 1, x: 0, rotateZ: 0 }}
             transition={{ duration: 0.8, delay: 1.0, type: 'spring', stiffness: 80 }}
-            className="absolute bottom-0 right-0 sm:right-4 lg:right-4 z-30 hidden sm:block"
+            className="absolute -bottom-10 -right-6 sm:bottom-0 sm:right-4 lg:right-4 z-30 scale-[0.55] sm:scale-100 origin-bottom-right"
           >
             <div className="relative">
               {/* Phone frame */}
