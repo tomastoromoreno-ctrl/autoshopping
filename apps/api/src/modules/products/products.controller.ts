@@ -229,6 +229,14 @@ class ListProductsQuery {
   @Min(1)
   @IsOptional()
   limit?: number;
+
+  @IsString()
+  @IsOptional()
+  lang?: string;
+
+  @IsString()
+  @IsOptional()
+  currency?: string;
 }
 
 @Controller('products')
@@ -284,8 +292,12 @@ export class ProductsController {
   }
 
   @Get('single/:id')
-  findById(@Param('id') id: string) {
-    return this.products.findByIdWithVariants(id);
+  findById(
+    @Param('id') id: string,
+    @Query('lang') lang?: string,
+    @Query('currency') currency?: string,
+  ) {
+    return this.products.findByIdWithVariants(id, lang, currency);
   }
 
   @Patch(':id')

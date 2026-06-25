@@ -32,6 +32,18 @@ export default function ProductCard({ product, subdomain, onAddToCart, cardStyle
 
   const productLink = subdomain ? `/store/${subdomain}/product/${product.slug}` : '#';
 
+  const getSrcSet = (url: string) => {
+    if (url && url.includes('/images/') && (url.includes('/original') || url.includes('/original.'))) {
+      // Find the last segment path
+      const lastSlash = url.lastIndexOf('/');
+      const baseUrl = url.substring(0, lastSlash);
+      return `${baseUrl}/small.webp 400w, ${baseUrl}/medium.webp 800w, ${baseUrl}/large.webp 1600w`;
+    }
+    return undefined;
+  };
+
+  const srcSet = getSrcSet(imageUrl);
+
   if (cardStyle === 'compact') {
     return (
       <motion.div
@@ -43,6 +55,9 @@ export default function ProductCard({ product, subdomain, onAddToCart, cardStyle
           <div className="relative aspect-square overflow-hidden bg-gray-50">
             <img
               src={imageUrl}
+              srcSet={srcSet}
+              sizes="(max-width: 640px) 150px, 300px"
+              loading="lazy"
               alt={product.name}
               className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
@@ -100,6 +115,9 @@ export default function ProductCard({ product, subdomain, onAddToCart, cardStyle
           <div className="relative h-24 w-24 overflow-hidden rounded-xl bg-gray-50">
             <img
               src={imageUrl}
+              srcSet={srcSet}
+              sizes="100px"
+              loading="lazy"
               alt={product.name}
               className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
               onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}
@@ -145,6 +163,9 @@ export default function ProductCard({ product, subdomain, onAddToCart, cardStyle
         <div className="relative aspect-square overflow-hidden bg-gray-50">
           <img
             src={imageUrl}
+            srcSet={srcSet}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 250px"
+            loading="lazy"
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-110"
             onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }}

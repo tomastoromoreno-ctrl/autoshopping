@@ -21,6 +21,8 @@ const navItems = [
   { href: '/dashboard/permissions', label: 'Roles y Permisos', icon: '🔐' },
   { href: '/dashboard/legal', label: 'Documentos Legales', icon: '📋' },
   { href: '/dashboard/backups', label: 'Backups', icon: '💾' },
+  { href: '/dashboard/developer', label: 'Desarrolladores', icon: '🛠' },
+  { href: '/dashboard/international', label: 'Idiomas y Monedas', icon: '🌍' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,8 @@
-import { Injectable, Inject, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, NotFoundException, Logger, Optional } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../notifications/email.service';
+import { WebhooksService } from '../webhooks/webhooks.service';
 
 @Injectable()
 export class OrdersService {
@@ -10,6 +11,7 @@ export class OrdersService {
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
     private readonly emailService: EmailService,
+    @Optional() private readonly webhooks?: WebhooksService,
   ) {}
 
   async createFromCart(dto: {
@@ -141,6 +143,11 @@ export class OrdersService {
 
     const fullOrder = await this.findById(order.id);
 
+    // Dispatch outgoing webhook order.created
+    if (this.webhooks) {
+      await this.webhooks.dispatch(dto.tenant_id, 'order.created', fullOrder);
+    }
+
     // Send confirmation email asynchronously (don't block order creation)
     this.sendOrderConfirmationEmail(dto.tenant_id, fullOrder).catch((err) =>
       this.logger.error(`Failed to send confirmation email: ${err.message}`),
@@ -216,6 +223,16 @@ export class OrdersService {
 
     if (error) throw new BadRequestException(error.message);
     if (!data) throw new NotFoundException('Order not found');
+
+    // Webhook dispatches
+    if (this.webhooks) {
+      if (dto.status && dto.status !== previousOrder?.status) {
+        await this.webhooks.dispatch(data.tenant_id, `order.${dto.status}`, data);
+      }
+      if (dto.payment_status === 'approved') {
+        await this.webhooks.dispatch(data.tenant_id, 'order.paid', data);
+      }
+    }
 
     // Send shipping notification when status changes to 'shipped'
     if (dto.status === 'shipped' && previousOrder?.status !== 'shipped') {

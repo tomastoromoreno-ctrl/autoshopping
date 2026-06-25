@@ -23,6 +23,8 @@ import { SslModule } from './modules/ssl/ssl.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { LegalModule } from './modules/legal/legal.module';
 import { BackupsModule } from './modules/backups/backups.module';
+import { PublicApiModule } from './modules/public-api/public-api.module';
+import { InternationalizationModule } from './modules/internationalization/internationalization.module';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { BackupsModule } from './modules/backups/backups.module';
     PermissionsModule,
     LegalModule,
     BackupsModule,
+    PublicApiModule,
+    InternationalizationModule,
   ],
 })
 export class AppModule {}

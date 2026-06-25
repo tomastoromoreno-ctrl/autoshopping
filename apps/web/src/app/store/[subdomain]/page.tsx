@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
 import ProductFilters from '@/components/ProductFilters';
@@ -82,6 +83,10 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [sortBy, setSortBy] = useState('newest');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  const searchParams = useSearchParams();
+  const lang = searchParams.get('lang');
+  const currency = searchParams.get('currency');
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -94,6 +99,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       if (priceRange.min) queryParams.set('min_price', priceRange.min);
       if (priceRange.max) queryParams.set('max_price', priceRange.max);
       if (sortBy) queryParams.set('sort', sortBy);
+      if (lang) queryParams.set('lang', lang);
+      if (currency) queryParams.set('currency', currency);
       queryParams.set('limit', '50');
 
       const res = await fetch(`${apiUrl}/products/${params.subdomain}?${queryParams.toString()}`);
@@ -108,7 +115,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, selectedCategory, priceRange, sortBy, apiUrl, params.subdomain]);
+  }, [searchQuery, selectedCategory, priceRange, sortBy, apiUrl, params.subdomain, lang, currency]);
 
   useEffect(() => {
     async function load() {

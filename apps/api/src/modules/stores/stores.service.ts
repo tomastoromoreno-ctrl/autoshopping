@@ -141,7 +141,24 @@ export class StoresService {
       .eq('tenant_id', tenant.id)
       .single();
 
-    return { ...tenant, config };
+    const { data: languages } = await this.supabase
+      .from('tenant_languages')
+      .select('language_code, is_default, is_active')
+      .eq('tenant_id', tenant.id)
+      .eq('is_active', true);
+
+    const { data: currencies } = await this.supabase
+      .from('tenant_currencies')
+      .select('currency_code, exchange_rate, is_default, rounding_rule, is_active')
+      .eq('tenant_id', tenant.id)
+      .eq('is_active', true);
+
+    return {
+      ...tenant,
+      config,
+      languages: languages || [],
+      currencies: currencies || [],
+    };
   }
 
   async getAnalytics(tenantId: string, days: number = 30) {

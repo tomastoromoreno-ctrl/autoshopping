@@ -1,11 +1,13 @@
-import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException, NotFoundException, Optional } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { WebhooksService } from '../webhooks/webhooks.service';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    @Optional() private readonly webhooks?: WebhooksService,
   ) {}
 
   async create(dto: {
@@ -37,6 +39,11 @@ export class ProductsService {
       if (error.code === '23505') throw new BadRequestException('Ya existe un producto con ese nombre o slug en esta tienda');
       throw new BadRequestException(error.message);
     }
+
+    if (this.webhooks) {
+      await this.webhooks.dispatch(data.tenant_id, 'product.created', data);
+    }
+
     return data;
   }
 
@@ -51,6 +58,8 @@ export class ProductsService {
       sort?: string;
       page?: number;
       limit?: number;
+      lang?: string;
+      currency?: string;
     },
   ) {
     let query = this.supabase
@@ -99,7 +108,11 @@ export class ProductsService {
       .range(offset, offset + limit - 1);
 
     if (error) throw new BadRequestException(error.message);
-    return { data, total: count, page, limit };
+
+    // Dynamic translation and currency conversion
+    const processedData = await this.translateAndConvert(tenantId, data || [], filters.lang, filters.currency);
+
+    return { data: processedData, total: count, page, limit };
   }
 
   async findById(id: string) {
@@ -113,7 +126,7 @@ export class ProductsService {
     return data;
   }
 
-  async findBySlug(tenantId: string, slug: string) {
+  async findBySlug(tenantId: string, slug: string, lang?: string, currency?: string) {
     const { data, error } = await this.supabase
       .from('products')
       .select('*, category:categories(id,name)')
@@ -122,10 +135,12 @@ export class ProductsService {
       .single();
 
     if (error || !data) throw new NotFoundException('Product not found');
-    return data;
+
+    const processed = await this.translateAndConvert(tenantId, [data], lang, currency);
+    return processed[0];
   }
 
-  async findByIdWithVariants(id: string) {
+  async findByIdWithVariants(id: string, lang?: string, currency?: string) {
     const { data: product, error: productError } = await this.supabase
       .from('products')
       .select('*')
@@ -141,7 +156,9 @@ export class ProductsService {
 
     if (variantsError) throw new BadRequestException(variantsError.message);
 
-    return { ...product, variants: variants || [] };
+    const fullProduct = { ...product, variants: variants || [] };
+    const processed = await this.translateAndConvert(product.tenant_id, [fullProduct], lang, currency);
+    return processed[0];
   }
 
   async update(id: string, dto: {
@@ -173,16 +190,36 @@ export class ProductsService {
 
     if (error) throw new BadRequestException(error.message);
     if (!data) throw new NotFoundException('Product not found');
+
+    if (this.webhooks) {
+      await this.webhooks.dispatch(data.tenant_id, 'product.updated', data);
+      if (dto.stock !== undefined && dto.stock === 0) {
+        await this.webhooks.dispatch(data.tenant_id, 'product.out_of_stock', data);
+      }
+    }
+
     return data;
   }
 
   async delete(id: string) {
+    // Select tenant_id first before deleting
+    const { data: prod } = await this.supabase
+      .from('products')
+      .select('tenant_id')
+      .eq('id', id)
+      .maybeSingle();
+
     const { error } = await this.supabase
       .from('products')
       .delete()
       .eq('id', id);
 
     if (error) throw new BadRequestException(error.message);
+
+    if (this.webhooks && prod) {
+      await this.webhooks.dispatch(prod.tenant_id, 'product.deleted', { id });
+    }
+
     return { message: 'Product deleted successfully' };
   }
 
@@ -479,5 +516,79 @@ export class ProductsService {
       .maybeSingle();
 
     return { prev: prev || null, next: next || null };
+  }
+
+  private async translateAndConvert(
+    tenantId: string,
+    products: any[],
+    lang?: string,
+    currency?: string,
+  ) {
+    if (!products || products.length === 0) return products;
+
+    // 1. Apply Translation if lang is provided
+    if (lang) {
+      const productIds = products.map(p => p.id);
+      if (productIds.length > 0) {
+        const { data: translations } = await this.supabase
+          .from('product_translations')
+          .select('*')
+          .in('product_id', productIds)
+          .eq('language_code', lang);
+
+        if (translations && translations.length > 0) {
+          const transMap = new Map(translations.map(t => [t.product_id, t]));
+          products.forEach(p => {
+            const trans: any = transMap.get(p.id);
+            if (trans) {
+              p.name = trans.name || p.name;
+              p.description = trans.description || p.description;
+              p.slug = trans.slug || p.slug;
+              p.translated = true;
+            } else {
+              p.translated = false;
+            }
+          });
+        } else {
+          products.forEach(p => { p.translated = false; });
+        }
+      }
+    }
+
+    // 2. Apply Currency Conversion if currency is provided
+    if (currency) {
+      const { data: currConfig } = await this.supabase
+        .from('tenant_currencies')
+        .select('*')
+        .eq('tenant_id', tenantId)
+        .eq('currency_code', currency)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (currConfig && currConfig.exchange_rate) {
+        const rate = Number(currConfig.exchange_rate);
+        const decimals = ['CLP', 'COP'].includes(currency) ? 0 : 2;
+
+        products.forEach(p => {
+          if (p.price !== undefined && p.price !== null) {
+            p.price = Number((Number(p.price) * rate).toFixed(decimals));
+            p.original_currency = 'CLP';
+            p.display_currency = currency;
+          }
+          if (p.compare_at_price !== undefined && p.compare_at_price !== null) {
+            p.compare_at_price = Number((Number(p.compare_at_price) * rate).toFixed(decimals));
+          }
+          if (p.variants) {
+            p.variants.forEach((v: any) => {
+              if (v.price !== undefined && v.price !== null) {
+                v.price = Number((Number(v.price) * rate).toFixed(decimals));
+              }
+            });
+          }
+        });
+      }
+    }
+
+    return products;
   }
 }

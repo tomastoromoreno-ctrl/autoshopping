@@ -5,6 +5,7 @@ import CartIcon from '@/components/CartIcon';
 import StoreMobileNav from '@/components/StoreMobileNav';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import { StoreJsonLd } from '@/components/JsonLd';
+import StoreSelector from '@/components/StoreSelector';
 
 interface StoreLayoutProps {
   children: ReactNode;
@@ -267,7 +268,11 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
               </nav>
             )}
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-3">
+              <StoreSelector
+                languages={(store as any).languages || []}
+                currencies={(store as any).currencies || []}
+              />
               <CartIcon storeSubdomain={params.subdomain} />
               <StoreMobileNav
                 subdomain={params.subdomain}

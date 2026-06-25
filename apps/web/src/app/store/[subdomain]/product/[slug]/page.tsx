@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck, Star, Flame, Eye, Clock, Shield, CreditCard, Package } from 'lucide-react';
 import { formatPrice } from '@/lib/format';
 import ProductJsonLd from '@/components/JsonLd';
@@ -64,6 +64,10 @@ export default function ProductDetailPage({
   params: { subdomain: string; slug: string };
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const lang = searchParams.get('lang');
+  const currency = searchParams.get('currency');
+
   const [product, setProduct] = useState<Product | null>(null);
   const [store, setStore] = useState<{ name: string; config?: StoreConfig } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,7 +115,11 @@ export default function ProductDetailPage({
     async function loadProduct() {
       try {
         // Always fetch the product list and find by slug
-        const listRes = await fetch(`${apiUrl}/products/${params.subdomain}`).catch(() => null);
+        const queryParams = new URLSearchParams();
+        if (lang) queryParams.set('lang', lang);
+        if (currency) queryParams.set('currency', currency);
+
+        const listRes = await fetch(`${apiUrl}/products/${params.subdomain}?${queryParams.toString()}`).catch(() => null);
         let p: Product | null = null;
 
         if (listRes?.ok) {
@@ -151,7 +159,7 @@ export default function ProductDetailPage({
     }
 
     loadProduct();
-  }, [params.subdomain, params.slug, apiUrl]);
+  }, [params.subdomain, params.slug, apiUrl, lang, currency]);
 
   // Simulate visitor fluctuation (realistic +/1 every few seconds)
   useEffect(() => {
