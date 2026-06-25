@@ -1,9 +1,11 @@
 import {
-  Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req, BadRequestException,
+  Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req, BadRequestException, Inject, NotFoundException,
 } from '@nestjs/common';
 import {
   IsString, IsUUID, IsOptional, IsEmail, IsObject, IsInt, Min,
 } from 'class-validator';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { OrdersService } from './orders.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -62,12 +64,34 @@ class UpdateOrderStatusDto {
 
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly orders: OrdersService) {}
+  constructor(
+    private readonly orders: OrdersService,
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+  ) {}
 
   @Post()
   create(@Req() req: any, @Body() dto: CreateOrderDto) {
     const tenantId = req.user?.tenant_id;
     if (!tenantId) throw new BadRequestException('No tenant associated with user');
+    return this.orders.createFromCart({ ...dto, tenant_id: tenantId });
+  }
+
+  @Post(':subdomain')
+  async createPublic(
+    @Param('subdomain') subdomain: string,
+    @Body() dto: CreateOrderDto,
+  ) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomain);
+    let tenantId = subdomain;
+    if (!isUuid) {
+      const { data: tenant } = await this.supabase
+        .from('tenants')
+        .select('id')
+        .eq('subdomain', subdomain)
+        .maybeSingle();
+      if (!tenant) throw new NotFoundException(`Tienda '${subdomain}' no encontrada`);
+      tenantId = tenant.id;
+    }
     return this.orders.createFromCart({ ...dto, tenant_id: tenantId });
   }
 

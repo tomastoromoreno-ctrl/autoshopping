@@ -67,13 +67,32 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
         const res = await fetch(`${apiUrl}/stores/${params.subdomain}/public`);
         if (res.ok) {
           const data = await res.json();
-          setStoreConfig(data);
-          if (data.payment_methods?.length) {
-            setSelectedPayment(data.payment_methods[0].id);
+          
+          const provider = data.config?.payment_provider || 'mercadopago';
+          const paymentMethods: PaymentMethod[] = [];
+          if (provider === 'mercadopago') {
+            paymentMethods.push({ id: 'mercadopago', name: 'Mercado Pago (Tarjeta de Crédito, Débito, Transferencia)', type: 'card' });
+          } else if (provider === 'transbank') {
+            paymentMethods.push({ id: 'transbank', name: 'Webpay Plus (Transbank)', type: 'card' });
+          } else {
+            paymentMethods.push({ id: 'mercadopago', name: 'Pago Seguro', type: 'card' });
+          }
+
+          const mappedConfig: StoreConfig = {
+            id: data.id,
+            name: data.name,
+            shipping_enabled: data.config?.shipping_enabled,
+            shipping_cost: data.config?.shipping_cost,
+            payment_methods: paymentMethods,
+          };
+
+          setStoreConfig(mappedConfig);
+          if (mappedConfig.payment_methods?.length) {
+            setSelectedPayment(mappedConfig.payment_methods[0].id);
           }
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.error('Error loading store config:', err);
       } finally {
         setLoading(false);
       }
@@ -200,28 +219,26 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           {/* Step Indicator */}
           <div className="mb-8">
             <div className="flex items-center justify-center gap-0 max-w-md mx-auto">
-              {steps.map((step, index) => (
-                step.active && (
-                  <div key={step.label} className="flex items-center">
-                    <div className="flex items-center">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                        index === 0 
-                          ? 'bg-primary text-white' 
-                          : 'bg-gray-100 text-slate-400'
-                      }`}>
-                        {index + 1}
-                      </div>
-                      <span className={`ml-2 text-sm font-medium ${
-                        index === 0 ? 'text-slate-900' : 'text-slate-400'
-                      }`}>
-                        {step.label}
-                      </span>
+              {steps.filter(s => s.active).map((step, displayIndex, filteredArr) => (
+                <div key={step.label} className="flex items-center">
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      displayIndex === 0 
+                        ? 'bg-primary text-white' 
+                        : 'bg-gray-100 text-slate-400'
+                    }`}>
+                      {displayIndex + 1}
                     </div>
-                    {index < steps.filter(s => s.active).length - 1 && (
-                      <div className="w-12 h-0.5 bg-gray-200 mx-3" />
-                    )}
+                    <span className={`ml-2 text-sm font-medium ${
+                      displayIndex === 0 ? 'text-slate-900' : 'text-slate-400'
+                    }`}>
+                      {step.label}
+                    </span>
                   </div>
-                )
+                  {displayIndex < filteredArr.length - 1 && (
+                    <div className="w-12 h-0.5 bg-gray-200 mx-3" />
+                  )}
+                </div>
               ))}
             </div>
           </div>
