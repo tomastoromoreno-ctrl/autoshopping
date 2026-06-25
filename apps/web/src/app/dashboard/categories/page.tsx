@@ -8,8 +8,8 @@ interface Category {
   name: string;
   slug: string;
   parent_id: string | null;
-  order: number;
-  active: boolean;
+  sort_order: number;
+  is_active: boolean;
   children?: Category[];
 }
 
@@ -27,7 +27,14 @@ function buildTree(categories: Category[]): Category[] {
   return roots;
 }
 
-function CategoryRow({ cat, depth }: { cat: Category; depth: number }) {
+interface CategoryRowProps {
+  cat: Category;
+  depth: number;
+  onEdit: (cat: Category) => void;
+  onDelete: (id: string) => void;
+}
+
+function CategoryRow({ cat, depth, onEdit, onDelete }: CategoryRowProps) {
   return (
     <>
       <tr className="border-b hover:bg-slate-50">
@@ -36,15 +43,20 @@ function CategoryRow({ cat, depth }: { cat: Category; depth: number }) {
         </td>
         <td className="px-4 py-3 text-slate-500">{cat.slug}</td>
         <td className="px-4 py-3 text-slate-500">{cat.parent_id || '-'}</td>
-        <td className="px-4 py-3">{cat.order}</td>
+        <td className="px-4 py-3">{cat.sort_order}</td>
         <td className="px-4 py-3">
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>{cat.active ? 'Sí' : 'No'}</span>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.is_active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>{cat.is_active ? 'Sí' : 'No'}</span>
         </td>
         <td className="px-4 py-3">
-          <span className="text-xs text-slate-400">-</span>
+          <div className="flex gap-2">
+            <button onClick={() => onEdit(cat)} className="text-xs text-primary hover:underline font-medium">Editar</button>
+            <button onClick={() => onDelete(cat.id)} className="text-xs text-red-500 hover:underline font-medium">Eliminar</button>
+          </div>
         </td>
       </tr>
-      {cat.children?.map((child) => <CategoryRow key={child.id} cat={child} depth={depth + 1} />)}
+      {cat.children?.map((child) => (
+        <CategoryRow key={child.id} cat={child} depth={depth + 1} onEdit={onEdit} onDelete={onDelete} />
+      ))}
     </>
   );
 }
@@ -52,6 +64,7 @@ function CategoryRow({ cat, depth }: { cat: Category; depth: number }) {
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [treeView, setTreeView] = useState(false);
+  const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState({ name: '', slug: '', parent_id: '', order: '0', active: true });
 
   const load = () => {
@@ -63,14 +76,48 @@ export default function CategoriesPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/categories', {
+      const payload = {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
         parent_id: form.parent_id || null,
         order: Number(form.order),
         active: form.active,
-      });
+      };
+
+      if (editing) {
+        await api.patch(`/categories/${editing.id}`, payload);
+      } else {
+        await api.post('/categories', payload);
+      }
+
+      setEditing(null);
       setForm({ name: '', slug: '', parent_id: '', order: '0', active: true });
+      load();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const startEdit = (cat: Category) => {
+    setEditing(cat);
+    setForm({
+      name: cat.name,
+      slug: cat.slug,
+      parent_id: cat.parent_id || '',
+      order: String(cat.sort_order ?? 0),
+      active: !!cat.is_active,
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditing(null);
+    setForm({ name: '', slug: '', parent_id: '', order: '0', active: true });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
+    try {
+      await api.delete(`/categories/${id}`);
       load();
     } catch (err: any) {
       alert(err.message);
@@ -85,26 +132,47 @@ export default function CategoriesPage() {
       <div className="mt-4 sm:mt-6 grid gap-6 sm:gap-8 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <div className="rounded-xl border bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Agregar categoría</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{editing ? 'Editar' : 'Agregar'} categoría</h2>
             <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-              <input type="text" placeholder="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
-              <input type="text" placeholder="URL amigable (ej: zapatillas-deportivas)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-              <p className="text-xs text-slate-400">Se genera automáticamente. Puedes editarlo si lo deseas.</p>
-              <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
-                aria-label="Categoría padre"
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
-                <option value="">Sin padre (raíz)</option>
-                {categories.filter((c) => !c.parent_id).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              <input type="number" placeholder="Orden" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })}
-                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
-              <label className="flex items-center gap-2 text-sm text-slate-700">
-                <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="rounded" />
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                <input type="text" placeholder="Nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                  className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">URL amigable</label>
+                <input type="text" placeholder="URL amigable (ej: zapatillas-deportivas)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+                <p className="text-[11px] text-slate-400 mt-1">Se genera automáticamente. Puedes editarlo si lo deseas.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Categoría padre</label>
+                <select value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })}
+                  aria-label="Categoría padre"
+                  className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
+                  <option value="">Sin padre (raíz)</option>
+                  {categories.filter((c) => !c.parent_id && c.id !== editing?.id).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Orden de visualización (prioridad)</label>
+                <input type="number" placeholder="Orden" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })}
+                  className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer select-none">
+                <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="rounded border-slate-300" />
                 Activa
               </label>
-              <button type="submit" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">Agregar</button>
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
+                  {editing ? 'Guardar' : 'Agregar'}
+                </button>
+                {editing && (
+                  <button type="button" onClick={cancelEdit} className="rounded-lg border px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                    Cancelar
+                  </button>
+                )}
+              </div>
             </form>
           </div>
         </div>
@@ -129,18 +197,21 @@ export default function CategoriesPage() {
               </thead>
               <tbody>
                 {treeView
-                  ? tree.map((cat) => <CategoryRow key={cat.id} cat={cat} depth={0} />)
+                  ? tree.map((cat) => <CategoryRow key={cat.id} cat={cat} depth={0} onEdit={startEdit} onDelete={handleDelete} />)
                   : categories.map((cat) => (
                       <tr key={cat.id} className="border-b hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-900">{cat.name}</td>
                         <td className="px-4 py-3 text-slate-500">{cat.slug}</td>
                         <td className="px-4 py-3 text-slate-500">{cat.parent_id ? categories.find((c) => c.id === cat.parent_id)?.name || cat.parent_id : '-'}</td>
-                        <td className="px-4 py-3">{cat.order}</td>
+                        <td className="px-4 py-3">{cat.sort_order}</td>
                         <td className="px-4 py-3">
-                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>{cat.active ? 'Sí' : 'No'}</span>
+                          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${cat.is_active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>{cat.is_active ? 'Sí' : 'No'}</span>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-xs text-slate-400">-</span>
+                          <div className="flex gap-2">
+                            <button onClick={() => startEdit(cat)} className="text-xs text-primary hover:underline font-medium">Editar</button>
+                            <button onClick={() => handleDelete(cat.id)} className="text-xs text-red-500 hover:underline font-medium">Eliminar</button>
+                          </div>
                         </td>
                       </tr>
                     ))}

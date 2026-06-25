@@ -23,6 +23,11 @@ export default function NewProductPage() {
     sku: '',
     category_id: '',
     images: '',
+    has_buy_now: true,
+    technical_specs: '',
+    has_shipping_info: true,
+    vertical_gallery: false,
+    has_zoom: true,
   });
 
   useEffect(() => {
@@ -37,6 +42,20 @@ export default function NewProductPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      const specsObj: Record<string, string> = {};
+      if (form.technical_specs) {
+        form.technical_specs.split('\n').forEach((line) => {
+          const parts = line.split(':');
+          if (parts.length >= 2) {
+            const key = parts[0].trim();
+            const val = parts.slice(1).join(':').trim();
+            if (key && val) {
+              specsObj[key] = val;
+            }
+          }
+        });
+      }
+
       await api.post('/products', {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
@@ -47,6 +66,11 @@ export default function NewProductPage() {
         sku: form.sku || null,
         category_id: form.category_id || null,
         images: form.images ? form.images.split(',').map((s) => s.trim()) : [],
+        has_buy_now: form.has_buy_now,
+        technical_specs: specsObj,
+        has_shipping_info: form.has_shipping_info,
+        vertical_gallery: form.vertical_gallery,
+        has_zoom: form.has_zoom,
       });
       router.push('/dashboard/products');
     } catch (err: any) {
@@ -114,6 +138,30 @@ export default function NewProductPage() {
           <input type="text" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })}
             placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
             className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700">Especificaciones Técnicas (Formato Llave: Valor, uno por línea)</label>
+          <textarea rows={4} value={form.technical_specs} onChange={(e) => setForm({ ...form, technical_specs: e.target.value })}
+            placeholder="Nivel de Juego: Profesional&#10;Tipo de Juego: Potencia&#10;Tacto: Duro&#10;Año: 2026"
+            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="checkbox" checked={form.has_buy_now} onChange={(e) => setForm({ ...form, has_buy_now: e.target.checked })} className="rounded border-slate-300" />
+            Habilitar botón "Comprar Ahora" (Express Checkout)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="checkbox" checked={form.has_shipping_info} onChange={(e) => setForm({ ...form, has_shipping_info: e.target.checked })} className="rounded border-slate-300" />
+            Mostrar estimación de despacho dinámico
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="checkbox" checked={form.vertical_gallery} onChange={(e) => setForm({ ...form, vertical_gallery: e.target.checked })} className="rounded border-slate-300" />
+            Usar galería vertical en escritorio (Desktop)
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+            <input type="checkbox" checked={form.has_zoom} onChange={(e) => setForm({ ...form, has_zoom: e.target.checked })} className="rounded border-slate-300" />
+            Habilitar Zoom/Lightbox de imagen
+          </label>
         </div>
         <div className="flex gap-3 pt-2">
           <button type="submit" disabled={loading}

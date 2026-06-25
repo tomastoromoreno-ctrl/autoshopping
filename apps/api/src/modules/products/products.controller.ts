@@ -51,6 +51,26 @@ class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  has_buy_now?: boolean;
+
+  @IsObject()
+  @IsOptional()
+  technical_specs?: Record<string, any>;
+
+  @IsBoolean()
+  @IsOptional()
+  has_shipping_info?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  vertical_gallery?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  has_zoom?: boolean;
 }
 
 class UpdateProductDto {
@@ -105,6 +125,26 @@ class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   is_new?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  has_buy_now?: boolean;
+
+  @IsObject()
+  @IsOptional()
+  technical_specs?: Record<string, any>;
+
+  @IsBoolean()
+  @IsOptional()
+  has_shipping_info?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  vertical_gallery?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  has_zoom?: boolean;
 }
 
 class CreateVariantDto {

@@ -21,6 +21,11 @@ export class ProductsService {
     sku?: string;
     images?: string[];
     is_active?: boolean;
+    has_buy_now?: boolean;
+    technical_specs?: Record<string, any>;
+    has_shipping_info?: boolean;
+    vertical_gallery?: boolean;
+    has_zoom?: boolean;
   }) {
     const { data, error } = await this.supabase
       .from('products')
@@ -153,6 +158,11 @@ export class ProductsService {
     is_active?: boolean;
     is_featured?: boolean;
     is_new?: boolean;
+    has_buy_now?: boolean;
+    technical_specs?: Record<string, any>;
+    has_shipping_info?: boolean;
+    vertical_gallery?: boolean;
+    has_zoom?: boolean;
   }) {
     const { data, error } = await this.supabase
       .from('products')

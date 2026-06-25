@@ -22,6 +22,11 @@ interface Product {
   images: string[];
   is_featured?: boolean;
   is_new?: boolean;
+  has_buy_now?: boolean;
+  technical_specs?: Record<string, any>;
+  has_shipping_info?: boolean;
+  vertical_gallery?: boolean;
+  has_zoom?: boolean;
 }
 
 export default function ProductsPage() {
@@ -31,7 +36,21 @@ export default function ProductsPage() {
   const [filterCategory, setFilterCategory] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', price: '', stock: '', category_id: '', images: '', slug: '', is_featured: false, is_new: false });
+  const [form, setForm] = useState({
+    name: '',
+    price: '',
+    stock: '',
+    category_id: '',
+    images: '',
+    slug: '',
+    is_featured: false,
+    is_new: false,
+    has_buy_now: true,
+    technical_specs: '',
+    has_shipping_info: true,
+    vertical_gallery: false,
+    has_zoom: true
+  });
   const [loading, setLoading] = useState(false);
   const [sortCol, setSortCol] = useState<'name' | 'price' | 'stock'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -209,13 +228,47 @@ export default function ProductsPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', price: '', stock: '', category_id: '', images: '', slug: '', is_featured: false, is_new: false });
+    setForm({
+      name: '',
+      price: '',
+      stock: '',
+      category_id: '',
+      images: '',
+      slug: '',
+      is_featured: false,
+      is_new: false,
+      has_buy_now: true,
+      technical_specs: '',
+      has_shipping_info: true,
+      vertical_gallery: false,
+      has_zoom: true
+    });
     setShowForm(true);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, price: String(p.price), stock: String(p.stock), category_id: p.category?.id || '', images: p.images?.join(', ') || '', slug: p.slug, is_featured: p.is_featured || false, is_new: p.is_new || false });
+    let specsText = '';
+    if (p.technical_specs && typeof p.technical_specs === 'object') {
+      specsText = Object.entries(p.technical_specs)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+    }
+    setForm({
+      name: p.name,
+      price: String(p.price),
+      stock: String(p.stock),
+      category_id: p.category?.id || '',
+      images: p.images?.join(', ') || '',
+      slug: p.slug,
+      is_featured: p.is_featured || false,
+      is_new: p.is_new || false,
+      has_buy_now: p.has_buy_now !== false,
+      technical_specs: specsText,
+      has_shipping_info: p.has_shipping_info !== false,
+      vertical_gallery: !!p.vertical_gallery,
+      has_zoom: p.has_zoom !== false
+    });
     setShowForm(true);
   };
 
@@ -223,6 +276,20 @@ export default function ProductsPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      const specsObj: Record<string, string> = {};
+      if (form.technical_specs) {
+        form.technical_specs.split('\n').forEach((line) => {
+          const parts = line.split(':');
+          if (parts.length >= 2) {
+            const key = parts[0].trim();
+            const val = parts.slice(1).join(':').trim();
+            if (key && val) {
+              specsObj[key] = val;
+            }
+          }
+        });
+      }
+
       const body = {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
@@ -232,6 +299,11 @@ export default function ProductsPage() {
         images: form.images ? form.images.split(',').map((s: string) => s.trim()) : [],
         is_featured: form.is_featured,
         is_new: form.is_new,
+        has_buy_now: form.has_buy_now,
+        technical_specs: specsObj,
+        has_shipping_info: form.has_shipping_info,
+        vertical_gallery: form.vertical_gallery,
+        has_zoom: form.has_zoom,
       };
       if (editing) {
         await api.patch(`/products/${editing.id}`, body);
@@ -338,6 +410,29 @@ export default function ProductsPage() {
                 <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
                   <input type="checkbox" checked={form.is_new} onChange={(e) => setForm({ ...form, is_new: e.target.checked })} className="rounded border-slate-300" />
                   <Sparkles className="h-4 w-4 text-blue-400" /> Nuevo
+                </label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Especificaciones Técnicas (Llave: Valor, uno por línea)</label>
+                <textarea rows={3} placeholder="Nivel: Profesional&#10;Tacto: Duro" value={form.technical_specs} onChange={(e) => setForm({ ...form, technical_specs: e.target.value })}
+                  className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+              </div>
+              <div className="space-y-2 border-t pt-2">
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.has_buy_now} onChange={(e) => setForm({ ...form, has_buy_now: e.target.checked })} className="rounded border-slate-300" />
+                  Habilitar botón "Comprar Ahora" (Express Checkout)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.has_shipping_info} onChange={(e) => setForm({ ...form, has_shipping_info: e.target.checked })} className="rounded border-slate-300" />
+                  Mostrar estimación de despacho dinámico
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.vertical_gallery} onChange={(e) => setForm({ ...form, vertical_gallery: e.target.checked })} className="rounded border-slate-300" />
+                  Galería vertical en escritorio (Desktop)
+                </label>
+                <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  <input type="checkbox" checked={form.has_zoom} onChange={(e) => setForm({ ...form, has_zoom: e.target.checked })} className="rounded border-slate-300" />
+                  Habilitar Zoom/Lightbox de imagen
                 </label>
               </div>
               <div className="flex gap-2 pt-2">

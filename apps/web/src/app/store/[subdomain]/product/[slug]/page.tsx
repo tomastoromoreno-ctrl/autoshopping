@@ -28,6 +28,11 @@ interface Product {
   sales_count?: number;
   category_id?: string;
   variants?: ProductVariant[];
+  has_buy_now?: boolean;
+  technical_specs?: Record<string, any>;
+  has_shipping_info?: boolean;
+  vertical_gallery?: boolean;
+  has_zoom?: boolean;
 }
 
 interface ProductStats {
@@ -71,8 +76,25 @@ export default function ProductDetailPage({
   const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'policies'>('description');
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [visitorCount, setVisitorCount] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const stickyRef = useRef<HTMLDivElement>(null);
   const addToCartRef = useRef<HTMLDivElement>(null);
+
+  // Esc and Arrow keys event listener for lightbox/zoom
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowLeft') {
+        setSelectedImage((prev) => (product?.images ? (prev === 0 ? product.images.length - 1 : prev - 1) : prev));
+      }
+      if (e.key === 'ArrowRight') {
+        setSelectedImage((prev) => (product?.images ? (prev === product.images.length - 1 ? 0 : prev + 1) : prev));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, product?.images]);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
@@ -215,6 +237,95 @@ export default function ProductDetailPage({
     setTimeout(() => setAddedToCart(false), 2000);
   }
 
+  function handleBuyNow() {
+    if (!product) return;
+    const cartKey = `cart_${params.subdomain}`;
+    const existing = localStorage.getItem(cartKey);
+    const cart = existing ? JSON.parse(existing) : [];
+    const variantId = selectedVariant?.id;
+    const cartItemKey = variantId ? `${product.id}_${variantId}` : product.id;
+    const existingIdx = cart.findIndex((item: any) => item.cart_item_key === cartItemKey);
+    if (existingIdx >= 0) { 
+      cart[existingIdx].quantity += quantity; 
+    } else { 
+      cart.push({ 
+        cart_item_key: cartItemKey, 
+        product_id: product.id, 
+        variant_id: variantId, 
+        variant_name: selectedVariant?.name, 
+        name: product.name, 
+        price: getEffectivePrice(), 
+        image: product.images?.[0] || '/placeholder.svg', 
+        quantity, 
+        slug: product.slug 
+      }); 
+    }
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    window.dispatchEvent(new Event('cart-updated'));
+    router.push(`/store/${params.subdomain}/checkout`);
+  }
+
+  function getShippingEstimationText(): string {
+    const now = new Date();
+    const hour = now.getHours();
+    const day = now.getDay();
+    if (day === 0) {
+      return "Recíbelo entre el martes y miércoles";
+    } else if (day === 6) {
+      return "Recíbelo entre el lunes y martes";
+    } else if (day === 5) {
+      if (hour >= 13) {
+        return "Recíbelo entre el martes y miércoles";
+      } else {
+        return "Recíbelo entre el lunes y martes";
+      }
+    } else {
+      if (hour >= 13) {
+        const minDeliveryDay = new Date(now);
+        minDeliveryDay.setDate(now.getDate() + 2);
+        const maxDeliveryDay = new Date(now);
+        maxDeliveryDay.setDate(now.getDate() + 3);
+        let minIndex = minDeliveryDay.getDay();
+        if (minIndex === 6) {
+          minDeliveryDay.setDate(minDeliveryDay.getDate() + 2);
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 2);
+        } else if (minIndex === 0) {
+          minDeliveryDay.setDate(minDeliveryDay.getDate() + 1);
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 1);
+        }
+        let maxIndex = maxDeliveryDay.getDay();
+        if (maxIndex === 6) {
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 2);
+        } else if (maxIndex === 0) {
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 1);
+        }
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'short' };
+        return `Recíbelo entre el ${minDeliveryDay.toLocaleDateString('es-CL', options)} y el ${maxDeliveryDay.toLocaleDateString('es-CL', options)}`;
+      } else {
+        const minDeliveryDay = new Date(now);
+        minDeliveryDay.setDate(now.getDate() + 1);
+        const maxDeliveryDay = new Date(now);
+        maxDeliveryDay.setDate(now.getDate() + 2);
+        let minIndex = minDeliveryDay.getDay();
+        if (minIndex === 6) {
+          minDeliveryDay.setDate(minDeliveryDay.getDate() + 2);
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 2);
+        } else if (minIndex === 0) {
+          minDeliveryDay.setDate(minDeliveryDay.getDate() + 1);
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 1);
+        }
+        let maxIndex = maxDeliveryDay.getDay();
+        if (maxIndex === 6) {
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 2);
+        } else if (maxIndex === 0) {
+          maxDeliveryDay.setDate(maxDeliveryDay.getDate() + 1);
+        }
+        const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'short' };
+        return `Recíbelo entre el ${minDeliveryDay.toLocaleDateString('es-CL', options)} y el ${maxDeliveryDay.toLocaleDateString('es-CL', options)}`;
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
@@ -279,9 +390,19 @@ export default function ProductDetailPage({
         {/* Two-column layout */}
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Left: Images */}
-          <div className="lg:sticky lg:top-24 lg:self-start space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-50">
-              <img src={product.images?.[selectedImage] || '/placeholder.svg'} alt={product.name} className="h-full w-full object-cover transition-transform duration-300" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
+          <div className={`lg:sticky lg:top-24 lg:self-start ${product.vertical_gallery ? 'lg:flex lg:flex-row-reverse lg:gap-4 lg:space-y-0' : 'space-y-4'}`}>
+            <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-50 flex-1">
+              <img 
+                src={product.images?.[selectedImage] || '/placeholder.svg'} 
+                alt={product.name} 
+                className={`h-full w-full object-cover transition-transform duration-300 ${product.has_zoom !== false ? 'cursor-zoom-in hover:scale-105' : ''}`}
+                onClick={() => {
+                  if (product.has_zoom !== false) {
+                    setIsLightboxOpen(true);
+                  }
+                }}
+                onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} 
+              />
               {hasDiscount && (
                 <span className="absolute top-4 left-4 rounded-full bg-red-500 px-3 py-1 text-sm font-bold text-white shadow-lg">-{discountPct}%</span>
               )}
@@ -290,7 +411,7 @@ export default function ProductDetailPage({
               )}
             </div>
             {product.images && product.images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
+              <div className={`flex gap-3 overflow-x-auto pb-1 ${product.vertical_gallery ? 'lg:flex-col lg:overflow-y-auto lg:max-h-[500px] lg:pb-0 lg:w-20' : ''}`}>
                 {product.images.map((imgUrl, idx) => (
                   <button key={idx} onClick={() => setSelectedImage(idx)} className={`h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 transition-all duration-200 ${idx === selectedImage ? 'border-slate-900 ring-1 ring-slate-900/10' : 'border-transparent hover:border-slate-200'}`}>
                     <img src={imgUrl} alt={product.name} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
@@ -372,17 +493,44 @@ export default function ProductDetailPage({
               </div>
             )}
 
-            {/* Quantity + Add to cart */}
-            <div ref={addToCartRef} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-              <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden">
-                <button aria-label="Disminuir" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="flex h-11 w-11 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40"><Minus className="h-4 w-4" /></button>
-                <span className="flex h-11 w-14 items-center justify-center text-sm font-semibold text-slate-900 border-x border-slate-200">{quantity}</span>
-                <button aria-label="Aumentar" onClick={() => setQuantity(Math.min(stock === Infinity ? 99 : stock, quantity + 1))} disabled={quantity >= (stock === Infinity ? 99 : stock)} className="flex h-11 w-11 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40"><Plus className="h-4 w-4" /></button>
+            {/* Ficha Técnica Rápida */}
+            {product.technical_specs && Object.keys(product.technical_specs).length > 0 && (
+              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Especificaciones Técnicas</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {Object.entries(product.technical_specs).map(([key, val]) => (
+                    <div key={key} className="flex justify-between border-b border-slate-100 pb-1">
+                      <span className="text-slate-500 font-medium">{key}</span>
+                      <span className="text-slate-800 font-semibold">{val}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <button onClick={handleAddToCart} disabled={outOfStock} className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] ${addedToCart ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg'} disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none`}>
-                <ShoppingCart className="h-4 w-4" />
-                {addedToCart ? '¡Agregado!' : outOfStock ? 'Agotado' : 'Agregar al carrito'}
-              </button>
+            )}
+
+            {/* Quantity + Add to cart / Buy Now */}
+            <div ref={addToCartRef} className="space-y-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                <div className="flex items-center rounded-xl border border-slate-200 overflow-hidden">
+                  <button aria-label="Disminuir" onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} className="flex h-11 w-11 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40"><Minus className="h-4 w-4" /></button>
+                  <span className="flex h-11 w-14 items-center justify-center text-sm font-semibold text-slate-900 border-x border-slate-200">{quantity}</span>
+                  <button aria-label="Aumentar" onClick={() => setQuantity(Math.min(stock === Infinity ? 99 : stock, quantity + 1))} disabled={quantity >= (stock === Infinity ? 99 : stock)} className="flex h-11 w-11 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-40"><Plus className="h-4 w-4" /></button>
+                </div>
+                <button onClick={handleAddToCart} disabled={outOfStock} className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-6 py-3 text-sm font-semibold text-white transition-all duration-200 active:scale-[0.98] ${addedToCart ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg'} disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none`}>
+                  <ShoppingCart className="h-4 w-4" />
+                  {addedToCart ? '¡Agregado!' : outOfStock ? 'Agotado' : 'Agregar al carrito'}
+                </button>
+              </div>
+
+              {product.has_buy_now !== false && !outOfStock && (
+                <button 
+                  onClick={handleBuyNow} 
+                  className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:scale-[0.98] px-6 py-3 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Comprar Ahora (Express Checkout)
+                </button>
+              )}
             </div>
 
             {/* Free shipping progress bar */}
@@ -402,11 +550,23 @@ export default function ProductDetailPage({
               </div>
             )}
 
-            {/* Shipping info */}
-            <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-              <Truck className="h-4 w-4 text-slate-400" />
-              <span>Envíos a todo el país</span>
-            </div>
+            {/* Shipping info / Dynamic estimation */}
+            {product.has_shipping_info !== false ? (
+              <div className="rounded-xl border border-blue-100 bg-blue-50/30 px-4 py-3 text-sm text-blue-800">
+                <div className="flex items-center gap-2 font-semibold">
+                  <Truck className="h-4 w-4 text-blue-500 shrink-0" />
+                  <span>Despacho a RM y V Región</span>
+                </div>
+                <p className="mt-1 text-xs text-blue-600 font-medium">
+                  {getShippingEstimationText()}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <Truck className="h-4 w-4 text-slate-400" />
+                <span>Envíos a todo el país</span>
+              </div>
+            )}
 
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3">
@@ -489,6 +649,74 @@ export default function ProductDetailPage({
               {addedToCart ? '¡Listo!' : 'Agregar'}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Lightbox / Zoom Modal */}
+      {isLightboxOpen && product.images && product.images.length > 0 && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 p-4 transition-all duration-300">
+          {/* Close Button */}
+          <button 
+            onClick={() => setIsLightboxOpen(false)} 
+            className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-all cursor-pointer"
+            aria-label="Cerrar modal"
+          >
+            <span className="text-xl px-2">✕</span>
+          </button>
+
+          {/* Main Image container with Prev/Next buttons */}
+          <div className="relative flex items-center justify-center max-w-4xl w-full aspect-square md:aspect-[4/3] max-h-[70vh]">
+            {/* Prev Button */}
+            {product.images.length > 1 && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev === 0 ? product.images!.length - 1 : prev - 1));
+                }} 
+                className="absolute left-4 z-10 rounded-full bg-black/50 p-3 text-white hover:bg-black/75 transition-all cursor-pointer"
+                aria-label="Imagen anterior"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+            )}
+
+            {/* Image */}
+            <img 
+              src={product.images[selectedImage]} 
+              alt={product.name} 
+              className="max-h-full max-w-full object-contain rounded-lg select-none"
+              onClick={(e) => e.stopPropagation()} 
+            />
+
+            {/* Next Button */}
+            {product.images.length > 1 && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev === product.images!.length - 1 ? 0 : prev + 1));
+                }} 
+                className="absolute right-4 z-10 rounded-full bg-black/50 p-3 text-white hover:bg-black/75 transition-all cursor-pointer"
+                aria-label="Siguiente imagen"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Lightbox Thumbnails */}
+          {product.images.length > 1 && (
+            <div className="mt-6 flex gap-2 overflow-x-auto max-w-full pb-2">
+              {product.images.map((imgUrl, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => setSelectedImage(idx)} 
+                  className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer ${idx === selectedImage ? 'border-white' : 'border-transparent opacity-55 hover:opacity-100'}`}
+                >
+                  <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
