@@ -172,9 +172,20 @@ export default function AppearancePage() {
     </div>
   );
 
+  const presetStylesHtml = colorPresets.map((preset, idx) => `
+    .preset-bg-${idx} { background-color: ${preset.bg} !important; }
+    .preset-btn-${idx} { background-color: ${preset.btn} !important; }
+    .preset-text-${idx} { background-color: ${preset.text} !important; }
+    .preset-text-color-${idx} { color: ${preset.text} !important; }
+    .preset-primary-${idx} { background-color: ${preset.primary} !important; }
+  `).join('\n') + fontOptions.map((font, idx) => `
+    .font-option-${idx} { font-family: '${font.value}', sans-serif !important; }
+  `).join('\n');
+
   return (
     <div className="mx-auto max-w-3xl space-y-4 sm:space-y-6">
       <GoogleFontsImport />
+      <style dangerouslySetInnerHTML={{ __html: presetStylesHtml }} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Apariencia</h1>
@@ -193,25 +204,24 @@ export default function AppearancePage() {
             color="bg-violet-50 text-violet-600"
           />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {colorPresets.map((preset) => (
+            {colorPresets.map((preset, idx) => (
               <button
                 key={preset.name}
                 type="button"
                 onClick={() => applyPreset(preset)}
-                className={`relative rounded-xl border-2 p-3 transition-all hover:shadow-md ${
+                className={`relative rounded-xl border-2 p-3 transition-all hover:shadow-md preset-bg-${idx} ${
                   form.color_preset === preset.name
                     ? 'border-blue-500 ring-2 ring-blue-500/20'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
-                style={{ backgroundColor: preset.bg }}
               >
                 <div className="flex gap-1.5 mb-2 justify-center">
-                  <span className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: preset.bg }} />
-                  <span className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: preset.btn }} />
-                  <span className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: preset.text }} />
-                  <span className="w-4 h-4 rounded-full border border-slate-200" style={{ backgroundColor: preset.primary }} />
+                  <span className={`w-4 h-4 rounded-full border border-slate-200 preset-bg-${idx}`} />
+                  <span className={`w-4 h-4 rounded-full border border-slate-200 preset-btn-${idx}`} />
+                  <span className={`w-4 h-4 rounded-full border border-slate-200 preset-text-${idx}`} />
+                  <span className={`w-4 h-4 rounded-full border border-slate-200 preset-primary-${idx}`} />
                 </div>
-                <span className="text-[10px] font-bold text-center block" style={{ color: preset.text }}>
+                <span className={`text-[10px] font-bold text-center block preset-text-color-${idx}`}>
                   {preset.name}
                 </span>
               </button>
@@ -228,7 +238,7 @@ export default function AppearancePage() {
             color="bg-sky-50 text-sky-600"
           />
           <div className="space-y-2">
-            {fontOptions.map((font) => (
+            {fontOptions.map((font, idx) => (
               <button
                 key={font.value}
                 type="button"
@@ -240,7 +250,7 @@ export default function AppearancePage() {
                 }`}
               >
                 <span className="text-sm font-bold text-slate-700 mb-1 sm:mb-0">{font.label}</span>
-                <span className="text-lg sm:text-xl font-bold text-slate-800 leading-tight" style={{ fontFamily: `'${font.value}', sans-serif` }}>
+                <span className={`text-lg sm:text-xl font-bold text-slate-800 leading-tight font-option-${idx}`}>
                   {font.sample}
                 </span>
               </button>
@@ -343,12 +353,8 @@ export default function AppearancePage() {
                       alt="Logo preview"
                       style={{
                         transform: `scale(${zoom}) translate(${offsetX}px, ${offsetY}px)`,
-                        transformOrigin: 'center',
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'contain',
                       }}
-                      className="absolute inset-0 transition-transform duration-75"
+                      className="absolute inset-0 transition-transform duration-75 w-full h-full object-contain origin-center"
                     />
                     <div className="absolute inset-0 border-2 border-blue-500/30 pointer-events-none rounded-2xl" />
                   </div>
@@ -442,13 +448,16 @@ export default function AppearancePage() {
               { key: 'text_color', label: 'Texto Principal' },
             ].map(({ key, label }) => (
               <div key={key}>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">{label}</label>
+                <label htmlFor={`color-${key}`} className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">{label}</label>
                 <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                   <input
+                    id={`color-${key}`}
                     type="color"
                     value={(form as any)[key]}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                     className="h-8 w-8 cursor-pointer rounded-lg border-0"
+                    title={label}
+                    placeholder={label}
                   />
                   <span className="text-xs font-mono font-bold text-slate-700">{(form as any)[key]}</span>
                 </div>

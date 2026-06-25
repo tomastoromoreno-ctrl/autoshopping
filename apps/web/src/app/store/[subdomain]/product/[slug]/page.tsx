@@ -355,8 +355,14 @@ export default function ProductDetailPage({
   const shippingProgress = freeShippingMin > 0 ? Math.min((currentTotal / freeShippingMin) * 100, 100) : 0;
   const amountForFreeShipping = freeShippingMin > 0 ? Math.max(freeShippingMin - currentTotal, 0) : 0;
 
+  const progressStyles = `
+    .stock-progress-bar-width { width: ${Math.min((stock / 50) * 100, 100)}% !important; }
+    .shipping-progress-bar-width { width: ${shippingProgress}% !important; }
+  `;
+
   return (
     <div className="min-h-screen bg-white">
+      <style dangerouslySetInnerHTML={{ __html: progressStyles }} />
       <ProductJsonLd subdomain={params.subdomain} product={product} storeName={store?.name || 'Tienda'} />
 
       <div className="container-tight py-6 sm:py-8">
@@ -461,7 +467,7 @@ export default function ProductDetailPage({
                   <span className={`font-semibold ${lowStock ? 'text-red-600' : 'text-slate-900'}`}>{stock} unidades</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className={`h-full rounded-full transition-all duration-500 ${lowStock ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min((stock / 50) * 100, 100)}%` }} />
+                  <div className={`h-full rounded-full transition-all duration-500 stock-progress-bar-width ${lowStock ? 'bg-red-500' : 'bg-emerald-500'}`} />
                 </div>
                 {lowStock && (
                   <p className="text-xs text-red-600 font-medium flex items-center gap-1">
@@ -545,7 +551,7 @@ export default function ProductDetailPage({
                   )}
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${shippingProgress}%` }} />
+                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-500 shipping-progress-bar-width" />
                 </div>
               </div>
             )}
@@ -710,9 +716,11 @@ export default function ProductDetailPage({
                 <button 
                   key={idx} 
                   onClick={() => setSelectedImage(idx)} 
+                  aria-label={`Ver imagen ${idx + 1}`}
+                  title={`Ver imagen ${idx + 1}`}
                   className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 transition-all cursor-pointer ${idx === selectedImage ? 'border-white' : 'border-transparent opacity-55 hover:opacity-100'}`}
                 >
-                  <img src={imgUrl} alt="" className="h-full w-full object-cover" />
+                  <img src={imgUrl} alt={`Miniatura ${idx + 1}`} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

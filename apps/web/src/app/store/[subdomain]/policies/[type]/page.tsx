@@ -39,14 +39,18 @@ export default async function StorePolicyPage({ params }: StorePolicyProps) {
   const policyTitle = isSales ? 'Políticas de Venta y Devoluciones' : 'Políticas de Envío y Despacho';
   const policyText = isSales ? store.config?.sales_policy : store.config?.shipping_policy;
   const primaryColor = store.primary_color || '#3b82f6';
+  const dynamicStyles = `
+    .policy-back-link { color: ${primaryColor} !important; }
+    .policy-header { border-bottom-color: ${primaryColor}20 !important; }
+  `;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <style dangerouslySetInnerHTML={{ __html: dynamicStyles }} />
       <div className="mb-8">
         <Link 
           href={`/store/${params.subdomain}`} 
-          className="text-sm font-medium hover:underline"
-          style={{ color: primaryColor }}
+          className="text-sm font-medium hover:underline policy-back-link"
         >
           &larr; Volver a la tienda
         </Link>
@@ -54,8 +58,7 @@ export default async function StorePolicyPage({ params }: StorePolicyProps) {
       
       <div className="rounded-2xl border bg-white p-8 shadow-sm">
         <h1 
-          className="text-2xl font-bold border-b pb-4 text-slate-900"
-          style={{ borderBottomColor: `${primaryColor}20` }}
+          className="text-2xl font-bold border-b pb-4 text-slate-900 policy-header"
         >
           {policyTitle}
         </h1>

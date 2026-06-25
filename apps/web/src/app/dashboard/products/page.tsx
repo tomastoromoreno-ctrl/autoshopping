@@ -68,8 +68,8 @@ export default function ProductsPage() {
       .catch((err) => {
         console.error('[Products] Error cargando productos:', err.message);
       });
-    api.get<{ data: Category[] }>('/categories')
-      .then((res) => setCategories(res.data || []))
+    api.get<Category[]>('/categories')
+      .then((res) => setCategories(Array.isArray(res) ? res : []))
       .catch((err) => {
         console.error('[Categories] Error cargando categorías:', err.message);
       });

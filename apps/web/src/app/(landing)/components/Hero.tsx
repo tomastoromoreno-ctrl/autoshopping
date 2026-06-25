@@ -115,8 +115,7 @@ function ParticleField({ mouseX, mouseY }: { mouseX: any; mouseY: any }) {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: 'none' }}
+      className="absolute inset-0 w-full h-full pointer-events-none"
     />
   );
 }
@@ -398,7 +397,7 @@ export default function Hero() {
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-emerald-500/20 blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             {/* Dashboard Window Container */}
-            <div className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 backdrop-blur-md shadow-2xl overflow-hidden text-left flex flex-col relative" style={{ transform: 'translateZ(20px)' }}>
+            <div className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 backdrop-blur-md shadow-2xl overflow-hidden text-left flex flex-col relative [transform:translateZ(20px)]">
               {/* Edge-like Browser Header */}
               <div className="bg-slate-900 px-4 py-3 border-b border-slate-800/80 flex flex-col gap-2">
                 <div className="flex items-center gap-1.5">
@@ -677,8 +676,7 @@ export default function Hero() {
                                   onClick={() => setMockFont(f)}
                                   className={`px-2.5 py-1 rounded border text-[8px] font-black transition-all duration-200 ${
                                     mockFont === f ? 'border-slate-800 bg-slate-900 text-white shadow-sm' : 'border-slate-200 hover:bg-slate-50'
-                                  }`}
-                                  style={{ fontFamily: f === 'Playfair' ? 'Playfair Display, serif' : f }}
+                                  } ${f === 'Playfair' ? "[font-family:'Playfair_Display',serif]" : f === 'Montserrat' ? "[font-family:'Montserrat']" : "[font-family:'Inter']"}`}
                                 >
                                   {f}
                                 </button>

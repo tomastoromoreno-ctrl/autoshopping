@@ -19,6 +19,10 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { BannersModule } from './modules/banners/banners.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { SupabaseModule } from './common/supabase.module';
+import { SslModule } from './modules/ssl/ssl.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
+import { LegalModule } from './modules/legal/legal.module';
+import { BackupsModule } from './modules/backups/backups.module';
 
 @Module({
   imports: [
@@ -42,6 +46,10 @@ import { SupabaseModule } from './common/supabase.module';
     ReviewsModule,
     BannersModule,
     UploadModule,
+    SslModule,
+    PermissionsModule,
+    LegalModule,
+    BackupsModule,
   ],
 })
 export class AppModule {}

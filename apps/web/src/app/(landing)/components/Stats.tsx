@@ -5,10 +5,10 @@ import { useEffect, useState, useRef } from 'react';
 import { TrendingUp, Award, Users, Server } from 'lucide-react';
 
 const stats = [
-  { value: 1200, suffix: '+', label: 'Tiendas creadas', icon: Server, color: 'text-blue-400', bg: 'rgba(59, 130, 246, 0.08)' },
-  { value: 85000, suffix: '+', label: 'Pedidos procesados', icon: TrendingUp, color: 'text-purple-400', bg: 'rgba(168, 85, 247, 0.08)' },
-  { value: 99, suffix: '%', label: 'Satisfacción Clientes', icon: Award, color: 'text-emerald-400', bg: 'rgba(16, 185, 129, 0.08)' },
-  { value: 99.9, suffix: '%', label: 'Tiempo de Actividad', icon: Users, color: 'text-amber-400', bg: 'rgba(245, 158, 11, 0.08)' },
+  { value: 1200, suffix: '+', label: 'Tiendas creadas', icon: Server, color: 'text-blue-400', bgClass: 'bg-blue-500/10 border-blue-500/20' },
+  { value: 85000, suffix: '+', label: 'Pedidos procesados', icon: TrendingUp, color: 'text-purple-400', bgClass: 'bg-purple-500/10 border-purple-500/20' },
+  { value: 99, suffix: '%', label: 'Satisfacción Clientes', icon: Award, color: 'text-emerald-400', bgClass: 'bg-emerald-500/10 border-emerald-500/20' },
+  { value: 99.9, suffix: '%', label: 'Tiempo de Actividad', icon: Users, color: 'text-amber-400', bgClass: 'bg-amber-500/10 border-amber-500/20' },
 ];
 
 const chartData = [
@@ -68,8 +68,16 @@ export default function Stats() {
 
   const pathD = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
 
+  const tooltipStylesHtml = points.map((p, idx) => `
+    .stat-tooltip-${idx} {
+      left: ${(idx * (100 / (chartData.length - 1))) - (idx === 0 ? 0 : idx === chartData.length - 1 ? 16 : 8)}% !important;
+      bottom: ${chartHeight - p.y + 10}px !important;
+    }
+  `).join('\n');
+
   return (
     <section ref={ref} className="relative py-24 overflow-hidden bg-slate-950">
+      <style dangerouslySetInnerHTML={{ __html: tooltipStylesHtml }} />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.04),transparent_50%)]" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-16">
@@ -92,8 +100,7 @@ export default function Stats() {
                 
                 {/* Icon wrapper */}
                 <div
-                  className="p-3.5 rounded-xl border border-slate-900/60 transition-transform duration-300 group-hover:scale-110 flex items-center justify-center"
-                  style={{ backgroundColor: stat.bg }}
+                  className={`p-3.5 rounded-xl border transition-transform duration-300 group-hover:scale-110 flex items-center justify-center ${stat.bgClass}`}
                 >
                   <Icon className={`h-6 w-6 ${stat.color}`} />
                 </div>
@@ -208,12 +215,7 @@ export default function Stats() {
               {/* Tooltip Overlay */}
               {hoveredIndex !== null && (
                 <div
-                  className="absolute z-30 bg-slate-900 border border-slate-800 text-white rounded-lg p-2 shadow-xl text-[9px] pointer-events-none space-y-0.5"
-                  style={{
-                    left: `${(hoveredIndex * (100 / (chartData.length - 1))) - (hoveredIndex === 0 ? 0 : hoveredIndex === chartData.length - 1 ? 16 : 8)}%`,
-                    bottom: `${chartHeight - points[hoveredIndex].y + 10}px`,
-                    transform: 'translateX(-30%)',
-                  }}
+                  className={`absolute z-30 bg-slate-900 border border-slate-800 text-white rounded-lg p-2 shadow-xl text-[9px] pointer-events-none space-y-0.5 -translate-x-[30%] stat-tooltip-${hoveredIndex}`}
                 >
                   <p className="font-bold text-slate-300">{chartData[hoveredIndex].month}</p>
                   <p className="text-[10px] font-bold text-indigo-400">${(chartData[hoveredIndex].sales * 100).toLocaleString()} USD</p>

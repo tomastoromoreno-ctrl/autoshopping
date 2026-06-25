@@ -38,7 +38,14 @@ function CategoryRow({ cat, depth, onEdit, onDelete }: CategoryRowProps) {
   return (
     <>
       <tr className="border-b hover:bg-slate-50">
-        <td className="px-4 py-3" style={{ paddingLeft: `${12 + depth * 20}px` }}>
+        <td className={`px-4 py-3 ${
+          depth === 0 ? 'pl-3' : 
+          depth === 1 ? 'pl-8' : 
+          depth === 2 ? 'pl-[52px]' : 
+          depth === 3 ? 'pl-[72px]' : 
+          depth === 4 ? 'pl-[92px]' : 
+          'pl-[112px]'
+        }`}>
           <span className="font-medium text-slate-900">{cat.name}</span>
         </td>
         <td className="px-4 py-3 text-slate-500">{cat.slug}</td>

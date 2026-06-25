@@ -18,6 +18,9 @@ const navItems = [
   { href: '/dashboard/appearance', label: 'Apariencia', icon: '◐' },
   { href: '/dashboard/domain', label: 'Dominio', icon: '🌐' },
   { href: '/dashboard/users', label: 'Usuarios', icon: '♢' },
+  { href: '/dashboard/permissions', label: 'Roles y Permisos', icon: '🔐' },
+  { href: '/dashboard/legal', label: 'Documentos Legales', icon: '📋' },
+  { href: '/dashboard/backups', label: 'Backups', icon: '💾' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

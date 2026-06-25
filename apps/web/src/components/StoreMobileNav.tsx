@@ -61,7 +61,7 @@ export default function StoreMobileNav({ subdomain, storeName, storeLogo }: Stor
               {storeLogo && (
                 <img src={storeLogo} alt={storeName || ''} className="h-8 w-8 rounded-lg object-cover flex-shrink-0" />
               )}
-              <span className="text-sm font-bold text-slate-900 truncate" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <span className="text-sm font-bold text-slate-900 truncate font-heading">
                 {storeName || 'Menú'}
               </span>
             </div>

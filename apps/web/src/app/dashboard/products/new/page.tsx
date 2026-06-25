@@ -31,7 +31,7 @@ export default function NewProductPage() {
   });
 
   useEffect(() => {
-    api.get<{ data: Category[] }>('/categories').then((res) => setCategories(res.data || [])).catch(() => {});
+    api.get<Category[]>('/categories').then((res) => setCategories(Array.isArray(res) ? res : [])).catch(() => {});
   }, []);
 
   const generateSlug = (name: string) => {
@@ -86,62 +86,70 @@ export default function NewProductPage() {
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Nombre</label>
-            <input type="text" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); generateSlug(e.target.value); }}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+            <label htmlFor="name" className="block text-sm font-medium text-slate-700">Nombre</label>
+            <input id="name" type="text" value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); generateSlug(e.target.value); }}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required
+              title="Nombre del producto" placeholder="Nombre del producto" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Slug</label>
-            <input type="text" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+            <label htmlFor="slug" className="block text-sm font-medium text-slate-700">Slug</label>
+            <input id="slug" type="text" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required
+              title="Slug del producto" placeholder="slug-del-producto" />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Descripción</label>
-          <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+          <label htmlFor="description" className="block text-sm font-medium text-slate-700">Descripción</label>
+          <textarea id="description" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+            title="Descripción del producto" placeholder="Descripción del producto" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Precio</label>
-            <input type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+            <label htmlFor="price" className="block text-sm font-medium text-slate-700">Precio</label>
+            <input id="price" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required
+              title="Precio del producto" placeholder="0.00" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Precio comparado</label>
-            <input type="number" step="0.01" value={form.compare_at_price} onChange={(e) => setForm({ ...form, compare_at_price: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+            <label htmlFor="compare_at_price" className="block text-sm font-medium text-slate-700">Precio comparado</label>
+            <input id="compare_at_price" type="number" step="0.01" value={form.compare_at_price} onChange={(e) => setForm({ ...form, compare_at_price: e.target.value })}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+              title="Precio comparado" placeholder="0.00" />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Stock</label>
-            <input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required />
+            <label htmlFor="stock" className="block text-sm font-medium text-slate-700">Stock</label>
+            <input id="stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" required
+              title="Stock disponible" placeholder="0" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">SKU</label>
-            <input type="text" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })}
-              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
+            <label htmlFor="sku" className="block text-sm font-medium text-slate-700">SKU</label>
+            <input id="sku" type="text" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })}
+              className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+              title="SKU del producto" placeholder="SKU" />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Categoría</label>
-          <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary">
+          <label htmlFor="category_id" className="block text-sm font-medium text-slate-700">Categoría</label>
+          <select id="category_id" value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary"
+            title="Categoría del producto">
             <option value="">Seleccionar categoría</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">URLs de imágenes (separadas por coma)</label>
-          <input type="text" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })}
+          <label htmlFor="images" className="block text-sm font-medium text-slate-700">URLs de imágenes (separadas por coma)</label>
+          <input id="images" type="text" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })}
             placeholder="https://ejemplo.com/imagen1.jpg, https://ejemplo.com/imagen2.jpg"
             className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700">Especificaciones Técnicas (Formato Llave: Valor, uno por línea)</label>
-          <textarea rows={4} value={form.technical_specs} onChange={(e) => setForm({ ...form, technical_specs: e.target.value })}
+          <label htmlFor="technical_specs" className="block text-sm font-medium text-slate-700">Especificaciones Técnicas (Formato Llave: Valor, uno por línea)</label>
+          <textarea id="technical_specs" rows={4} value={form.technical_specs} onChange={(e) => setForm({ ...form, technical_specs: e.target.value })}
             placeholder="Nivel de Juego: Profesional&#10;Tipo de Juego: Potencia&#10;Tacto: Duro&#10;Año: 2026"
             className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
         </div>

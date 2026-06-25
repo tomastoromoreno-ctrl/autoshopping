@@ -286,6 +286,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="store-input appearance-none rounded-xl border bg-white px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 cursor-pointer store-text"
+                title="Ordenar productos"
+                aria-label="Ordenar productos"
               >
                 {sortOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -298,6 +300,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                 value={selectedCategory || ''}
                 onChange={(e) => setSelectedCategory(e.target.value || null)}
                 className="store-input appearance-none rounded-xl border bg-white px-4 py-2.5 pr-9 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 cursor-pointer store-text"
+                title="Filtrar por categoría"
+                aria-label="Filtrar por categoría"
               >
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
@@ -393,6 +397,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                           value={sortBy}
                           onChange={(e) => setSortBy(e.target.value)}
                           className="w-full appearance-none rounded-xl border border-gray-200 bg-white text-slate-900 px-4 py-3 pr-10 text-sm font-medium outline-none transition-all duration-200 hover:border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10"
+                          title="Ordenar productos (Móvil)"
+                          aria-label="Ordenar productos"
                         >
                           {sortOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -461,6 +467,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                   <button
                     onClick={() => setSearchQuery('')}
                     className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-100 text-primary-500 transition-all hover:bg-primary-200 hover:text-primary-700"
+                    title="Eliminar filtro de búsqueda"
+                    aria-label="Eliminar filtro de búsqueda"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -472,6 +480,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                   <button
                     onClick={() => setSelectedCategory(null)}
                     className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-100 text-primary-500 transition-all hover:bg-primary-200 hover:text-primary-700"
+                    title="Eliminar filtro de categoría"
+                    aria-label="Eliminar filtro de categoría"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -483,6 +493,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                   <button
                     onClick={() => setPriceRange({ min: '', max: '' })}
                     className="flex h-4 w-4 items-center justify-center rounded-full bg-primary-100 text-primary-500 transition-all hover:bg-primary-200 hover:text-primary-700"
+                    title="Eliminar filtro de precio"
+                    aria-label="Eliminar filtro de precio"
                   >
                     <X className="h-3 w-3" />
                   </button>
