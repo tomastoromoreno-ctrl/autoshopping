@@ -756,12 +756,121 @@ export default function Hero() {
           >
             💳
           </motion.div>
+
+          {/* Phone Mockup - Mobile Store */}
           <motion.div
-            animate={{ y: [0, -5, 0], x: [0, 3, 0] }}
-            transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }}
-            className="absolute top-1/2 -right-8 w-10 h-10 rounded-xl bg-slate-950/80 border border-slate-800 shadow-xl backdrop-blur-sm flex items-center justify-center text-sm z-20 hidden lg:flex"
+            initial={{ opacity: 0, y: 40, rotateZ: -5 }}
+            animate={{ opacity: 1, y: 0, rotateZ: 0 }}
+            transition={{ duration: 0.8, delay: 1.0, type: 'spring', stiffness: 80 }}
+            className="absolute -bottom-8 -right-4 sm:right-4 lg:-right-8 z-30 hidden sm:block"
           >
-            📊
+            <div className="relative">
+              {/* Phone frame */}
+              <div className="w-[200px] sm:w-[220px] rounded-[2rem] border-[3px] border-slate-700 bg-slate-900 shadow-2xl shadow-black/40 overflow-hidden">
+                {/* Notch */}
+                <div className="relative h-5 bg-slate-900 flex justify-center items-end">
+                  <div className="w-16 h-3 bg-black rounded-b-xl" />
+                </div>
+                {/* Screen */}
+                <div className="bg-white rounded-b-[1.7rem] overflow-hidden">
+                  {/* Status bar */}
+                  <div className="flex items-center justify-between px-3 py-1 bg-white">
+                    <span className="text-[7px] font-semibold text-slate-900">9:41</span>
+                    <div className="flex items-center gap-0.5">
+                      <div className="w-3 h-1.5 rounded-sm bg-slate-900" />
+                      <div className="w-1 h-1.5 rounded-sm bg-slate-900" />
+                      <div className="w-4 h-2 rounded-sm border border-slate-900 flex items-center p-px"><div className="w-2 h-full bg-slate-900 rounded-xs" /></div>
+                    </div>
+                  </div>
+
+                  {/* Store header */}
+                  <div className="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-600">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center text-[8px] font-bold text-white">AS</div>
+                      <div>
+                        <p className="text-[9px] font-bold text-white leading-tight">SportShop</p>
+                        <p className="text-[6px] text-white/70">Tienda deportiva</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Search bar */}
+                  <div className="px-2.5 py-1.5 bg-gray-50">
+                    <div className="flex items-center gap-1.5 bg-white rounded-lg px-2 py-1 border border-gray-200">
+                      <svg className="w-2.5 h-2.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                      <span className="text-[7px] text-gray-400">Buscar productos...</span>
+                    </div>
+                  </div>
+
+                  {/* Category chips */}
+                  <div className="px-2.5 py-1.5 flex gap-1 overflow-hidden">
+                    {['Todos', 'Calzado', 'Ropa'].map((cat, i) => (
+                      <span key={cat} className={`text-[6px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${i === 0 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{cat}</span>
+                    ))}
+                  </div>
+
+                  {/* Product grid */}
+                  <div className="px-2 py-1.5 grid grid-cols-2 gap-1.5">
+                    {[
+                      { name: 'Zapatillas Pro', price: '$45.990', emoji: '👟', discount: '-20%' },
+                      { name: 'Cortaviento Trail', price: '$29.990', emoji: '🧥', discount: null },
+                      { name: 'Smartwatch Active', price: '$89.990', emoji: '⌚', discount: '-15%' },
+                      { name: 'Mochila Sport', price: '$34.990', emoji: '🎒', discount: null },
+                    ].map((p, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.5 + i * 0.1, duration: 0.3 }}
+                        className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm"
+                      >
+                        <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
+                          <span className="text-xl">{p.emoji}</span>
+                          {p.discount && (
+                            <span className="absolute top-0.5 left-0.5 bg-red-500 text-white text-[5px] font-bold px-1 py-px rounded">{p.discount}</span>
+                          )}
+                        </div>
+                        <div className="p-1">
+                          <p className="text-[6px] font-semibold text-slate-800 truncate">{p.name}</p>
+                          <p className="text-[7px] font-bold text-slate-900">{p.price}</p>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Add to cart button */}
+                  <div className="px-2.5 py-2">
+                    <div className="bg-blue-600 text-white text-center rounded-lg py-1.5 text-[7px] font-bold">
+                      Agregar al carrito
+                    </div>
+                  </div>
+
+                  {/* Bottom nav */}
+                  <div className="flex items-center justify-around border-t border-gray-200 py-1.5 bg-white">
+                    {[
+                      { icon: '🏠', label: 'Inicio', active: true },
+                      { icon: '🔍', label: 'Buscar', active: false },
+                      { icon: '🛒', label: 'Carrito', active: false },
+                      { icon: '👤', label: 'Cuenta', active: false },
+                    ].map((nav, i) => (
+                      <div key={i} className="flex flex-col items-center gap-0.5">
+                        <span className="text-[9px]">{nav.icon}</span>
+                        <span className={`text-[5px] font-semibold ${nav.active ? 'text-blue-600' : 'text-gray-400'}`}>{nav.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Notification badge */}
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-slate-900 flex items-center justify-center"
+              >
+                <span className="text-[7px] font-bold text-white">3</span>
+              </motion.div>
+            </div>
           </motion.div>
         </motion.div>
       </div>
