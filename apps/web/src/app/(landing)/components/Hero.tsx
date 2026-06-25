@@ -812,10 +812,10 @@ export default function Hero() {
                   {/* Product grid */}
                   <div className="px-2 py-1.5 grid grid-cols-2 gap-1.5">
                     {[
-                      { name: 'Zapatillas Pro', price: '$45.990', emoji: '👟', discount: '-20%' },
-                      { name: 'Cortaviento Trail', price: '$29.990', emoji: '🧥', discount: null },
-                      { name: 'Smartwatch Active', price: '$89.990', emoji: '⌚', discount: '-15%' },
-                      { name: 'Mochila Sport', price: '$34.990', emoji: '🎒', discount: null },
+                      { name: 'Zapatillas Pro', price: '$45.990', image: '/mockup_shoe.png', discount: '-20%' },
+                      { name: 'Cortaviento Trail', price: '$29.990', image: '/mockup_shirt.png', discount: null },
+                      { name: 'Smartwatch Active', price: '$89.990', image: '/mockup_watch.png', discount: '-15%' },
+                      { name: 'Polera Dry-Fit', price: '$15.990', image: '/mockup_shirt.png', discount: null },
                     ].map((p, i) => (
                       <motion.div
                         key={i}
@@ -825,7 +825,7 @@ export default function Hero() {
                         className="bg-white rounded-lg border border-gray-100 overflow-hidden shadow-sm"
                       >
                         <div className="relative aspect-square bg-gray-50 flex items-center justify-center">
-                          <span className="text-xl">{p.emoji}</span>
+                          <img src={p.image} alt={p.name} className="w-full h-full object-contain p-1" />
                           {p.discount && (
                             <span className="absolute top-0.5 left-0.5 bg-red-500 text-white text-[5px] font-bold px-1 py-px rounded">{p.discount}</span>
                           )}
