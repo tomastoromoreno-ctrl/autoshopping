@@ -30,6 +30,17 @@ class CreateOrderDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsOptional()
+  items?: any[];
+
+  @IsString()
+  @IsOptional()
+  payment_method_id?: string;
+
+  @IsString()
+  @IsOptional()
+  coupon_code?: string;
 }
 
 class ListOrdersQuery {

@@ -22,7 +22,70 @@ export class OrdersService {
     customer_phone?: string;
     shipping_address?: Record<string, any>;
     notes?: string;
+    items?: any[];
+    payment_method_id?: string;
+    coupon_code?: string;
   }) {
+    // Ensure cart exists in Supabase if frontend sent items
+    if (dto.items && dto.items.length > 0) {
+      let { data: cart } = await this.supabase
+        .from('carts')
+        .select('*')
+        .eq('session_id', dto.session_id)
+        .eq('tenant_id', dto.tenant_id)
+        .maybeSingle();
+
+      if (!cart) {
+        const { data: newCart, error: createError } = await this.supabase
+          .from('carts')
+          .insert({
+            tenant_id: dto.tenant_id,
+            session_id: dto.session_id,
+            subtotal: dto.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            coupon_code: dto.coupon_code || null,
+          })
+          .select()
+          .single();
+        if (createError) {
+          this.logger.error(`Error creating cart: ${createError.message}`);
+        } else {
+          cart = newCart;
+        }
+      } else {
+        await this.supabase
+          .from('carts')
+          .update({
+            subtotal: dto.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+            coupon_code: dto.coupon_code || cart.coupon_code || null,
+          })
+          .eq('id', cart.id);
+      }
+
+      if (cart) {
+        await this.supabase
+          .from('cart_items')
+          .delete()
+          .eq('cart_id', cart.id);
+
+        const itemsToInsert = dto.items.map((item) => ({
+          cart_id: cart.id,
+          product_id: item.product_id,
+          variant_id: item.variant_id || null,
+          quantity: item.quantity,
+          unit_price: item.price,
+          total_price: item.price * item.quantity,
+        }));
+
+        const { error: insertItemsError } = await this.supabase
+          .from('cart_items')
+          .insert(itemsToInsert);
+
+        if (insertItemsError) {
+          this.logger.error(`Error inserting cart items: ${insertItemsError.message}`);
+        }
+      }
+    }
+
     const { data: cart, error: cartError } = await this.supabase
       .from('carts')
       .select('*')
@@ -65,8 +128,61 @@ export class OrdersService {
     }
 
     const orderTotal = cart.subtotal || 0;
-    const discount = 0;
-    const shippingCost = 0;
+    
+    // Calculate shipping cost dynamically
+    let shippingCost = 0;
+    try {
+      const { data: config } = await this.supabase
+        .from('store_configs')
+        .select('shipping_enabled, shipping_cost, free_shipping_min')
+        .eq('tenant_id', dto.tenant_id)
+        .maybeSingle();
+
+      if (config?.shipping_enabled) {
+        const minFree = config.free_shipping_min || 0;
+        if (minFree === 0 || orderTotal < minFree) {
+          shippingCost = config.shipping_cost || 0;
+        }
+      }
+    } catch (err) {
+      this.logger.error(`Error fetching shipping config: ${err.message}`);
+    }
+
+    // Calculate coupon discount dynamically
+    let discount = 0;
+    const couponCode = cart.coupon_code || dto.coupon_code;
+    if (couponCode) {
+      try {
+        const { data: coupon } = await this.supabase
+          .from('coupons')
+          .select('*, promotion:promotion_id(*)')
+          .eq('code', couponCode)
+          .eq('tenant_id', dto.tenant_id)
+          .single();
+
+        if (coupon && coupon.is_active) {
+          const promotion = coupon.promotion as any;
+          if (promotion && promotion.is_active) {
+            const now = new Date().toISOString();
+            if (now >= promotion.starts_at && now <= promotion.ends_at) {
+              const minPurchase = promotion.min_purchase || 0;
+              if (orderTotal >= minPurchase) {
+                const discountAmount = promotion.discount_amount || 0;
+                const discountPercent = promotion.discount_percent || 0;
+                if (discountAmount > 0) {
+                  discount = discountAmount;
+                } else if (discountPercent > 0) {
+                  discount = orderTotal * (discountPercent / 100);
+                }
+                discount = Math.min(discount, orderTotal);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        this.logger.error(`Error applying coupon ${couponCode}: ${err.message}`);
+      }
+    }
 
     const { data: order, error: orderError } = await this.supabase
       .from('orders')
@@ -77,8 +193,8 @@ export class OrdersService {
         subtotal: orderTotal,
         discount,
         shipping_cost: shippingCost,
-        total: orderTotal - discount + shippingCost,
-        coupon_code: cart.coupon_code || null,
+        total: Math.max(0, orderTotal - discount + shippingCost),
+        coupon_code: couponCode || null,
         customer_name: dto.customer_name,
         customer_email: dto.customer_email,
         customer_phone: dto.customer_phone || null,
