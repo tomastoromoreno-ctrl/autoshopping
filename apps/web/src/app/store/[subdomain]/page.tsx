@@ -87,6 +87,15 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const lang = searchParams.get('lang');
   const currency = searchParams.get('currency');
 
+  useEffect(() => {
+    const catId = searchParams.get('category_id');
+    if (catId) {
+      setSelectedCategory(catId);
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [searchParams]);
+
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';

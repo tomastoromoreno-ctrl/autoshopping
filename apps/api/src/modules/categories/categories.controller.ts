@@ -1,9 +1,11 @@
 import {
-  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, BadRequestException,
+  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, BadRequestException, Inject, NotFoundException,
 } from '@nestjs/common';
 import {
   IsString, IsOptional, IsBoolean, IsNumber, IsUUID, IsInt,
 } from 'class-validator';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { CategoriesService } from './categories.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -67,7 +69,22 @@ class UpdateCategoryDto {
 
 @Controller('categories')
 export class CategoriesController {
-  constructor(private readonly categories: CategoriesService) {}
+  constructor(
+    private readonly categories: CategoriesService,
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+  ) {}
+
+  private async resolveTenantId(subdomainOrId: string): Promise<string> {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(subdomainOrId);
+    if (isUuid) return subdomainOrId;
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('id')
+      .eq('subdomain', subdomainOrId)
+      .maybeSingle();
+    if (!tenant) throw new NotFoundException(`Tienda '${subdomainOrId}' no encontrada`);
+    return tenant.id;
+  }
 
   @Get()
   @UseGuards(AuthGuard)
@@ -95,10 +112,11 @@ export class CategoriesController {
   }
 
   @Get(':tenantId')
-  findByTenant(
-    @Param('tenantId') tenantId: string,
+  async findByTenant(
+    @Param('tenantId') tenantIdOrSubdomain: string,
     @Query('parent_id') parentId?: string,
   ) {
+    const tenantId = await this.resolveTenantId(tenantIdOrSubdomain);
     return this.categories.findByTenant(tenantId, parentId);
   }
 
@@ -128,7 +146,8 @@ export class CategoriesController {
   }
 
   @Get(':tenantId/tree')
-  getTree(@Param('tenantId') tenantId: string) {
+  async getTree(@Param('tenantId') tenantIdOrSubdomain: string) {
+    const tenantId = await this.resolveTenantId(tenantIdOrSubdomain);
     return this.categories.getTree(tenantId);
   }
 }

@@ -12,6 +12,12 @@ interface StoreLayoutProps {
   params: { subdomain: string };
 }
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface StoreData {
   id: string;
   name: string;
@@ -113,6 +119,14 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     const res = await fetch(`${apiUrl}/stores/${params.subdomain}/public`, { cache: 'no-store' });
     if (res.ok) store = await res.json();
   } catch {}
+
+  let categories: Category[] = [];
+  try {
+    const res = await fetch(`${apiUrl}/categories/${params.subdomain}`, { cache: 'no-store' });
+    if (res.ok) categories = await res.json();
+  } catch (err) {
+    console.error('Error fetching categories in layout:', err);
+  }
 
   if (!store) {
     return (
@@ -229,6 +243,27 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
               >
                 Productos
               </Link>
+              {categories.length > 0 && (
+                <div className="relative group">
+                  <button className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 inline-flex items-center gap-1">
+                    Categorías
+                    <svg className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-1 w-48 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/store/${params.subdomain}?category_id=${cat.id}#productos`}
+                        className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -265,6 +300,27 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 >
                   Productos
                 </Link>
+                {categories.length > 0 && (
+                  <div className="relative group">
+                    <button className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 inline-flex items-center gap-1">
+                      Categorías
+                      <svg className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <div className="absolute left-0 mt-1 w-48 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50">
+                      {categories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/store/${params.subdomain}?category_id=${cat.id}#productos`}
+                          className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
+                        >
+                          {cat.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </nav>
             )}
 
@@ -278,6 +334,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 subdomain={params.subdomain}
                 storeName={store.name}
                 storeLogo={store.logo || store.logo_url}
+                categories={categories}
               />
             </div>
           </div>

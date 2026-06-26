@@ -4,13 +4,20 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { X, Home, Package, ShoppingCart } from 'lucide-react';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 interface StoreMobileNavProps {
   subdomain: string;
   storeName?: string;
   storeLogo?: string;
+  categories?: Category[];
 }
 
-export default function StoreMobileNav({ subdomain, storeName, storeLogo }: StoreMobileNavProps) {
+export default function StoreMobileNav({ subdomain, storeName, storeLogo, categories = [] }: StoreMobileNavProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -100,6 +107,24 @@ export default function StoreMobileNav({ subdomain, storeName, storeLogo }: Stor
               <ShoppingCart className="h-4 w-4 flex-shrink-0 text-slate-400" strokeWidth={1.75} />
               Carrito
             </Link>
+            {categories && categories.length > 0 && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <span className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 pl-4">Categorías</span>
+                <div className="flex flex-col gap-1">
+                  {categories.map((cat) => (
+                    <Link
+                      key={cat.id}
+                      href={`/store/${subdomain}?category_id=${cat.id}#productos`}
+                      onClick={() => setOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-150"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      {cat.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </nav>
         </div>
       </div>
