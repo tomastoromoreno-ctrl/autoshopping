@@ -231,18 +231,18 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   if (!store) {
     if (showError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 mb-6">
-            <Package className="h-10 w-10 text-slate-400" />
+        <div className="flex min-h-screen flex-col items-center justify-center store-bg px-4">
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl mb-6" style={{ backgroundColor: 'color-mix(in srgb, var(--store-text) 8%, transparent)' }}>
+            <Package className="h-10 w-10 opacity-60" style={{ color: 'var(--store-text)' }} />
           </div>
-          <h1 className="text-4xl font-heading font-bold text-slate-900">Tienda no disponible</h1>
-          <p className="mt-2 text-lg text-slate-500">No se pudo cargar la tienda</p>
+          <h1 className="text-4xl font-heading font-bold store-text">Tienda no disponible</h1>
+          <p className="mt-2 text-lg store-text-muted">No se pudo cargar la tienda</p>
           <button onClick={() => window.location.reload()} className="mt-6 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90">Reintentar</button>
         </div>
       );
     }
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen store-bg">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="space-y-6">
             <div className="h-64 animate-pulse rounded-2xl bg-slate-100" />
@@ -269,7 +269,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const hasActiveFilters = searchQuery || selectedCategory || priceRange.min || priceRange.max;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen store-bg">
       {/* 1. Banner Carousel - Centered */}
       <section className="px-4 sm:px-6 lg:px-8 pt-4">
         <div className="mx-auto max-w-4xl">
@@ -595,11 +595,11 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         <div className="mx-auto max-w-7xl">
           {products.length === 0 ? (
             <div className="py-20 text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100">
-                <Search className="h-10 w-10 text-slate-300" />
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--store-text) 8%, transparent)' }}>
+                <Search className="h-10 w-10 opacity-60" style={{ color: 'var(--store-text)' }} />
               </div>
-              <h3 className="text-xl font-heading font-bold text-slate-900">No se encontraron productos</h3>
-              <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+              <h3 className="text-xl font-heading font-bold store-text">No se encontraron productos</h3>
+              <p className="mt-2 text-sm store-text-muted max-w-sm mx-auto">
                 {searchQuery
                   ? 'Intenta con otros términos de búsqueda'
                   : 'Prueba ajustando los filtros para ver más resultados'}
@@ -607,7 +607,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
               {hasActiveFilters && (
                 <button
                   onClick={handleClearFilters}
-                  className="mt-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 shadow-soft hover:shadow-soft-lg hover:border-gray-300 active:scale-[0.98]"
+                  className="mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 active:scale-[0.98] store-btn-outline border"
                 >
                   <X className="h-4 w-4" />
                   Limpiar filtros
@@ -627,10 +627,10 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       </section>
 
       {/* 7. Footer CTA */}
-      <section className="border-t border-gray-200 bg-white">
+      <section className="border-t store-border-t store-bg">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h3 className="text-xl font-heading font-bold text-slate-900 mb-2">{store.name}</h3>
-          <p className="text-sm text-slate-500 mb-6">Gracias por visitarnos</p>
+          <h3 className="text-xl font-heading font-bold store-text mb-2">{store.name}</h3>
+          <p className="text-sm store-text-muted mb-6">Gracias por visitarnos</p>
           <Link
             href="#productos"
             className="store-btn inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"

@@ -10,6 +10,7 @@ interface Category {
   parent_id: string | null;
   sort_order: number;
   is_active: boolean;
+  image_url?: string | null;
   children?: Category[];
 }
 
@@ -72,7 +73,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [treeView, setTreeView] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
-  const [form, setForm] = useState({ name: '', slug: '', parent_id: '', order: '0', active: true });
+  const [form, setForm] = useState({ name: '', slug: '', parent_id: '', order: '0', active: true, image_url: '' });
 
   const load = () => {
     api.get<Category[]>('/categories').then((res) => setCategories(Array.isArray(res) ? res : [])).catch(() => {});
@@ -89,6 +90,7 @@ export default function CategoriesPage() {
         parent_id: form.parent_id || null,
         order: Number(form.order),
         active: form.active,
+        image_url: form.image_url || null,
       };
 
       if (editing) {
@@ -98,7 +100,7 @@ export default function CategoriesPage() {
       }
 
       setEditing(null);
-      setForm({ name: '', slug: '', parent_id: '', order: '0', active: true });
+      setForm({ name: '', slug: '', parent_id: '', order: '0', active: true, image_url: '' });
       load();
     } catch (err: any) {
       alert(err.message);
@@ -113,12 +115,13 @@ export default function CategoriesPage() {
       parent_id: cat.parent_id || '',
       order: String(cat.sort_order ?? 0),
       active: !!cat.is_active,
+      image_url: cat.image_url || '',
     });
   };
 
   const cancelEdit = () => {
     setEditing(null);
-    setForm({ name: '', slug: '', parent_id: '', order: '0', active: true });
+    setForm({ name: '', slug: '', parent_id: '', order: '0', active: true, image_url: '' });
   };
 
   const handleDelete = async (id: string) => {
@@ -151,6 +154,11 @@ export default function CategoriesPage() {
                 <input type="text" placeholder="URL amigable (ej: zapatillas-deportivas)" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })}
                   className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
                 <p className="text-[11px] text-slate-400 mt-1">Se genera automáticamente. Puedes editarlo si lo deseas.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">URL de la imagen</label>
+                <input type="text" placeholder="https://ejemplo.com/imagen.jpg" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                  className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Categoría padre</label>

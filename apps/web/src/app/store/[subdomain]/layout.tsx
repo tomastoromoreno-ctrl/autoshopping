@@ -207,11 +207,50 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         .store-chip-inactive:hover { border-color: ${storeTextColor}40 !important; }
         .store-input { border-color: ${storeTextColor}20 !important; }
         .store-input:focus { border-color: ${storeBtn} !important; box-shadow: 0 0 0 2px ${storeBtn}20 !important; }
+        
+        .store-header {
+          background-color: color-mix(in srgb, ${storeBg} 80%, transparent) !important;
+          border-color: color-mix(in srgb, ${storeTextColor} 10%, transparent) !important;
+          color: ${storeTextColor} !important;
+        }
+        .store-nav-link {
+          color: ${storeTextColor} !important;
+          opacity: 0.75;
+          transition: all 0.2s ease-out;
+        }
+        .store-nav-link:hover {
+          opacity: 1;
+          background-color: color-mix(in srgb, ${storeTextColor} 8%, transparent) !important;
+          color: ${storeTextColor} !important;
+        }
+        .store-dropdown {
+          background-color: ${storeBg} !important;
+          border-color: color-mix(in srgb, ${storeTextColor} 10%, transparent) !important;
+          color: ${storeTextColor} !important;
+        }
+        .store-dropdown-link {
+          color: ${storeTextColor} !important;
+          opacity: 0.8;
+          transition: all 0.15s ease;
+        }
+        .store-dropdown-link:hover {
+          opacity: 1;
+          background-color: color-mix(in srgb, ${storeTextColor} 8%, transparent) !important;
+          color: ${storeTextColor} !important;
+        }
+        .store-border-t { border-top: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
+        .store-border-b { border-bottom: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
+        .store-border-l { border-left: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
+        .store-border-r { border-right: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
+        .store-mobile-panel {
+          background-color: ${storeBg} !important;
+          color: ${storeTextColor} !important;
+        }
       ` }} />
 
       {/* Header */}
       {store.header_style === 'centered' ? (
-        <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 w-full border-b store-border-b store-header backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-4">
             <Link
               href={`/store/${params.subdomain}`}
@@ -229,34 +268,34 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
               </span>
             </Link>
           </div>
-          <div className="border-t border-gray-50">
+          <div className="border-t store-border-t">
             <div className="mx-auto flex max-w-7xl justify-center gap-1 px-4 py-1">
               <Link
                 href={`/store/${params.subdomain}`}
-                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
+                className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
               >
                 Inicio
               </Link>
               <Link
                 href={`/store/${params.subdomain}#productos`}
-                className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
+                className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
               >
                 Productos
               </Link>
               {categories.length > 0 && (
                 <div className="relative group">
-                  <button className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 inline-flex items-center gap-1">
+                  <button className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out inline-flex items-center gap-1 store-nav-link">
                     Categorías
-                    <svg className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'var(--store-text)', opacity: 0.6 }}>
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-1 w-48 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50">
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-1 w-48 rounded-xl border p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50 store-dropdown">
                     {categories.map((cat) => (
                       <Link
                         key={cat.id}
                         href={`/store/${params.subdomain}?category_id=${cat.id}#productos`}
-                        className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
+                        className="block rounded-lg px-3 py-2 text-sm transition-colors text-left store-dropdown-link"
                       >
                         {cat.name}
                       </Link>
@@ -268,7 +307,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
           </div>
         </header>
       ) : (
-        <header className="sticky top-0 z-40 w-full border-b border-gray-100 bg-white/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 w-full border-b store-border-b store-header backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
             <Link
               href={`/store/${params.subdomain}`}
@@ -290,30 +329,30 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
               <nav className="hidden sm:flex items-center gap-1">
                 <Link
                   href={`/store/${params.subdomain}`}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
+                  className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
                 >
                   Inicio
                 </Link>
                 <Link
                   href={`/store/${params.subdomain}#productos`}
-                  className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900"
+                  className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
                 >
                   Productos
                 </Link>
                 {categories.length > 0 && (
                   <div className="relative group">
-                    <button className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 transition-all duration-200 ease-out hover:bg-slate-50 hover:text-slate-900 inline-flex items-center gap-1">
+                    <button className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out inline-flex items-center gap-1 store-nav-link">
                       Categorías
-                      <svg className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'var(--store-text)', opacity: 0.6 }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    <div className="absolute left-0 mt-1 w-48 rounded-xl border border-gray-100 bg-white p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50">
+                    <div className="absolute left-0 mt-1 w-48 rounded-xl border p-1.5 shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-out z-50 store-dropdown">
                       {categories.map((cat) => (
                         <Link
                           key={cat.id}
                           href={`/store/${params.subdomain}?category_id=${cat.id}#productos`}
-                          className="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
+                          className="block rounded-lg px-3 py-2 text-sm transition-colors text-left store-dropdown-link"
                         >
                           {cat.name}
                         </Link>
