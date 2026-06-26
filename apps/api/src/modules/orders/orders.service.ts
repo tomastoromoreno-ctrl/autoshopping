@@ -3,6 +3,7 @@ import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../notifications/email.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
+import { InvoicingService } from '../invoicing/invoicing.service';
 
 @Injectable()
 export class OrdersService {
@@ -11,6 +12,7 @@ export class OrdersService {
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
     private readonly emailService: EmailService,
+    private readonly invoicingService: InvoicingService,
     @Optional() private readonly webhooks?: WebhooksService,
   ) {}
 
@@ -347,6 +349,11 @@ export class OrdersService {
       }
       if (dto.payment_status === 'approved') {
         await this.webhooks.dispatch(data.tenant_id, 'order.paid', data);
+        
+        // Auto-generate invoice/boleta/recibo asynchronously
+        this.invoicingService.generateInvoice(data.tenant_id, data.id).catch((err) =>
+          this.logger.error(`Failed to auto-generate invoice for order ${data.id}: ${err.message}`),
+        );
       }
     }
 

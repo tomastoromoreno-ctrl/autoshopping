@@ -57,6 +57,7 @@ export class InvoicingService {
     folio_start?: number;
     auto_generate_boleta?: boolean;
     auto_generate_factura?: boolean;
+    sii_invoicing_enabled?: boolean;
   }) {
     const { data, error } = await this.supabase
       .from('invoicing_configs')
@@ -91,7 +92,7 @@ export class InvoicingService {
     const config = await this.getConfig(tenantId);
 
     const isFactura = !!order.customer_rut;
-    const docType = isFactura ? 33 : 39; // SII: 33 = Factura Electrónica, 39 = Boleta Electrónica
+    const docType = isFactura ? 33 : 39; // SII: 33 = Factura, 39 = Boleta
 
     // Calculate tax breakdown (IVA 19%)
     const totalAmount = Number(order.total);
@@ -104,8 +105,72 @@ export class InvoicingService {
       .select('*')
       .eq('order_id', orderId);
 
-    // Get current folio and increment
-    const folio = config.folio_current || 1;
+    if (!config.sii_invoicing_enabled) {
+      // General fallback to simple receipt (Recibo)
+      const folio = config.folio_current || 1;
+      await this.supabase
+        .from('invoicing_configs')
+        .update({ folio_current: folio + 1, updated_at: new Date().toISOString() })
+        .eq('tenant_id', tenantId);
+
+      const { data, error } = await this.supabase
+        .from('invoices')
+        .insert({
+          tenant_id: tenantId,
+          order_id: orderId,
+          type: 'recibo',
+          sii_code: `RECIBO-${folio}`,
+          folio,
+          status: 'completed',
+          total: totalAmount,
+          net_amount: netAmount,
+          tax_amount: taxAmount,
+          customer_name: order.customer_name,
+          customer_rut: order.customer_rut || null,
+          customer_email: order.customer_email,
+          xml_content: null,
+          items: orderItems || [],
+        })
+        .select()
+        .single();
+
+      if (error) throw new BadRequestException(error.message);
+      return data;
+    }
+
+    // SII Invoicing is Enabled: consume folio from active CAF
+    const { data: activeCafs } = await this.supabase
+      .from('tenant_cafs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('dte_type', docType)
+      .eq('is_active', true)
+      .order('folio_start', { ascending: true });
+
+    // Find the first CAF that has folios available
+    const caf = (activeCafs || []).find((c) => c.folio_current <= c.folio_end);
+
+    if (!caf) {
+      throw new BadRequestException(
+        `No tienes folios autorizados (CAF) disponibles para emitir ${
+          docType === 33 ? 'Facturas' : 'Boletas'
+        }. Por favor, carga un nuevo archivo CAF en la configuración de Facturación SII.`
+      );
+    }
+
+    const folio = caf.folio_current;
+
+    // Increment current folio in CAF and update status
+    await this.supabase
+      .from('tenant_cafs')
+      .update({
+        folio_current: folio + 1,
+        is_active: folio + 1 <= caf.folio_end,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', caf.id);
+
+    // Sync folio in config
     await this.supabase
       .from('invoicing_configs')
       .update({ folio_current: folio + 1, updated_at: new Date().toISOString() })
@@ -129,8 +194,8 @@ export class InvoicingService {
       items: (orderItems || []).map((item: any) => ({
         nombre: item.product_name,
         cantidad: item.quantity,
-        precioUnitario: item.price,
-        montoItem: item.quantity * item.price,
+        precioUnitario: item.unit_price,
+        montoItem: item.quantity * item.unit_price,
       })),
     });
 
@@ -156,8 +221,80 @@ export class InvoicingService {
       })
       .select()
       .single();
+
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  async uploadCertificate(tenantId: string, base64: string, filename: string, password?: string) {
+    const { data, error } = await this.supabase
+      .from('invoicing_configs')
+      .upsert(
+        {
+          tenant_id: tenantId,
+          certificate_uploaded: true,
+          certificate_path: `tenants/${tenantId}/certificates/${filename}`,
+          certificate_password_encrypted: password ? Buffer.from(password).toString('base64') : null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'tenant_id' },
+      )
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    return data;
+  }
+
+  async uploadCaf(tenantId: string, xmlContent: string) {
+    // Extract range, tipo dte, and headers using regex to avoid external xml parser issues
+    const tdMatch = xmlContent.match(/<TD>([^<]+)<\/TD>/i);
+    const dMatch = xmlContent.match(/<D>([^<]+)<\/D>/i);
+    const hMatch = xmlContent.match(/<H>([^<]+)<\/H>/i);
+
+    if (!tdMatch || !dMatch || !hMatch) {
+      throw new BadRequestException('El archivo CAF XML provisto no tiene un formato válido del SII.');
+    }
+
+    const dteType = parseInt(tdMatch[1].trim(), 10);
+    const folioStart = parseInt(dMatch[1].trim(), 10);
+    const folioEnd = parseInt(hMatch[1].trim(), 10);
+
+    if (isNaN(dteType) || isNaN(folioStart) || isNaN(folioEnd)) {
+      throw new BadRequestException('No se pudieron extraer los rangos numéricos del archivo CAF XML.');
+    }
+
+    const { data, error } = await this.supabase
+      .from('tenant_cafs')
+      .upsert(
+        {
+          tenant_id: tenantId,
+          dte_type: dteType,
+          folio_start: folioStart,
+          folio_end: folioEnd,
+          folio_current: folioStart,
+          xml_content: xmlContent,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'tenant_id,dte_type,folio_start' },
+      )
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    return data;
+  }
+
+  async listCafs(tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('tenant_cafs')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
   }
 
   private generateDteXml(params: {
