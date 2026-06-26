@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,9 +29,13 @@ export default function LoginPage() {
       const role = payload.user_metadata?.role || payload.role;
       const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
 
-      if (role === 'super_admin') {
+      // If there's a redirect URL (e.g. from invitation), go there first
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (role === 'super_admin') {
         router.push('/admin');
-      } else if (role === 'store_owner' && tenantId) {
+      } else if (tenantId) {
+        // Any user with a tenant (owner, admin, manager, editor, viewer) goes to dashboard
         router.push('/dashboard');
       } else {
         router.push('/onboarding');
@@ -68,7 +74,7 @@ export default function LoginPage() {
           </form>
           <p className="mt-4 text-center text-sm text-slate-500">
             ¿No tienes cuenta?{' '}
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:underline">Regístrate</Link>
+            <Link href={`/auth/register${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-medium text-blue-600 hover:underline">Regístrate</Link>
           </p>
         </div>
         <div className="mt-4 text-center">
@@ -78,5 +84,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,7 +42,7 @@ export default function RegisterPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 text-xl">✓</div>
           <h1 className="text-xl font-bold text-slate-900">Registro exitoso</h1>
           <p className="mt-2 text-sm text-slate-500">Registrado correctamente. Por favor, inicia sesión para configurar tu tienda.</p>
-          <Link href="/auth/login" className="mt-4 inline-block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">Ir a iniciar sesión</Link>
+          <Link href={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="mt-4 inline-block w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700">Ir a iniciar sesión</Link>
         </div>
       </div>
     );
@@ -82,7 +85,7 @@ export default function RegisterPage() {
           </form>
           <p className="mt-4 text-center text-sm text-slate-500">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">Inicia sesión</Link>
+            <Link href={`/auth/login${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="font-medium text-blue-600 hover:underline">Inicia sesión</Link>
           </p>
         </div>
         <div className="mt-4 text-center">
@@ -92,5 +95,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

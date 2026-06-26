@@ -3,26 +3,37 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { usePermissions } from '@/hooks/usePermissions';
 
+const ROLE_LABELS: Record<string, { label: string; color: string }> = {
+  store_owner: { label: 'Dueño', color: 'bg-purple-100 text-purple-700' },
+  store_admin: { label: 'Admin', color: 'bg-blue-100 text-blue-700' },
+  store_manager: { label: 'Gerente', color: 'bg-green-100 text-green-700' },
+  store_editor: { label: 'Editor', color: 'bg-yellow-100 text-yellow-700' },
+  store_viewer: { label: 'Viewer', color: 'bg-slate-100 text-slate-700' },
+};
+
+// Each nav item is tied to one or more permissions. If the user has ANY of them, the item is shown.
+// Items with no requiredPermission are always visible.
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: '◉' },
-  { href: '/dashboard/products', label: 'Productos', icon: '◈' },
-  { href: '/dashboard/categories', label: 'Categorías', icon: '◎' },
-  { href: '/dashboard/banners', label: 'Banners', icon: '🖼' },
-  { href: '/dashboard/promotions', label: 'Promociones', icon: '★' },
-  { href: '/dashboard/orders', label: 'Órdenes', icon: '☰' },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: '📊' },
-  { href: '/dashboard/blog', label: 'Blog', icon: '✎' },
-  { href: '/dashboard/invoicing', label: 'Facturación SII', icon: '📄' },
-  { href: '/dashboard/config', label: 'Configuración', icon: '⚙' },
-  { href: '/dashboard/appearance', label: 'Apariencia', icon: '◐' },
-  { href: '/dashboard/domain', label: 'Dominio', icon: '🌐' },
-  { href: '/dashboard/users', label: 'Usuarios', icon: '♢' },
-  { href: '/dashboard/permissions', label: 'Roles y Permisos', icon: '🔐' },
-  { href: '/dashboard/legal', label: 'Documentos Legales', icon: '📋' },
-  { href: '/dashboard/backups', label: 'Backups', icon: '💾' },
-  { href: '/dashboard/developer', label: 'Desarrolladores', icon: '🛠' },
-  { href: '/dashboard/international', label: 'Idiomas y Monedas', icon: '🌍' },
+  { href: '/dashboard/products', label: 'Productos', icon: '◈', requiredPermission: 'products.read' },
+  { href: '/dashboard/categories', label: 'Categorías', icon: '◎', requiredPermission: 'categories.read' },
+  { href: '/dashboard/banners', label: 'Banners', icon: '🖼', requiredPermission: 'banners.read' },
+  { href: '/dashboard/promotions', label: 'Promociones', icon: '★', requiredPermission: 'promotions.read' },
+  { href: '/dashboard/orders', label: 'Órdenes', icon: '☰', requiredPermission: 'orders.read' },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: '📊', requiredPermission: 'analytics.read' },
+  { href: '/dashboard/blog', label: 'Blog', icon: '✎', requiredPermission: 'blog.read' },
+  { href: '/dashboard/invoicing', label: 'Facturación SII', icon: '📄', requiredPermission: 'invoicing.read' },
+  { href: '/dashboard/config', label: 'Configuración', icon: '⚙', requiredPermission: 'config.read' },
+  { href: '/dashboard/appearance', label: 'Apariencia', icon: '◐', requiredPermission: 'appearance.read' },
+  { href: '/dashboard/domain', label: 'Dominio', icon: '🌐', requiredPermission: 'domain.read' },
+  { href: '/dashboard/users', label: 'Usuarios', icon: '♢', requiredPermission: 'users.read' },
+  { href: '/dashboard/permissions', label: 'Roles y Permisos', icon: '🔐', requiredPermission: 'users.write' },
+  { href: '/dashboard/legal', label: 'Documentos Legales', icon: '📋', requiredPermission: 'legal.read' },
+  { href: '/dashboard/backups', label: 'Backups', icon: '💾', requiredPermission: 'backups.read' },
+  { href: '/dashboard/developer', label: 'Desarrolladores', icon: '🛠', requiredPermission: 'config.read' },
+  { href: '/dashboard/international', label: 'Idiomas y Monedas', icon: '🌍', requiredPermission: 'config.read' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<{ name: string; email: string; role: string; tenant_id: string | null } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checking, setChecking] = useState(true);
+  const { hasPermission, loading: permissionsLoading, role: permRole } = usePermissions();
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -56,12 +68,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('user_permissions');
     router.push('/auth/login');
   };
 
-  if (checking) {
+  if (checking || permissionsLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
   }
+
+  // Filter navigation items based on user permissions
+  const visibleNavItems = navItems.filter((item) => {
+    if (!item.requiredPermission) return true;
+    return hasPermission(item.requiredPermission);
+  });
+
+  const roleInfo = user ? ROLE_LABELS[user.role] : null;
 
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -69,8 +91,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex h-16 items-center border-b px-6">
           <Link href="/dashboard" className="text-lg font-bold text-blue-600">AutoShopping</Link>
         </div>
-        <nav className="mt-4 space-y-1 px-3">
-          {navItems.map((item) => {
+        <nav className="mt-4 space-y-1 px-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
+          {visibleNavItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
             return (
               <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
@@ -80,11 +102,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             );
           })}
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 border-t p-4">
-          <Link href="/admin" className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600">
-            Panel Super Admin
-          </Link>
-        </div>
+        {user?.role === 'super_admin' && (
+          <div className="absolute bottom-0 left-0 right-0 border-t p-4">
+            <Link href="/admin" className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-600">
+              Panel Super Admin
+            </Link>
+          </div>
+        )}
       </aside>
       <div className={`fixed inset-0 z-30 bg-black/50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col">
@@ -95,6 +119,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1" />
           {user && (
             <div className="flex items-center gap-3">
+              {roleInfo && (
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${roleInfo.color}`}>
+                  {roleInfo.label}
+                </span>
+              )}
               <span className="text-sm text-slate-600">{user.name}</span>
               <button onClick={handleLogout} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-200">Salir</button>
             </div>
