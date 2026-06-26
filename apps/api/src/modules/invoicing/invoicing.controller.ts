@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Body, UseGuards, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, Req, BadRequestException, Param, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { InvoicingService } from './invoicing.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
@@ -72,5 +73,18 @@ export class InvoicingController {
     const tenantId = req.user?.tenant_id;
     if (!tenantId) throw new BadRequestException('No tenant associated');
     return this.invoicingService.listCafs(tenantId);
+  }
+
+  @Get('download/:id')
+  async downloadInvoice(@Req() req: any, @Param('id') id: string, @Res() res: Response) {
+    const tenantId = req.user?.tenant_id;
+    if (!tenantId) throw new BadRequestException('No tenant associated');
+    const pdfBuffer = await this.invoicingService.downloadInvoicePdf(tenantId, id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
   }
 }

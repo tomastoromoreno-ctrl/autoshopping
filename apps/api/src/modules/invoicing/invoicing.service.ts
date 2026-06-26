@@ -1,10 +1,14 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { InvoicePdfService } from './invoice-pdf.service';
 
 @Injectable()
 export class InvoicingService {
-  constructor(@Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient) {}
+  constructor(
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    private readonly invoicePdfService: InvoicePdfService,
+  ) {}
 
   async listInvoices(tenantId: string) {
     const { data, error } = await this.supabase
@@ -135,6 +139,7 @@ export class InvoicingService {
         .single();
 
       if (error) throw new BadRequestException(error.message);
+      await this.generateAndUploadPdf(data, config, tenantId);
       return data;
     }
 
@@ -223,7 +228,54 @@ export class InvoicingService {
       .single();
 
     if (error) throw new BadRequestException(error.message);
+    await this.generateAndUploadPdf(data, config, tenantId);
     return data;
+  }
+
+  private async generateAndUploadPdf(invoice: any, config: any, tenantId: string) {
+    try {
+      const pdfBuffer = await this.invoicePdfService.generateInvoicePdf(invoice, config);
+      const fileName = `invoices/${tenantId}/${invoice.id}.pdf`;
+      const { error: uploadError } = await this.supabase.storage
+        .from('store-assets')
+        .upload(fileName, pdfBuffer, {
+          contentType: 'application/pdf',
+          upsert: true,
+        });
+      if (uploadError) throw uploadError;
+      const { data: publicUrl } = this.supabase.storage
+        .from('store-assets')
+        .getPublicUrl(fileName);
+      await this.supabase
+        .from('invoices')
+        .update({ pdf_url: publicUrl.publicUrl })
+        .eq('id', invoice.id);
+    } catch (err) {
+      console.error('Error generating or uploading PDF:', err);
+    }
+  }
+
+  async downloadInvoicePdf(tenantId: string, invoiceId: string): Promise<Buffer> {
+    const { data: invoice, error } = await this.supabase
+      .from('invoices')
+      .select('*')
+      .eq('id', invoiceId)
+      .eq('tenant_id', tenantId)
+      .single();
+
+    if (error || !invoice) throw new BadRequestException('Documento no encontrado');
+
+    const fileName = `invoices/${tenantId}/${invoiceId}.pdf`;
+    const { data, error: downloadError } = await this.supabase.storage
+      .from('store-assets')
+      .download(fileName);
+
+    if (downloadError || !data) {
+      throw new BadRequestException('No se pudo descargar el PDF');
+    }
+
+    const arrayBuffer = await data.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   }
 
   async uploadCertificate(tenantId: string, base64: string, filename: string, password?: string) {

@@ -1,4 +1,4 @@
-export type Locale = 'es' | 'en';
+export type Locale = 'es' | 'en' | 'pt';
 
 const translations = {
   es: {
@@ -20,6 +20,16 @@ const translations = {
     checkout: { title: 'Checkout', name: 'Full name', email: 'Email', phone: 'Phone', address: 'Address', pay: 'Pay', success: 'Order confirmed!' },
     admin: { title: 'Administration Panel', tenants: 'Stores', users: 'Users', orders: 'Orders', stats: 'Statistics' },
     common: { save: 'Save', cancel: 'Cancel', delete: 'Delete', edit: 'Edit', search: 'Search', loading: 'Loading...', error: 'Error', success: 'Success', confirm: 'Are you sure?' },
+  },
+  pt: {
+    nav: { home: 'Início', products: 'Produtos', cart: 'Carrinho', orders: 'Meus Pedidos', login: 'Entrar', register: 'Criar conta' },
+    landing: { title: 'Crie sua loja online', subtitle: 'A plataforma all-in-one para seu e-commerce', cta: 'Criar minha loja grátis', pricing: 'Ver preços' },
+    dashboard: { title: 'Dashboard', products: 'Produtos', categories: 'Categorias', promotions: 'Promoções', orders: 'Pedidos', config: 'Configurações', appearance: 'Aparência', users: 'Usuários' },
+    onboarding: { title: 'Crie sua loja', subtitle: 'Configure seu e-commerce em menos de 1 minuto', storeName: 'Nome da sua loja', subdomain: 'Subdomínio', create: 'Criar minha loja', free: 'Grátis para começar. Sem cartão de crédito.' },
+    cart: { title: 'Carrinho', empty: 'Seu carrinho está vazio', total: 'Total', checkout: 'Ir para pagamento', continue: 'Continuar comprando' },
+    checkout: { title: 'Finalizar Compra', name: 'Nome completo', email: 'Email', phone: 'Telefone', address: 'Endereço', pay: 'Pagar', success: 'Pedido confirmado!' },
+    admin: { title: 'Painel de Administração', tenants: 'Lojas', users: 'Usuários', orders: 'Pedidos', stats: 'Estatísticas' },
+    common: { save: 'Salvar', cancel: 'Cancelar', delete: 'Excluir', edit: 'Editar', search: 'Pesquisar', loading: 'Carregando...', error: 'Erro', success: 'Sucesso', confirm: 'Tem certeza?' },
   },
 } as const;
 

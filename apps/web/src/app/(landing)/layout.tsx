@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 export default function LandingLayout({ children }: { children: React.ReactNode }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,6 +43,7 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
             >
               Iniciar sesión
             </Link>
+            <LocaleSwitcher />
             <Link
               href="/onboarding"
               className="rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-medium text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all"
