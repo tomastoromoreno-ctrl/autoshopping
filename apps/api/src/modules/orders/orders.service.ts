@@ -381,6 +381,48 @@ export class OrdersService {
     return data;
   }
 
+  async getOrderNotes(orderId: string, tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('orders')
+      .select('id, merchant_notes, internal_reference')
+      .eq('id', orderId)
+      .eq('tenant_id', tenantId)
+      .single();
+    if (error || !data) throw new NotFoundException('Order not found');
+    return { merchant_notes: data.merchant_notes || '', internal_reference: data.internal_reference || '' };
+  }
+
+  async updateOrderDetails(orderId: string, tenantId: string, dto: { merchant_notes?: string; internal_reference?: string; status?: string; payment_status?: string; tracking?: string; shipping_provider?: string }) {
+    const updateData: Record<string, any> = {};
+    if (dto.merchant_notes !== undefined) updateData.merchant_notes = dto.merchant_notes;
+    if (dto.internal_reference !== undefined) updateData.internal_reference = dto.internal_reference;
+    if (dto.status) updateData.status = dto.status;
+    if (dto.payment_status) updateData.payment_status = dto.payment_status;
+    if (dto.tracking !== undefined) updateData.tracking_number = dto.tracking;
+    if (dto.shipping_provider !== undefined) updateData.shipping_provider = dto.shipping_provider;
+
+    if (Object.keys(updateData).length === 0) return { message: 'No changes' };
+    updateData.updated_at = new Date().toISOString();
+
+    const { data, error } = await this.supabase
+      .from('orders')
+      .update(updateData)
+      .eq('id', orderId)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+    if (error) throw new BadRequestException(error.message);
+
+    // If status changed to shipped, send email
+    if (dto.status === 'shipped') {
+      this.sendOrderShippedEmail(tenantId, data, dto.tracking || data.tracking_number).catch(err =>
+        this.logger.error(`Failed to send shipped email: ${err.message}`),
+      );
+    }
+
+    return data;
+  }
+
   async findByEmail(email: string, tenantId: string) {
     const { data, error } = await this.supabase
       .from('orders')

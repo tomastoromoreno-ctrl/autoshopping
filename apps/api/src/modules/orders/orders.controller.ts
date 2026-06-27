@@ -90,6 +90,14 @@ class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   shipping_provider?: string;
+
+  @IsString()
+  @IsOptional()
+  merchant_notes?: string;
+
+  @IsString()
+  @IsOptional()
+  internal_reference?: string;
 }
 
 @Controller('orders')
@@ -154,6 +162,22 @@ export class OrdersController {
     @Body() dto: UpdateOrderStatusDto,
   ) {
     return this.orders.updateStatus(id, dto);
+  }
+
+  @Patch(':id/details')
+  @UseGuards(AuthGuard)
+  updateOrderDetails(
+    @Param('id') id: string,
+    @Body() dto: { merchant_notes?: string; internal_reference?: string; status?: string; payment_status?: string; tracking?: string; shipping_provider?: string },
+    @Req() req: any,
+  ) {
+    return this.orders.updateOrderDetails(id, req.user.tenant_id, dto);
+  }
+
+  @Get(':id/notes')
+  @UseGuards(AuthGuard)
+  getOrderNotes(@Param('id') id: string, @Req() req: any) {
+    return this.orders.getOrderNotes(id, req.user.tenant_id);
   }
 
   @Get(':tenantId')

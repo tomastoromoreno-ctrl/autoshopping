@@ -1,0 +1,2 @@
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS merchant_notes TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS internal_reference VARCHAR(100);
