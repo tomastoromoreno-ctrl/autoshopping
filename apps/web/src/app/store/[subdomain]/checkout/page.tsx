@@ -428,24 +428,6 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       </label>
                       <input id="address" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required aria-label="Dirección" className="input-modern" placeholder="Calle, número, depto" />
                     </div>
-
-                    {shippingType === 'branch' && (
-                      <div>
-                        <label htmlFor="shipping_branch" className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la Sucursal de Retiro *</label>
-                        <input
-                          id="shipping_branch"
-                          type="text"
-                          value={shippingBranch}
-                          onChange={(e) => setShippingBranch(e.target.value)}
-                          required
-                          className="input-modern"
-                          placeholder="Ej: Starken Vitacura, Chilexpress Providencia Centro"
-                        />
-                        <p className="mt-1 text-xs text-slate-500 font-normal">
-                          Especifica la oficina o sucursal donde deseas retirar tu paquete.
-                        </p>
-                      </div>
-                    )}
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región *</label>
@@ -535,6 +517,73 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                                 </div>
                               );
                             })}
+                          </div>
+                        )}
+
+                        {shippingType === 'branch' && selectedQuote && (
+                          <div className="mt-5 bg-blue-50/40 border border-blue-100 rounded-2xl p-4 space-y-3">
+                            <div>
+                              <label htmlFor="shipping_branch" className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                                Oficina / Sucursal de {selectedQuote.name.split(' ')[0]} *
+                              </label>
+                              <input
+                                id="shipping_branch"
+                                type="text"
+                                value={shippingBranch}
+                                onChange={(e) => setShippingBranch(e.target.value)}
+                                required
+                                className="input-modern mt-1.5 bg-white"
+                                placeholder={
+                                  selectedQuote.id.includes('starken')
+                                    ? 'Ej: Sucursal Starken Vitacura'
+                                    : selectedQuote.id.includes('chilexpress')
+                                    ? 'Ej: Oficina Chilexpress Providencia Centro'
+                                    : selectedQuote.id.includes('blueexpress')
+                                    ? 'Ej: Punto Copec Las Condes'
+                                    : 'Ej: Sucursal de Retiro'
+                                }
+                              />
+                            </div>
+                            
+                            {selectedQuote.id.includes('starken') && (
+                              <p className="text-xs text-slate-500 font-normal">
+                                🔍 ¿No sabes el nombre exacto? 
+                                <a 
+                                  href="https://www.starken.cl/sucursales" 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
+                                >
+                                  Ver sucursales Starken oficiales más cercanas
+                                </a>
+                              </p>
+                            )}
+                            {selectedQuote.id.includes('chilexpress') && (
+                              <p className="text-xs text-slate-500 font-normal">
+                                🔍 ¿No sabes el nombre exacto? 
+                                <a 
+                                  href="https://www.chilexpress.cl/sucursales-oficinas" 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
+                                >
+                                  Ver oficinas Chilexpress oficiales más cercanas
+                                </a>
+                              </p>
+                            )}
+                            {selectedQuote.id.includes('blueexpress') && (
+                              <p className="text-xs text-slate-500 font-normal">
+                                🔍 ¿No sabes el nombre exacto? 
+                                <a 
+                                  href="https://www.blue.cl/puntos-blue/" 
+                                  target="_blank" 
+                                  rel="noreferrer" 
+                                  className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
+                                >
+                                  Ver puntos de retiro Blue Express oficiales
+                                </a>
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>
