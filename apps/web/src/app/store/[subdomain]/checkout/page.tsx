@@ -820,7 +820,9 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
               {storeConfig?.shipping_enabled && (
                 <div className="flex justify-between">
                   <span className="text-slate-500">Envío</span>
-                  <span className="font-medium">{shipping === 0 ? 'Gratis' : formatPrice(shipping)}</span>
+                  <span className={`font-medium ${selectedQuote?.is_collect ? 'text-blue-700 font-semibold' : ''}`}>
+                    {selectedQuote?.is_collect ? 'Al recibir (por pagar)' : (shipping === 0 ? 'Gratis' : formatPrice(shipping))}
+                  </span>
                 </div>
               )}
               <div className="border-t border-gray-100 pt-3">
