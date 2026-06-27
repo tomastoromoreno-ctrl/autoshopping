@@ -643,7 +643,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                               <p className="text-xs text-slate-500 font-normal">
                                 🔍 ¿No sabes el nombre exacto? 
                                 <a 
-                                  href="https://www.blue.cl/puntos-blue/" 
+                                  href="https://www.blue.cl/lockers-puntos/encuentra-tu-punto" 
                                   target="_blank" 
                                   rel="noreferrer" 
                                   className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
