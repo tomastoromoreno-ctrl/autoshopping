@@ -58,6 +58,11 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [page, statusFilter, tenantFilter]);
 
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente', confirmed: 'Confirmado', processing: 'Procesando',
+    shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado',
+  };
+
   const statusColors: Record<string, string> = {
     pending: 'text-yellow-600 bg-yellow-50',
     confirmed: 'text-blue-600 bg-blue-50',
@@ -117,7 +122,7 @@ export default function AdminOrdersPage() {
                   <td className="px-4 py-3 text-slate-900">{order.customer_name}</td>
                   <td className="px-4 py-3 font-medium text-slate-900">${order.total.toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{order.status}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{statusLabels[order.status] || order.status}</span>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
                 </tr>

@@ -48,6 +48,11 @@ export default function AdminDashboardPage() {
     { label: 'Ingresos Totales', value: `$${(stats?.totalRevenue ?? 0).toLocaleString()}`, color: 'bg-teal-500' },
   ];
 
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendiente', confirmed: 'Confirmado', processing: 'Procesando',
+    shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado',
+  };
+
   const statusColors: Record<string, string> = {
     pending: 'text-yellow-600 bg-yellow-50',
     confirmed: 'text-blue-600 bg-blue-50',
@@ -87,7 +92,7 @@ export default function AdminDashboardPage() {
               return (
                 <div key={status}>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium capitalize text-slate-700">{status}</span>
+                    <span className="font-medium text-slate-700">{statusLabels[status] || status}</span>
                     <span className="text-slate-500">{count}</span>
                   </div>
                   <div className="mt-1 h-2 w-full rounded-full bg-slate-100">
@@ -148,7 +153,7 @@ export default function AdminDashboardPage() {
                   <td className="px-4 py-3 text-slate-900">{order.customer_name}</td>
                   <td className="px-4 py-3 font-medium text-slate-900">${order.total.toLocaleString()}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{order.status}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{statusLabels[order.status] || order.status}</span>
                   </td>
                   <td className="px-4 py-3 text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
                 </tr>

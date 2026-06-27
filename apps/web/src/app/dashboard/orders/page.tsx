@@ -28,6 +28,15 @@ interface Order {
 
 const statuses = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
+const statusLabels: Record<string, string> = {
+  pending: 'Pendiente',
+  confirmed: 'Confirmado',
+  processing: 'Procesando',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+};
+
 const statusColors: Record<string, string> = {
   pending: 'text-yellow-600 bg-yellow-50',
   confirmed: 'text-blue-600 bg-blue-50',
@@ -89,7 +98,7 @@ export default function OrdersPage() {
         {statuses.map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)}
             className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors ${statusFilter === s ? 'bg-primary text-white' : 'bg-white text-slate-600 hover:bg-slate-100 border'}`}>
-            {s === 'all' ? 'Todas' : s}
+            {s === 'all' ? 'Todas' : statusLabels[s] || s}
           </button>
         ))}
       </div>
@@ -103,7 +112,7 @@ export default function OrdersPage() {
                 <span className="font-mono text-xs text-slate-400">#{order.id.slice(0, 8)}</span>
                 <span className="font-medium text-slate-900">{order.customer_name}</span>
                 <span className="font-semibold text-slate-900">${order.total.toLocaleString()}</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{order.status}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[order.status] || 'text-slate-600 bg-slate-50'}`}>{statusLabels[order.status] || order.status}</span>
                 <span className="text-xs text-slate-400">{new Date(order.created_at).toLocaleDateString()}</span>
               </div>
               <svg className={`h-5 w-5 text-slate-400 transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -178,7 +187,7 @@ export default function OrdersPage() {
                         <select onChange={(e) => handleStatusUpdate(order.id, e.target.value)} value={order.status}
                           aria-label="Actualizar estado"
                           className="mt-1 w-full rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-primary">
-                          {statuses.filter((s) => s !== 'all').map((s) => <option key={s} value={s}>{s}</option>)}
+                          {statuses.filter((s) => s !== 'all').map((s) => <option key={s} value={s}>{statusLabels[s] || s}</option>)}
                         </select>
                       </div>
 
