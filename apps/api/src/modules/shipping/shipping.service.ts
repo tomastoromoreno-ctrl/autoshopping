@@ -19,7 +19,7 @@ export class ShippingService {
   }
 
   async updateConfig(tenantId: string, dto: any) {
-    const { provider, is_enabled, api_key, api_secret, client_id, origin_region, origin_commune, origin_address, flat_rate_cost } = dto;
+    const { provider, is_enabled, mode, api_key, api_secret, client_id, origin_region, origin_commune, origin_address, flat_rate_cost } = dto;
 
     const { data: existing } = await this.supabase
       .from('shipping_configurations')
@@ -34,6 +34,7 @@ export class ShippingService {
         .from('shipping_configurations')
         .update({
           is_enabled,
+          mode,
           api_key,
           api_secret,
           client_id,
@@ -53,6 +54,7 @@ export class ShippingService {
           tenant_id: tenantId,
           provider,
           is_enabled,
+          mode,
           api_key,
           api_secret,
           client_id,
@@ -118,51 +120,68 @@ export class ShippingService {
       let cost = 0;
       let name = '';
       let deliveryTime = '';
+      let isCollect = config.mode === 'collect';
 
       if (config.provider === 'flat_rate') {
         cost = Number(config.flat_rate_cost || 0);
         name = 'Tarifa Plana (Envío Propio)';
         deliveryTime = '2 a 4 días hábiles';
+        isCollect = false;
       } else if (config.provider === 'starken') {
-        name = 'Starken';
-        if (zone === 'metropolitana') {
-          cost = 3900 + (totalQuantity * 500);
-          deliveryTime = '2 a 3 días hábiles';
-        } else if (zone === 'cercana') {
-          cost = 5200 + (totalQuantity * 700);
-          deliveryTime = '3 a 5 días hábiles';
+        name = isCollect ? 'Starken (Por Pagar - Cancelas al recibir)' : 'Starken';
+        if (isCollect) {
+          cost = 0;
+          deliveryTime = '2 a 5 días hábiles. El envío se paga al recibir.';
         } else {
-          cost = 8500 + (totalQuantity * 1200);
-          deliveryTime = '5 a 8 días hábiles';
+          if (zone === 'metropolitana') {
+            cost = 3900 + (totalQuantity * 500);
+            deliveryTime = '2 a 3 días hábiles';
+          } else if (zone === 'cercana') {
+            cost = 5200 + (totalQuantity * 700);
+            deliveryTime = '3 a 5 días hábiles';
+          } else {
+            cost = 8500 + (totalQuantity * 1200);
+            deliveryTime = '5 a 8 días hábiles';
+          }
         }
       } else if (config.provider === 'chilexpress') {
-        name = 'Chilexpress';
-        if (zone === 'metropolitana') {
-          cost = 4500 + (totalQuantity * 600);
-          deliveryTime = '1 a 2 días hábiles (Express)';
-        } else if (zone === 'cercana') {
-          cost = 5900 + (totalQuantity * 850);
-          deliveryTime = '2 a 3 días hábiles';
+        name = isCollect ? 'Chilexpress (Por Pagar - Cancelas al recibir)' : 'Chilexpress';
+        if (isCollect) {
+          cost = 0;
+          deliveryTime = '1 a 3 días hábiles. El envío se paga al recibir.';
         } else {
-          cost = 9800 + (totalQuantity * 1500);
-          deliveryTime = '3 a 5 días hábiles';
+          if (zone === 'metropolitana') {
+            cost = 4500 + (totalQuantity * 600);
+            deliveryTime = '1 a 2 días hábiles (Express)';
+          } else if (zone === 'cercana') {
+            cost = 5900 + (totalQuantity * 850);
+            deliveryTime = '2 a 3 días hábiles';
+          } else {
+            cost = 9800 + (totalQuantity * 1500);
+            deliveryTime = '3 a 5 días hábiles';
+          }
         }
       } else if (config.provider === 'blueexpress') {
-        name = 'Blue Express';
-        if (zone === 'metropolitana') {
-          cost = 3700 + (totalQuantity * 450);
-          deliveryTime = '2 a 3 días hábiles';
-        } else if (zone === 'cercana') {
-          cost = 4900 + (totalQuantity * 650);
-          deliveryTime = '3 a 4 días hábiles';
+        name = isCollect ? 'Blue Express (Por Pagar - Cancelas al recibir)' : 'Blue Express';
+        if (isCollect) {
+          cost = 0;
+          deliveryTime = '2 a 4 días hábiles. El envío se paga al recibir.';
         } else {
-          cost = 7900 + (totalQuantity * 1100);
-          deliveryTime = '4 a 6 días hábiles';
+          if (zone === 'metropolitana') {
+            cost = 3700 + (totalQuantity * 450);
+            deliveryTime = '2 a 3 días hábiles';
+          } else if (zone === 'cercana') {
+            cost = 4900 + (totalQuantity * 650);
+            deliveryTime = '3 a 4 días hábiles';
+          } else {
+            cost = 7900 + (totalQuantity * 1100);
+            deliveryTime = '4 a 6 días hábiles';
+          }
         }
       }
 
-      // Aplicar envío gratis si corresponde
-      if (storeConfig.free_shipping_min && subtotal >= Number(storeConfig.free_shipping_min)) {
+      // Aplicar envío gratis si corresponde (y si no es cobro por pagar)
+      if (!isCollect && storeConfig.free_shipping_min && subtotal >= Number(storeConfig.free_shipping_min)) {
         cost = 0;
       }
 
@@ -171,6 +190,7 @@ export class ShippingService {
         name,
         cost,
         delivery_time: deliveryTime,
+        is_collect: isCollect,
       });
     }
 

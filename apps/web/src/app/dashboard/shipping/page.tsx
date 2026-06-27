@@ -7,6 +7,7 @@ import { Check, Truck, ShieldAlert, Settings, HelpCircle, Save } from 'lucide-re
 interface ShippingConfig {
   provider: 'starken' | 'chilexpress' | 'blueexpress' | 'flat_rate';
   is_enabled: boolean;
+  mode?: 'dynamic' | 'collect';
   api_key?: string;
   api_secret?: string;
   client_id?: string;
@@ -25,9 +26,9 @@ const PROVIDERS = [
 
 export default function ShippingDashboardPage() {
   const [configs, setConfigs] = useState<Record<string, ShippingConfig>>({
-    starken: { provider: 'starken', is_enabled: false, api_key: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
-    chilexpress: { provider: 'chilexpress', is_enabled: false, api_key: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
-    blueexpress: { provider: 'blueexpress', is_enabled: false, api_key: '', api_secret: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
+    starken: { provider: 'starken', is_enabled: false, mode: 'dynamic', api_key: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
+    chilexpress: { provider: 'chilexpress', is_enabled: false, mode: 'dynamic', api_key: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
+    blueexpress: { provider: 'blueexpress', is_enabled: false, mode: 'dynamic', api_key: '', api_secret: '', client_id: '', origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
     flat_rate: { provider: 'flat_rate', is_enabled: false, flat_rate_cost: 3990, origin_region: 'Metropolitana', origin_commune: 'Santiago', origin_address: '' },
   });
   
@@ -224,6 +225,24 @@ export default function ShippingDashboardPage() {
               </div>
             ) : (
               <>
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-slate-600">Modo de Despacho</label>
+                  <select
+                    value={configs[activeTab]?.mode || 'dynamic'}
+                    onChange={(e) => handleChange(activeTab, 'mode', e.target.value)}
+                    aria-label="Modo de Despacho"
+                    className="mt-1 w-full max-w-xs rounded-lg border px-3 py-2 text-sm outline-none focus:border-primary font-medium text-slate-700 bg-white"
+                  >
+                    <option value="dynamic">Cotización Dinámica Estimada (Cobrar en Checkout)</option>
+                    <option value="collect">Envío por Pagar (Costo $0 al cliente, cancela al recibir)</option>
+                  </select>
+                  <p className="mt-1 text-xs text-slate-400 font-normal">
+                    {configs[activeTab]?.mode === 'collect'
+                      ? '💡 En este modo no se requieren credenciales API obligatorias para cotizar, ya que el cliente pagará directamente al transportista.'
+                      : '🔑 Requiere credenciales de integración comerciales válidas proporcionadas por la empresa de transportes.'}
+                  </p>
+                </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-semibold text-slate-600">RUT / ID de Cliente</label>
@@ -237,7 +256,7 @@ export default function ShippingDashboardPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600">API Key / Token de Acceso</label>
+                    <label className="block text-xs font-semibold text-slate-600">API Key / Token de Acceso (Opcional si es Por Pagar)</label>
                     <input
                       type="password"
                       value={configs[activeTab]?.api_key || ''}

@@ -141,8 +141,8 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [shippingState, setShippingState] = useState('');
   const [shippingZip, setShippingZip] = useState('');
 
-  const [quotes, setQuotes] = useState<Array<{ id: string; name: string; cost: number; delivery_time: string }>>([]);
-  const [selectedQuote, setSelectedQuote] = useState<{ id: string; name: string; cost: number; delivery_time: string } | null>(null);
+  const [quotes, setQuotes] = useState<Array<{ id: string; name: string; cost: number; delivery_time: string; is_collect?: boolean }>>([]);
+  const [selectedQuote, setSelectedQuote] = useState<{ id: string; name: string; cost: number; delivery_time: string; is_collect?: boolean } | null>(null);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
 
   useEffect(() => {
@@ -463,7 +463,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                                     </div>
                                   </div>
                                   <p className="text-sm font-bold text-slate-900">
-                                    {q.cost === 0 ? 'Gratis' : formatPrice(q.cost)}
+                                    {q.is_collect ? 'Por Pagar' : (q.cost === 0 ? 'Gratis' : formatPrice(q.cost))}
                                   </p>
                                 </div>
                               );
