@@ -123,6 +123,7 @@ function StepContainer({ children }: { children: React.ReactNode }) {
 
 export default function CheckoutPage({ params }: { params: { subdomain: string } }) {
   const router = useRouter();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
   const [items, setItems] = useState<CartItem[]>([]);
   const [storeConfig, setStoreConfig] = useState<StoreConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -185,8 +186,6 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
       })
       .finally(() => setLoadingQuotes(false));
   }, [shippingState, shippingCity, items, storeConfig?.shipping_enabled, params.subdomain, apiUrl]);
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
   useEffect(() => {
     const cartKey = `cart_${params.subdomain}`;
