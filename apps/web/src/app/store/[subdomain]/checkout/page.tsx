@@ -496,7 +496,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         <input id="address" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required aria-label="Dirección" className="input-modern" placeholder="Calle, número, depto" />
                       </div>
                     )}
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región *</label>
                         <select
@@ -534,10 +534,6 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                             <option key={c} value={c}>{c}</option>
                           )) || []}
                         </select>
-                      </div>
-                      <div>
-                        <label htmlFor="zip" className="block text-sm font-medium text-slate-700 mb-1.5">Código postal</label>
-                        <input id="zip" type="text" value={shippingZip} onChange={(e) => setShippingZip(e.target.value)} aria-label="Código postal" className="input-modern" placeholder="7500000" />
                       </div>
                     </div>
 
