@@ -26,6 +26,7 @@ const navItems = [
   { href: '/dashboard/blog', label: 'Blog', icon: '✎', requiredPermission: 'blog.read' },
   { href: '/dashboard/invoicing', label: 'Facturación SII', icon: '📄', requiredPermission: 'invoicing.read' },
   { href: '/dashboard/config', label: 'Configuración', icon: '⚙', requiredPermission: 'config.read' },
+  { href: '/dashboard/shipping', label: 'Hub de Envíos', icon: '🚚', requiredPermission: 'config.read' },
   { href: '/dashboard/appearance', label: 'Apariencia', icon: '◐', requiredPermission: 'appearance.read' },
   { href: '/dashboard/domain', label: 'Dominio', icon: '🌐', requiredPermission: 'domain.read' },
   { href: '/dashboard/users', label: 'Usuarios', icon: '♢', requiredPermission: 'users.read' },

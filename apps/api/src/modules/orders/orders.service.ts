@@ -27,6 +27,8 @@ export class OrdersService {
     items?: any[];
     payment_method_id?: string;
     coupon_code?: string;
+    shipping_provider?: string;
+    shipping_cost?: number;
   }) {
     // Ensure cart exists in Supabase if frontend sent items
     if (dto.items && dto.items.length > 0) {
@@ -132,22 +134,24 @@ export class OrdersService {
     const orderTotal = cart.subtotal || 0;
     
     // Calculate shipping cost dynamically
-    let shippingCost = 0;
-    try {
-      const { data: config } = await this.supabase
-        .from('store_configs')
-        .select('shipping_enabled, shipping_cost, free_shipping_min')
-        .eq('tenant_id', dto.tenant_id)
-        .maybeSingle();
+    let shippingCost = dto.shipping_cost !== undefined ? dto.shipping_cost : 0;
+    if (dto.shipping_provider === undefined) {
+      try {
+        const { data: config } = await this.supabase
+          .from('store_configs')
+          .select('shipping_enabled, shipping_cost, free_shipping_min')
+          .eq('tenant_id', dto.tenant_id)
+          .maybeSingle();
 
-      if (config?.shipping_enabled) {
-        const minFree = config.free_shipping_min || 0;
-        if (minFree === 0 || orderTotal < minFree) {
-          shippingCost = config.shipping_cost || 0;
+        if (config?.shipping_enabled) {
+          const minFree = config.free_shipping_min || 0;
+          if (minFree === 0 || orderTotal < minFree) {
+            shippingCost = config.shipping_cost || 0;
+          }
         }
+      } catch (err) {
+        this.logger.error(`Error fetching shipping config: ${err.message}`);
       }
-    } catch (err) {
-      this.logger.error(`Error fetching shipping config: ${err.message}`);
     }
 
     // Calculate coupon discount dynamically
@@ -202,6 +206,7 @@ export class OrdersService {
         customer_phone: dto.customer_phone || null,
         shipping_address: dto.shipping_address || null,
         notes: dto.notes || null,
+        shipping_provider: dto.shipping_provider || null,
       })
       .select()
       .single();
@@ -325,6 +330,7 @@ export class OrdersService {
     const updateData: Record<string, any> = {};
     if (dto.status) updateData.status = dto.status;
     if (dto.payment_status) updateData.payment_status = dto.payment_status;
+    if (dto.tracking) updateData.tracking_number = dto.tracking;
 
     const { data: previousOrder } = await this.supabase
       .from('orders')

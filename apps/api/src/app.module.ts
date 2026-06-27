@@ -25,6 +25,7 @@ import { LegalModule } from './modules/legal/legal.module';
 import { BackupsModule } from './modules/backups/backups.module';
 import { PublicApiModule } from './modules/public-api/public-api.module';
 import { InternationalizationModule } from './modules/internationalization/internationalization.module';
+import { ShippingModule } from './modules/shipping/shipping.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { InternationalizationModule } from './modules/internationalization/inter
     BackupsModule,
     PublicApiModule,
     InternationalizationModule,
+    ShippingModule,
   ],
 })
 export class AppModule {}

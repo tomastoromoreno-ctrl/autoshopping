@@ -7,6 +7,33 @@ import { ArrowLeft, ArrowRight, CreditCard, Building2, Wallet, Truck, Shield, Ch
 import { getSessionId } from '@/lib/session';
 import { formatPrice } from '@/lib/format';
 
+const REGIONS_AND_COMMUNES = [
+  {
+    name: 'Región Metropolitana',
+    communes: ['Santiago', 'Las Condes', 'Providencia', 'Ñuñoa', 'Vitacura', 'Lo Barnechea', 'La Reina', 'Macul', 'Peñalolén', 'Maipú', 'Pudahuel', 'Quilicura', 'San Miguel', 'La Florida', 'Puente Alto', 'Colina', 'Lampa']
+  },
+  {
+    name: 'Valparaíso',
+    communes: ['Valparaíso', 'Viña del Mar', 'Concón', 'Quilpué', 'Villa Alemana', 'San Antonio', 'Quillota', 'Los Andes', 'San Felipe']
+  },
+  {
+    name: 'Biobío',
+    communes: ['Concepción', 'Talcahuano', 'Chiguayante', 'San Pedro de la Paz', 'Coronel', 'Hualpén', 'Los Ángeles', 'Chillán']
+  },
+  {
+    name: 'Araucanía',
+    communes: ['Temuco', 'Padre Las Casas', 'Villarrica', 'Pucón', 'Angol']
+  },
+  {
+    name: 'Antofagasta',
+    communes: ['Antofagasta', 'Calama', 'Tocopilla', 'Mejillones']
+  },
+  {
+    name: 'Magallanes',
+    communes: ['Punta Arenas', 'Puerto Natales', 'Porvenir']
+  }
+];
+
 interface CartItem {
   cart_item_key: string;
   product_id: string;
@@ -113,6 +140,52 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [shippingState, setShippingState] = useState('');
   const [shippingZip, setShippingZip] = useState('');
 
+  const [quotes, setQuotes] = useState<Array<{ id: string; name: string; cost: number; delivery_time: string }>>([]);
+  const [selectedQuote, setSelectedQuote] = useState<{ id: string; name: string; cost: number; delivery_time: string } | null>(null);
+  const [loadingQuotes, setLoadingQuotes] = useState(false);
+
+  useEffect(() => {
+    if (!shippingState || !shippingCity || items.length === 0 || !storeConfig?.shipping_enabled) {
+      setQuotes([]);
+      setSelectedQuote(null);
+      return;
+    }
+
+    setLoadingQuotes(true);
+    fetch(`${apiUrl}/shipping/public/${params.subdomain}/quotes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        destination_region: shippingState,
+        destination_commune: shippingCity,
+        items: items.map((item) => ({
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      }),
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error('Error al cargar cotizaciones');
+      })
+      .then((data) => {
+        setQuotes(data);
+        if (data && data.length > 0) {
+          setSelectedQuote(data[0]);
+        } else {
+          setSelectedQuote(null);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setQuotes([]);
+        setSelectedQuote(null);
+      })
+      .finally(() => setLoadingQuotes(false));
+  }, [shippingState, shippingCity, items, storeConfig?.shipping_enabled, params.subdomain, apiUrl]);
+
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
   useEffect(() => {
@@ -151,14 +224,14 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   }, [params.subdomain, apiUrl]);
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = storeConfig?.shipping_enabled ? (storeConfig.shipping_cost || 0) : 0;
+  const shipping = selectedQuote ? selectedQuote.cost : 0;
   const total = subtotal + shipping;
 
   const stepsVisible = steps.filter((s) => s.key !== 'shipping' || storeConfig?.shipping_enabled);
 
   function canProceed(step: number): boolean {
     if (step === 1) return customerName.trim().length > 0 && customerEmail.trim().length > 0;
-    if (step === 2) return !storeConfig?.shipping_enabled || (shippingAddress.trim().length > 0 && shippingCity.trim().length > 0);
+    if (step === 2) return !storeConfig?.shipping_enabled || (shippingAddress.trim().length > 0 && shippingCity.trim().length > 0 && selectedQuote !== null);
     if (step === 3) return selectedPayment.length > 0;
     return true;
   }
@@ -197,6 +270,8 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
             price: item.price,
           })),
           shipping_address: storeConfig?.shipping_enabled ? { address: shippingAddress, city: shippingCity, state: shippingState, zip: shippingZip } : undefined,
+          shipping_provider: selectedQuote?.name || undefined,
+          shipping_cost: selectedQuote?.cost !== undefined ? selectedQuote.cost : undefined,
         }),
       });
       if (res.ok) {
@@ -307,18 +382,97 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                     </div>
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
-                        <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1.5">Ciudad *</label>
-                        <input id="city" type="text" value={shippingCity} onChange={(e) => setShippingCity(e.target.value)} required aria-label="Ciudad" className="input-modern" placeholder="Santiago" />
+                        <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región *</label>
+                        <select
+                          id="state"
+                          value={shippingState}
+                          onChange={(e) => {
+                            setShippingState(e.target.value);
+                            setShippingCity('');
+                            setQuotes([]);
+                            setSelectedQuote(null);
+                          }}
+                          required
+                          aria-label="Región"
+                          className="input-modern"
+                        >
+                          <option value="">Selecciona Región</option>
+                          {REGIONS_AND_COMMUNES.map((r) => (
+                            <option key={r.name} value={r.name}>{r.name}</option>
+                          ))}
+                        </select>
                       </div>
                       <div>
-                        <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región</label>
-                        <input id="state" type="text" value={shippingState} onChange={(e) => setShippingState(e.target.value)} aria-label="Región" className="input-modern" placeholder="Metropolitana" />
+                        <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1.5">Comuna *</label>
+                        <select
+                          id="city"
+                          value={shippingCity}
+                          onChange={(e) => setShippingCity(e.target.value)}
+                          required
+                          disabled={!shippingState}
+                          aria-label="Comuna"
+                          className="input-modern"
+                        >
+                          <option value="">Selecciona Comuna</option>
+                          {REGIONS_AND_COMMUNES.find((r) => r.name === shippingState)?.communes.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          )) || []}
+                        </select>
                       </div>
                       <div>
                         <label htmlFor="zip" className="block text-sm font-medium text-slate-700 mb-1.5">Código postal</label>
                         <input id="zip" type="text" value={shippingZip} onChange={(e) => setShippingZip(e.target.value)} aria-label="Código postal" className="input-modern" placeholder="7500000" />
                       </div>
                     </div>
+
+                    {/* Selector de Cotizaciones de Envío */}
+                    {shippingState && shippingCity && (
+                      <div className="mt-6 border-t pt-6">
+                        <h3 className="text-sm font-semibold text-slate-900 mb-3">Opciones de Despacho</h3>
+                        {loadingQuotes ? (
+                          <div className="flex items-center gap-2 py-4 text-sm text-slate-500">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                            Cotizando con transportistas...
+                          </div>
+                        ) : quotes.length === 0 ? (
+                          <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">
+                            ⚠️ No hay transportistas disponibles para esta ubicación. Intenta con otra comuna.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {quotes.map((q) => {
+                              const isSelected = selectedQuote?.id === q.id;
+                              return (
+                                <div
+                                  key={q.id}
+                                  onClick={() => setSelectedQuote(q)}
+                                  className={`flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-all duration-200 ${
+                                    isSelected
+                                      ? 'border-primary bg-blue-50/50 ring-1 ring-primary'
+                                      : 'border-slate-200 hover:border-slate-300'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all duration-200 ${
+                                      isSelected ? 'border-primary bg-primary' : 'border-slate-300'
+                                    }`}>
+                                      {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-semibold text-slate-900">{q.name}</p>
+                                      <p className="text-xs text-slate-500">Entrega estimada: {q.delivery_time}</p>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm font-bold text-slate-900">
+                                    {q.cost === 0 ? 'Gratis' : formatPrice(q.cost)}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="mt-6 flex justify-between">
                     <button type="button" onClick={prevStep} className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all duration-200">

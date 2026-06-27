@@ -41,6 +41,13 @@ class CreateOrderDto {
   @IsString()
   @IsOptional()
   coupon_code?: string;
+
+  @IsString()
+  @IsOptional()
+  shipping_provider?: string;
+
+  @IsOptional()
+  shipping_cost?: number;
 }
 
 class ListOrdersQuery {
