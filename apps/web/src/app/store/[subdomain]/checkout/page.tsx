@@ -192,8 +192,14 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   useEffect(() => {
     const cartKey = `cart_${params.subdomain}`;
     const stored = localStorage.getItem(cartKey);
+    let parsedItems: CartItem[] = [];
     if (stored) {
-      try { setItems(JSON.parse(stored)); } catch { setItems([]); }
+      try {
+        parsedItems = JSON.parse(stored);
+        setItems(parsedItems);
+      } catch {
+        setItems([]);
+      }
     }
     async function loadStore() {
       try {
@@ -217,6 +223,28 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           };
           setStoreConfig(mapped);
           if (mapped.payment_methods?.length) setSelectedPayment(mapped.payment_methods[0].id);
+
+          // Sync local storage cart to database
+          if (parsedItems.length > 0) {
+            const sessionId = getSessionId();
+            // Clear current cart items in database
+            await fetch(`${apiUrl}/cart/${sessionId}/clear`, { method: 'DELETE' });
+            
+            // Populate database cart with local items
+            for (const item of parsedItems) {
+              await fetch(`${apiUrl}/cart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  tenant_id: data.id,
+                  session_id: sessionId,
+                  product_id: item.product_id,
+                  variant_id: item.variant_id || undefined,
+                  quantity: item.quantity,
+                })
+              });
+            }
+          }
         }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
