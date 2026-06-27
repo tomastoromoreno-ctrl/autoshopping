@@ -398,6 +398,7 @@ export class OrdersService {
 
     if (!tenant) return;
 
+    // Send confirmation to customer
     await this.emailService.sendOrderConfirmation({
       orderId: order.id,
       customerName: order.customer_name,
@@ -414,6 +415,45 @@ export class OrdersService {
       storeName: tenant.name,
       storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
     });
+
+    // Send notification to store owners (merchants)
+    try {
+      const { data: owners } = await this.supabase
+        .from('users')
+        .select('email')
+        .eq('tenant_id', tenantId)
+        .eq('role', 'store_owner');
+
+      if (owners && owners.length > 0) {
+        const orderItems = (order.items || []).map((item: any) => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          price: item.unit_price,
+        }));
+
+        for (const owner of owners) {
+          if (owner.email) {
+            await this.emailService.sendMerchantNewOrderNotification({
+              orderId: order.id,
+              customerName: order.customer_name,
+              customerEmail: order.customer_email,
+              customerPhone: order.customer_phone || undefined,
+              items: orderItems,
+              subtotal: order.subtotal,
+              shippingCost: order.shipping_cost,
+              discount: order.discount,
+              total: order.total,
+              storeName: tenant.name,
+              merchantEmail: owner.email,
+              shippingType: order.shipping_type,
+              shippingBranch: order.shipping_branch,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      this.logger.error(`Error notifying store owners: ${err.message}`);
+    }
   }
 
   private async sendOrderShippedEmail(tenantId: string, order: any, tracking?: string) {

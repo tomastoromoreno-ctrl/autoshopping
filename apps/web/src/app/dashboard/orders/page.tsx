@@ -127,6 +127,7 @@ export default function OrdersPage() {
                     <div className="mt-2 space-y-1 text-sm text-slate-600 font-normal">
                       {order.payment_method && <p>Pago: {order.payment_method}</p>}
                       <p>Email: {order.customer_email}</p>
+                      {order.customer_phone && <p>Teléfono: {order.customer_phone}</p>}
                       {order.shipping_address && (
                         <p>Dirección: {typeof order.shipping_address === 'string' ? order.shipping_address : `${order.shipping_address.address}, ${order.shipping_address.city}, ${order.shipping_address.state}`}</p>
                       )}
@@ -138,6 +139,19 @@ export default function OrdersPage() {
                       )}
                       {order.shipping_provider && <p>Courier: <span className="font-semibold text-primary">{order.shipping_provider}</span></p>}
                       {order.tracking_number && <p>Seguimiento: <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">{order.tracking_number}</span></p>}
+                      
+                      {order.customer_phone && (
+                        <div className="pt-2">
+                          <a
+                            href={`https://wa.me/${order.customer_phone.replace(/\+/g, '').replace(/\s/g, '')}?text=Hola%20${encodeURIComponent(order.customer_name)}%2C%20te%20escribo%20desde%20la%20tienda%20sobre%20tu%20pedido%20%23${order.id.slice(0, 8)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 transition"
+                          >
+                            💬 Contactar por WhatsApp
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {order.shipping_provider && (
