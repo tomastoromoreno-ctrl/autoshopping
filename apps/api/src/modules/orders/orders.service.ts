@@ -29,6 +29,8 @@ export class OrdersService {
     coupon_code?: string;
     shipping_provider?: string;
     shipping_cost?: number;
+    shipping_type?: string;
+    shipping_branch?: string;
   }) {
     // Ensure cart exists in Supabase if frontend sent items
     if (dto.items && dto.items.length > 0) {
@@ -207,6 +209,8 @@ export class OrdersService {
         shipping_address: dto.shipping_address || null,
         notes: dto.notes || null,
         shipping_provider: dto.shipping_provider || null,
+        shipping_type: dto.shipping_type || 'home',
+        shipping_branch: dto.shipping_branch || null,
       })
       .select()
       .single();
@@ -365,7 +369,7 @@ export class OrdersService {
 
     // Send shipping notification when status changes to 'shipped'
     if (dto.status === 'shipped' && previousOrder?.status !== 'shipped') {
-      this.sendOrderShippedEmail(data.tenant_id, data, dto.tracking).catch((err) =>
+      this.sendOrderShippedEmail(data.tenant_id, data, dto.tracking || data.tracking_number).catch((err) =>
         this.logger.error(`Failed to send shipping email: ${err.message}`),
       );
     }

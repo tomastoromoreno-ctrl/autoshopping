@@ -22,6 +22,8 @@ interface Order {
   shipping_provider?: string;
   tracking_number?: string;
   customer_phone?: string;
+  shipping_type?: string;
+  shipping_branch?: string;
 }
 
 const statuses = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -127,6 +129,12 @@ export default function OrdersPage() {
                       <p>Email: {order.customer_email}</p>
                       {order.shipping_address && (
                         <p>Dirección: {typeof order.shipping_address === 'string' ? order.shipping_address : `${order.shipping_address.address}, ${order.shipping_address.city}, ${order.shipping_address.state}`}</p>
+                      )}
+                      {order.shipping_type && (
+                        <p>Despacho: <span className="font-semibold text-slate-900">{order.shipping_type === 'branch' ? 'Retiro en Sucursal' : 'Despacho a Domicilio'}</span></p>
+                      )}
+                      {order.shipping_type === 'branch' && order.shipping_branch && (
+                        <p>Sucursal: <span className="font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded text-xs">{order.shipping_branch}</span></p>
                       )}
                       {order.shipping_provider && <p>Courier: <span className="font-semibold text-primary">{order.shipping_provider}</span></p>}
                       {order.tracking_number && <p>Seguimiento: <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">{order.tracking_number}</span></p>}
@@ -239,11 +247,29 @@ export default function OrdersPage() {
                 <div>
                   <p className="font-bold uppercase tracking-wider text-slate-500">Destinatario</p>
                   <p className="font-bold text-sm mt-1">{activeLabelOrder.customer_name}</p>
-                  <p className="mt-0.5">
-                    {typeof activeLabelOrder.shipping_address === 'string'
-                      ? activeLabelOrder.shipping_address
-                      : activeLabelOrder.shipping_address?.address}
-                  </p>
+                  {activeLabelOrder.shipping_type === 'branch' ? (
+                    <>
+                      <p className="mt-1 font-bold text-blue-900 bg-blue-50 px-1 py-0.5 rounded inline-block text-[10px] uppercase border border-blue-200">
+                        RETIRO EN SUCURSAL
+                      </p>
+                      <p className="mt-1 font-bold text-slate-900">
+                        📍 {activeLabelOrder.shipping_branch}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Ref: {typeof activeLabelOrder.shipping_address === 'string'
+                          ? activeLabelOrder.shipping_address
+                          : activeLabelOrder.shipping_address?.address}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-0.5">
+                        {typeof activeLabelOrder.shipping_address === 'string'
+                          ? activeLabelOrder.shipping_address
+                          : activeLabelOrder.shipping_address?.address}
+                      </p>
+                    </>
+                  )}
                   <p className="font-bold">
                     {typeof activeLabelOrder.shipping_address === 'string'
                       ? ''

@@ -140,6 +140,8 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [shippingCity, setShippingCity] = useState('');
   const [shippingState, setShippingState] = useState('');
   const [shippingZip, setShippingZip] = useState('');
+  const [shippingType, setShippingType] = useState<'home' | 'branch'>('home');
+  const [shippingBranch, setShippingBranch] = useState('');
 
   const [quotes, setQuotes] = useState<Array<{ id: string; name: string; cost: number; delivery_time: string; is_collect?: boolean }>>([]);
   const [selectedQuote, setSelectedQuote] = useState<{ id: string; name: string; cost: number; delivery_time: string; is_collect?: boolean } | null>(null);
@@ -230,7 +232,14 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
 
   function canProceed(step: number): boolean {
     if (step === 1) return customerName.trim().length > 0 && customerEmail.trim().length > 0;
-    if (step === 2) return !storeConfig?.shipping_enabled || (shippingAddress.trim().length > 0 && shippingCity.trim().length > 0 && selectedQuote !== null);
+    if (step === 2) {
+      if (!storeConfig?.shipping_enabled) return true;
+      const basicValid = shippingAddress.trim().length > 0 && shippingCity.trim().length > 0 && selectedQuote !== null;
+      if (shippingType === 'branch') {
+        return basicValid && shippingBranch.trim().length > 0;
+      }
+      return basicValid;
+    }
     if (step === 3) return selectedPayment.length > 0;
     return true;
   }
@@ -271,6 +280,8 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           shipping_address: storeConfig?.shipping_enabled ? { address: shippingAddress, city: shippingCity, state: shippingState, zip: shippingZip } : undefined,
           shipping_provider: selectedQuote?.name || undefined,
           shipping_cost: selectedQuote?.cost !== undefined ? selectedQuote.cost : undefined,
+          shipping_type: shippingType,
+          shipping_branch: shippingType === 'branch' ? shippingBranch : undefined,
         }),
       });
       if (res.ok) {
@@ -375,10 +386,66 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                     <h2 className="text-lg font-heading font-semibold text-slate-900">Dirección de envío</h2>
                   </div>
                   <div className="space-y-4">
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Método de Entrega *</label>
+                      <div className="grid gap-3 grid-cols-2">
+                        <label className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all duration-200 ${
+                          shippingType === 'home' ? 'border-primary bg-blue-50/50 ring-1 ring-primary' : 'border-slate-200 hover:border-slate-300'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="shipping_type"
+                              value="home"
+                              checked={shippingType === 'home'}
+                              onChange={() => setShippingType('home')}
+                              className="h-4 w-4 text-primary focus:ring-primary border-slate-300"
+                            />
+                            <span className="text-sm font-medium text-slate-900">A Domicilio</span>
+                          </div>
+                        </label>
+                        <label className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all duration-200 ${
+                          shippingType === 'branch' ? 'border-primary bg-blue-50/50 ring-1 ring-primary' : 'border-slate-200 hover:border-slate-300'
+                        }`}>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name="shipping_type"
+                              value="branch"
+                              checked={shippingType === 'branch'}
+                              onChange={() => setShippingType('branch')}
+                              className="h-4 w-4 text-primary focus:ring-primary border-slate-300"
+                            />
+                            <span className="text-sm font-medium text-slate-900">Retiro en Sucursal</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
                     <div>
-                      <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1.5">Dirección *</label>
+                      <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        {shippingType === 'branch' ? 'Dirección de Referencia *' : 'Dirección *'}
+                      </label>
                       <input id="address" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required aria-label="Dirección" className="input-modern" placeholder="Calle, número, depto" />
                     </div>
+
+                    {shippingType === 'branch' && (
+                      <div>
+                        <label htmlFor="shipping_branch" className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la Sucursal de Retiro *</label>
+                        <input
+                          id="shipping_branch"
+                          type="text"
+                          value={shippingBranch}
+                          onChange={(e) => setShippingBranch(e.target.value)}
+                          required
+                          className="input-modern"
+                          placeholder="Ej: Starken Vitacura, Chilexpress Providencia Centro"
+                        />
+                        <p className="mt-1 text-xs text-slate-500 font-normal">
+                          Especifica la oficina o sucursal donde deseas retirar tu paquete.
+                        </p>
+                      </div>
+                    )}
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región *</label>

@@ -48,6 +48,14 @@ class CreateOrderDto {
 
   @IsOptional()
   shipping_cost?: number;
+
+  @IsString()
+  @IsOptional()
+  shipping_type?: string;
+
+  @IsString()
+  @IsOptional()
+  shipping_branch?: string;
 }
 
 class ListOrdersQuery {
