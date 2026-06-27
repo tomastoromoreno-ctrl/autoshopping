@@ -192,6 +192,8 @@ export class OrdersService {
       }
     }
 
+    const paymentProvider = dto.payment_method_id || 'mercadopago';
+
     const { data: order, error: orderError } = await this.supabase
       .from('orders')
       .insert({
@@ -208,6 +210,7 @@ export class OrdersService {
         customer_phone: dto.customer_phone || null,
         shipping_address: dto.shipping_address || null,
         notes: dto.notes || null,
+        payment_provider: paymentProvider,
         shipping_provider: dto.shipping_provider || null,
         shipping_type: dto.shipping_type || 'home',
         shipping_branch: dto.shipping_branch || null,
