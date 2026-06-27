@@ -42,6 +42,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expanded, setExpanded] = useState<string | null>(null);
   const [trackInputs, setTrackInputs] = useState<Record<string, string>>({});
+  const [providerInputs, setProviderInputs] = useState<Record<string, string>>({});
   const [activeLabelOrder, setActiveLabelOrder] = useState<Order | null>(null);
 
   const load = () => {
@@ -55,9 +56,11 @@ export default function OrdersPage() {
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       const trackingVal = trackInputs[orderId] || '';
+      const providerVal = providerInputs[orderId] || '';
       await api.patch(`/orders/${orderId}/status`, { 
         status: newStatus,
-        tracking: trackingVal || undefined
+        tracking: trackingVal || undefined,
+        shipping_provider: providerVal || undefined
       });
       load();
     } catch (err: any) {
@@ -65,10 +68,13 @@ export default function OrdersPage() {
     }
   };
 
-  const saveTracking = async (orderId: string, tracking: string) => {
+  const saveFulfillment = async (orderId: string, tracking: string, provider: string) => {
     try {
-      await api.patch(`/orders/${orderId}/status`, { tracking });
-      alert('Número de seguimiento guardado.');
+      await api.patch(`/orders/${orderId}/status`, { 
+        tracking,
+        shipping_provider: provider || undefined
+      });
+      alert('Datos de despacho guardados con éxito y cliente notificado.');
       load();
     } catch (err: any) {
       alert(err.message);
@@ -177,25 +183,66 @@ export default function OrdersPage() {
                       </div>
 
                       {(order.status === 'processing' || order.status === 'shipped') && (
-                        <div>
-                          <label className="text-xs font-medium text-slate-500">Número de Seguimiento</label>
-                          <div className="flex gap-2 mt-1">
-                            <input
-                              type="text"
-                              value={trackInputs[order.id] ?? order.tracking_number ?? ''}
-                              onChange={(e) => setTrackInputs({ ...trackInputs, [order.id]: e.target.value })}
-                              aria-label="Número de seguimiento"
-                              placeholder="Ej: ST1234567"
-                              className="w-full rounded-lg border px-3 py-1 text-sm outline-none focus:border-primary"
-                            />
+                        <div className="space-y-3 pt-2 border-t border-slate-100">
+                          <h5 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Despachar Pedido</h5>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div>
+                              <label className="text-[10px] font-semibold text-slate-500 uppercase">Courier / Transportista</label>
+                              <input
+                                type="text"
+                                value={providerInputs[order.id] ?? order.shipping_provider ?? ''}
+                                onChange={(e) => setProviderInputs({ ...providerInputs, [order.id]: e.target.value })}
+                                aria-label="Courier"
+                                placeholder="Ej: Starken, Chilexpress"
+                                className="mt-1 w-full rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-primary"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-semibold text-slate-500 uppercase">Código de Seguimiento</label>
+                              <input
+                                type="text"
+                                value={trackInputs[order.id] ?? order.tracking_number ?? ''}
+                                onChange={(e) => setTrackInputs({ ...trackInputs, [order.id]: e.target.value })}
+                                aria-label="Código de seguimiento"
+                                placeholder="Ej: ST1234567"
+                                className="mt-1 w-full rounded-lg border px-3 py-1.5 text-sm outline-none focus:border-primary"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex justify-end">
                             <button
                               type="button"
-                              onClick={() => saveTracking(order.id, trackInputs[order.id] || '')}
-                              className="rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-200"
+                              onClick={() => saveFulfillment(order.id, trackInputs[order.id] ?? order.tracking_number ?? '', providerInputs[order.id] ?? order.shipping_provider ?? '')}
+                              className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 transition"
                             >
-                              Guardar
+                              Guardar Datos y Notificar
                             </button>
                           </div>
+                        </div>
+                      )}
+
+                      {order.tracking_number && order.customer_phone && (
+                        <div className="mt-3 bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                          <div>
+                            <p className="text-emerald-800 font-bold">📲 Notificar despacho vía WhatsApp</p>
+                            <p className="text-emerald-600 mt-0.5 font-normal">Envía los datos de seguimiento y el link de rastreo directo al cliente.</p>
+                          </div>
+                          <a
+                            href={`https://wa.me/${order.customer_phone.replace(/\+/g, '').replace(/\s/g, '')}?text=${encodeURIComponent(
+                              `¡Hola ${order.customer_name}! Te escribo de la tienda para informarte que tu pedido #${order.id.slice(0, 8)} ya fue enviado a través de ${order.shipping_provider || 'Courier'}. Su número de seguimiento es *${order.tracking_number}*.${
+                                (order.shipping_provider || '').toLowerCase().includes('starken')
+                                  ? ` Puedes rastrearlo aquí: https://www.starken.cl/seguimiento?codigo=${order.tracking_number}`
+                                  : (order.shipping_provider || '').toLowerCase().includes('chilexpress')
+                                  ? ` Puedes rastrearlo aquí: https://www.chilexpress.cl/envios/seguimiento-envios?ot=${order.tracking_number}`
+                                  : ''
+                              }`
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white hover:bg-emerald-700 transition"
+                          >
+                            Enviar Notificación
+                          </a>
                         </div>
                       )}
                     </div>

@@ -86,6 +86,10 @@ class UpdateOrderStatusDto {
   @IsString()
   @IsOptional()
   tracking?: string;
+
+  @IsString()
+  @IsOptional()
+  shipping_provider?: string;
 }
 
 @Controller('orders')

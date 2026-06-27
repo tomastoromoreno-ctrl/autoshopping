@@ -329,12 +329,13 @@ export class OrdersService {
 
   async updateStatus(
     id: string,
-    dto: { status?: string; payment_status?: string; tracking?: string },
+    dto: { status?: string; payment_status?: string; tracking?: string; shipping_provider?: string },
   ) {
     const updateData: Record<string, any> = {};
     if (dto.status) updateData.status = dto.status;
     if (dto.payment_status) updateData.payment_status = dto.payment_status;
-    if (dto.tracking) updateData.tracking_number = dto.tracking;
+    if (dto.tracking !== undefined) updateData.tracking_number = dto.tracking;
+    if (dto.shipping_provider !== undefined) updateData.shipping_provider = dto.shipping_provider;
 
     const { data: previousOrder } = await this.supabase
       .from('orders')
