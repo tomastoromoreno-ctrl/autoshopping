@@ -302,11 +302,11 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
     if (step === 1) return customerName.trim().length > 0 && customerEmail.trim().length > 0;
     if (step === 2) {
       if (!storeConfig?.shipping_enabled) return true;
-      const basicValid = shippingAddress.trim().length > 0 && shippingCity.trim().length > 0 && selectedQuote !== null;
+      const cityStateValid = shippingCity.trim().length > 0 && shippingState.trim().length > 0 && selectedQuote !== null;
       if (shippingType === 'branch') {
-        return basicValid && shippingBranch.trim().length > 0;
+        return cityStateValid && shippingBranch.trim().length > 0;
       }
-      return basicValid;
+      return cityStateValid && shippingAddress.trim().length > 0;
     }
     if (step === 3) return selectedPayment.length > 0;
     return true;
@@ -490,12 +490,12 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                       </div>
                     </div>
 
-                    <div>
-                      <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1.5">
-                        {shippingType === 'branch' ? 'Dirección de Referencia *' : 'Dirección *'}
-                      </label>
-                      <input id="address" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required aria-label="Dirección" className="input-modern" placeholder="Calle, número, depto" />
-                    </div>
+                    {shippingType !== 'branch' && (
+                      <div>
+                        <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1.5">Dirección *</label>
+                        <input id="address" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required aria-label="Dirección" className="input-modern" placeholder="Calle, número, depto" />
+                      </div>
+                    )}
                     <div className="grid gap-4 sm:grid-cols-3">
                       <div>
                         <label htmlFor="state" className="block text-sm font-medium text-slate-700 mb-1.5">Región *</label>
@@ -744,9 +744,15 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
 
                     {storeConfig?.shipping_enabled && (
                       <div className="rounded-xl bg-slate-50 p-4">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Dirección de envío</h3>
-                        <p className="text-sm font-medium text-slate-900">{shippingAddress}</p>
-                        <p className="text-sm text-slate-600">{shippingCity}{shippingState ? `, ${shippingState}` : ''}{shippingZip ? ` - ${shippingZip}` : ''}</p>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                          {shippingType === 'branch' ? 'Sucursal de Retiro' : 'Dirección de envío'}
+                        </h3>
+                        <p className="text-sm font-medium text-slate-900">
+                          {shippingType === 'branch' ? shippingBranch : shippingAddress}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          {shippingCity}{shippingState ? `, ${shippingState}` : ''}
+                        </p>
                       </div>
                     )}
 
