@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { SUPABASE_CLIENT } from '../../common/supabase.module';
 
 interface OrderEmailData {
   orderId: string;
@@ -46,7 +48,10 @@ export class EmailService {
   private readonly fromEmail: string;
   private readonly logger = new Logger(EmailService.name);
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+  ) {
     this.resend = new Resend(this.config.get<string>('RESEND_API_KEY'));
     this.fromEmail = this.config.get<string>('EMAIL_FROM') || 'AutoShopping <noreply@autoshopping.cl>';
   }
@@ -63,13 +68,16 @@ export class EmailService {
 
       if (result.error) {
         this.logger.error(`Failed to send order confirmation: ${result.error.message}`);
+        await this.logEmail(data.customerEmail, `Pedido #${data.orderId.slice(0, 8)} confirmado - ${data.storeName}`, 'order_confirmation', 'failed', { error: result.error.message });
         return { sent: false, error: result.error.message };
       }
 
       this.logger.log(`Order confirmation sent to ${data.customerEmail} (id: ${result.data?.id})`);
+      await this.logEmail(data.customerEmail, `Pedido #${data.orderId.slice(0, 8)} confirmado - ${data.storeName}`, 'order_confirmation', 'sent', { id: result.data?.id });
       return { sent: true, id: result.data?.id };
     } catch (error) {
       this.logger.error(`Order confirmation error: ${error.message}`);
+      await this.logEmail(data.customerEmail, `Pedido #${data.orderId.slice(0, 8)} confirmado - ${data.storeName}`, 'order_confirmation', 'failed', { error: error.message });
       return { sent: false, error: error.message };
     }
   }
@@ -86,13 +94,16 @@ export class EmailService {
 
       if (result.error) {
         this.logger.error(`Failed to send shipping notification: ${result.error.message}`);
+        await this.logEmail(data.customerEmail, `Tu pedido #${data.orderId.slice(0, 8)} fue enviado - ${data.storeName}`, 'order_shipped', 'failed', { error: result.error.message });
         return { sent: false, error: result.error.message };
       }
 
       this.logger.log(`Shipping notification sent to ${data.customerEmail} (id: ${result.data?.id})`);
+      await this.logEmail(data.customerEmail, `Tu pedido #${data.orderId.slice(0, 8)} fue enviado - ${data.storeName}`, 'order_shipped', 'sent', { id: result.data?.id });
       return { sent: true, id: result.data?.id };
     } catch (error) {
       this.logger.error(`Shipping notification error: ${error.message}`);
+      await this.logEmail(data.customerEmail, `Tu pedido #${data.orderId.slice(0, 8)} fue enviado - ${data.storeName}`, 'order_shipped', 'failed', { error: error.message });
       return { sent: false, error: error.message };
     }
   }
@@ -258,13 +269,30 @@ export class EmailService {
 
       if (result.error) {
         this.logger.error(`Failed to send merchant order notification: ${result.error.message}`);
+        await this.logEmail(data.merchantEmail, `[Nueva Venta] Pedido #${data.orderId.slice(0, 8)} - ${data.customerName}`, 'merchant_notification', 'failed', { error: result.error.message });
         return { sent: false, error: result.error.message };
       }
 
+      await this.logEmail(data.merchantEmail, `[Nueva Venta] Pedido #${data.orderId.slice(0, 8)} - ${data.customerName}`, 'merchant_notification', 'sent', { id: result.data?.id });
       return { sent: true, id: result.data?.id };
     } catch (error) {
       this.logger.error(`Merchant order notification error: ${error.message}`);
+      await this.logEmail(data.merchantEmail, `[Nueva Venta] Pedido #${data.orderId.slice(0, 8)} - ${data.customerName}`, 'merchant_notification', 'failed', { error: error.message });
       return { sent: false, error: error.message };
+    }
+  }
+
+  private async logEmail(to: string, subject: string, type: string, status: string, metadata?: any) {
+    try {
+      await this.supabase.from('email_logs').insert({
+        to_email: to,
+        subject,
+        type,
+        status,
+        metadata: metadata || null,
+      });
+    } catch (err) {
+      this.logger.error(`Failed to log email: ${err.message}`);
     }
   }
 

@@ -442,10 +442,13 @@ export class OrdersService {
       .eq('id', tenantId)
       .single();
 
-    if (!tenant) return;
+    if (!tenant) {
+      this.logger.error(`Tenant ${tenantId} not found for order confirmation email`);
+      return;
+    }
 
     // Send confirmation to customer
-    await this.emailService.sendOrderConfirmation({
+    const customerResult = await this.emailService.sendOrderConfirmation({
       orderId: order.id,
       customerName: order.customer_name,
       customerEmail: order.customer_email,
@@ -461,6 +464,9 @@ export class OrdersService {
       storeName: tenant.name,
       storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
     });
+    if (!customerResult.sent) {
+      this.logger.error(`Customer confirmation email failed for order ${order.id}: ${customerResult.error}`);
+    }
 
     // Send notification to store owners (merchants)
     try {
@@ -479,7 +485,7 @@ export class OrdersService {
 
         for (const owner of owners) {
           if (owner.email) {
-            await this.emailService.sendMerchantNewOrderNotification({
+            const merchantResult = await this.emailService.sendMerchantNewOrderNotification({
               orderId: order.id,
               customerName: order.customer_name,
               customerEmail: order.customer_email,
@@ -494,6 +500,9 @@ export class OrdersService {
               shippingType: order.shipping_type,
               shippingBranch: order.shipping_branch,
             });
+            if (!merchantResult.sent) {
+              this.logger.error(`Merchant notification email failed for order ${order.id}: ${merchantResult.error}`);
+            }
           }
         }
       }
@@ -509,9 +518,12 @@ export class OrdersService {
       .eq('id', tenantId)
       .single();
 
-    if (!tenant) return;
+    if (!tenant) {
+      this.logger.error(`Tenant ${tenantId} not found for order confirmation email`);
+      return;
+    }
 
-    await this.emailService.sendOrderShipped({
+    const shippedResult = await this.emailService.sendOrderShipped({
       orderId: order.id,
       customerName: order.customer_name,
       customerEmail: order.customer_email,
@@ -519,5 +531,8 @@ export class OrdersService {
       storeName: tenant.name,
       storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
     });
+    if (!shippedResult.sent) {
+      this.logger.error(`Shipping notification email failed for order ${order.id}: ${shippedResult.error}`);
+    }
   }
 }
