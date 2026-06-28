@@ -211,6 +211,9 @@ export default function SuperAdminDashboard() {
         // Put God Mode token in place
         localStorage.setItem('access_token', res.token);
         
+        // Clear cached permissions to force recalculation under God Mode
+        sessionStorage.removeItem('user_permissions');
+        
         // Redirect to client dashboard
         router.push('/dashboard');
       }

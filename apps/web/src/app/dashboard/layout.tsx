@@ -133,6 +133,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       localStorage.setItem('refresh_token', saRefresh);
     }
 
+    // Clear cached permissions to force recalculation back to SuperAdmin
+    sessionStorage.removeItem('user_permissions');
+
     router.push('/superadmin');
   };
 
