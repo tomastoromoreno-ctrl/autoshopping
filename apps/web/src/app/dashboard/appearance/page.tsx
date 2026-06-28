@@ -42,7 +42,104 @@ const premiumTemplates = [
   { id: 'sunset', name: 'Sunset Glow', desc: 'Degradados radiales cálidos emulando el atardecer.', icon: '🌅', color: 'bg-pink-50 text-pink-600' },
 ];
 
+const templatePreviewConfig: Record<string, {
+  bg: string; headerBg: string; headerBorder: string; brandColor: string;
+  navColor: string; cardBg: string; cardBorder: string; cardRadius: string;
+  btnBg: string; btnColor: string; btnRadius: string; btnShadow: string;
+  textColor: string; fontFamily: string; bodyBg?: string;
+}> = {
+  classic: { bg: '#ffffff', headerBg: 'rgba(255,255,255,0.9)', headerBorder: '#e2e8f0', brandColor: '#2563eb', navColor: '#475569', cardBg: '#ffffff', cardBorder: '#e2e8f0', cardRadius: '12px', btnBg: '#3b82f6', btnColor: '#ffffff', btnRadius: '9999px', btnShadow: 'none', textColor: '#1e293b', fontFamily: 'Inter' },
+  minimalist: { bg: '#f8fafc', headerBg: 'rgba(248,250,252,0.95)', headerBorder: '#e2e8f0', brandColor: '#0f172a', navColor: '#334155', cardBg: '#ffffff', cardBorder: '#f1f5f9', cardRadius: '6px', btnBg: '#0f172a', btnColor: '#ffffff', btnRadius: '6px', btnShadow: 'none', textColor: '#334155', fontFamily: 'Outfit' },
+  streetwear: { bg: '#ffffff', headerBg: '#ffffff', headerBorder: '#000000', brandColor: '#000000', navColor: '#000000', cardBg: '#ffffff', cardBorder: '#000000', cardRadius: '0px', btnBg: '#facc15', btnColor: '#000000', btnRadius: '0px', btnShadow: '4px 4px 0px #000000', textColor: '#000000', fontFamily: 'Montserrat' },
+  luxury: { bg: '#fcfaf7', headerBg: 'rgba(252,250,247,0.95)', headerBorder: '#e5d8c5', brandColor: '#b59410', navColor: '#1a0f00', cardBg: '#ffffff', cardBorder: '#e5d8c5', cardRadius: '0px', btnBg: '#1e3a1e', btnColor: '#fcfaf7', btnRadius: '0px', btnShadow: 'none', textColor: '#1a0f00', fontFamily: "'Playfair Display', serif" },
+  cyberpunk: { bg: '#0b0416', headerBg: 'rgba(11,4,22,0.85)', headerBorder: '#2d1f4d', brandColor: '#00f3ff', navColor: '#e2d9f3', cardBg: 'rgba(18,10,36,0.7)', cardBorder: '#2d1f4d', cardRadius: '4px', btnBg: '#ff007f', btnColor: '#ffffff', btnRadius: '4px', btnShadow: '0 0 12px rgba(255,0,127,0.5)', textColor: '#e2d9f3', fontFamily: "'Orbitron', sans-serif", bodyBg: 'radial-gradient(circle at 50% 50%, #160a2c 0%, #0b0416 100%)' },
+  playful: { bg: '#fffaf0', headerBg: 'rgba(255,250,240,0.95)', headerBorder: '#fed7aa', brandColor: '#ff6b6b', navColor: '#4a2c2c', cardBg: '#ffffff', cardBorder: '#fed7aa', cardRadius: '24px', btnBg: '#ff6b6b', btnColor: '#ffffff', btnRadius: '9999px', btnShadow: 'none', textColor: '#4a2c2c', fontFamily: 'Poppins' },
+  retro: { bg: '#f4ede4', headerBg: 'rgba(244,237,228,0.95)', headerBorder: '#2e251b', brandColor: '#a0522d', navColor: '#2e251b', cardBg: '#fcfbf9', cardBorder: '#2e251b', cardRadius: '2px', btnBg: '#a0522d', btnColor: '#f4ede4', btnRadius: '2px', btnShadow: 'none', textColor: '#2e251b', fontFamily: 'monospace', bodyBg: 'radial-gradient(#d3c6b6 1px, transparent 1px)' },
+  tech: { bg: '#0c0c0d', headerBg: '#0c0c0d', headerBorder: '#1f2937', brandColor: '#3b82f6', navColor: '#d1d5db', cardBg: '#121214', cardBorder: '#1f2937', cardRadius: '0px', btnBg: '#3b82f6', btnColor: '#ffffff', btnRadius: '0px', btnShadow: 'none', textColor: '#d1d5db', fontFamily: "'Fira Code', monospace" },
+  organic: { bg: '#f5f4ee', headerBg: 'rgba(245,244,238,0.95)', headerBorder: '#d8d6cb', brandColor: '#2d4b3c', navColor: '#2c3531', cardBg: '#ffffff', cardBorder: '#d8d6cb', cardRadius: '16px', btnBg: '#2d4b3c', btnColor: '#f5f4ee', btnRadius: '12px', btnShadow: 'none', textColor: '#2c3531', fontFamily: 'Outfit' },
+  sunset: { bg: '#200b2c', headerBg: 'rgba(32,11,44,0.8)', headerBorder: '#4c1d95', brandColor: '#f97316', navColor: '#fdf4ff', cardBg: 'rgba(32,11,44,0.6)', cardBorder: '#4c1d95', cardRadius: '12px', btnBg: 'linear-gradient(to right, #f97316, #db2777)', btnColor: '#ffffff', btnRadius: '8px', btnShadow: 'none', textColor: '#fdf4ff', fontFamily: 'Poppins', bodyBg: 'linear-gradient(to bottom, #200b2c, #4c1d95)' },
+};
+
+function TemplatePreview({ templateId, isHovered }: { templateId: string; isHovered: boolean }) {
+  const cfg = templatePreviewConfig[templateId] || templatePreviewConfig.classic;
+  const scale = isHovered ? 1.05 : 1;
+
+  return (
+    <div
+      className="w-full rounded-lg overflow-hidden border border-slate-200 transition-transform duration-200"
+      style={{
+        height: 140,
+        transform: `scale(${scale})`,
+        fontFamily: cfg.fontFamily,
+        color: cfg.textColor,
+        background: cfg.bodyBg || cfg.bg,
+      }}
+    >
+      {/* Mini Header */}
+      <div
+        className="flex items-center gap-1.5 px-2 py-1.5"
+        style={{ background: cfg.headerBg, borderBottom: `1px solid ${cfg.headerBorder}` }}
+      >
+        <div className="w-3 h-3 rounded-sm" style={{ background: cfg.brandColor }} />
+        <span className="text-[7px] font-bold" style={{ color: cfg.brandColor }}>Tienda</span>
+        <div className="flex-1" />
+        <span className="text-[6px]" style={{ color: cfg.navColor }}>Inicio</span>
+        <span className="text-[6px]" style={{ color: cfg.navColor }}>Productos</span>
+      </div>
+
+      {/* Content area */}
+      <div className="p-2 flex gap-1.5">
+        {/* Product cards */}
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex-1 overflow-hidden"
+            style={{
+              background: cfg.cardBg,
+              border: `1px solid ${cfg.cardBorder}`,
+              borderRadius: cfg.cardRadius,
+              opacity: isHovered ? 1 : 0.85,
+            }}
+          >
+            {/* Image placeholder */}
+            <div
+              className="w-full"
+              style={{
+                height: 36,
+                background: templateId === 'cyberpunk' ? '#160a2c' : templateId === 'tech' ? '#1a1a1e' : templateId === 'sunset' ? '#1a0a20' : '#f1f5f9',
+              }}
+            />
+            {/* Text lines */}
+            <div className="p-1.5">
+              <div className="h-1.5 rounded-sm mb-1" style={{ background: cfg.textColor, opacity: 0.2, width: '80%' }} />
+              <div className="h-1 rounded-sm mb-1.5" style={{ background: cfg.textColor, opacity: 0.1, width: '60%' }} />
+              {/* Mini button */}
+              <div
+                className="h-3 w-full"
+                style={{
+                  background: cfg.btnBg,
+                  color: cfg.btnColor,
+                  borderRadius: cfg.btnRadius,
+                  boxShadow: cfg.btnShadow,
+                  fontSize: 5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                }}
+              >
+                <span style={{ color: cfg.btnColor }}>$9.990</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AppearancePage() {
+  const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: '',
     slogan: '',
@@ -222,18 +319,23 @@ export default function AppearancePage() {
                 key={tpl.id}
                 type="button"
                 onClick={() => setForm((prev) => ({ ...prev, template_id: tpl.id }))}
-                className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all hover:shadow-md ${
+                onMouseEnter={() => setHoveredTemplate(tpl.id)}
+                onMouseLeave={() => setHoveredTemplate(null)}
+                className={`rounded-xl border-2 p-3 text-left transition-all hover:shadow-md ${
                   form.template_id === tpl.id
                     ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/10'
                     : 'border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <div className={`p-3 rounded-xl ${tpl.color} text-2xl flex-shrink-0`}>
-                  {tpl.icon}
-                </div>
-                <div>
-                  <span className="text-sm font-bold text-slate-800 block mb-1">{tpl.name}</span>
-                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+                <TemplatePreview templateId={tpl.id} isHovered={hoveredTemplate === tpl.id || form.template_id === tpl.id} />
+                <div className="flex items-start gap-3 mt-3">
+                  <div className={`p-2 rounded-lg ${tpl.color} text-lg flex-shrink-0`}>
+                    {tpl.icon}
+                  </div>
+                  <div>
+                    <span className="text-sm font-bold text-slate-800 block mb-0.5">{tpl.name}</span>
+                    <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+                  </div>
                 </div>
               </button>
             ))}
