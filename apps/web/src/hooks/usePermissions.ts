@@ -37,8 +37,20 @@ export function usePermissions() {
         sessionStorage.setItem('user_permissions', JSON.stringify(res));
       })
       .catch(() => {
-        // If permissions fail (no tenant, etc.), set empty
-        setData({ role: 'customer', permissions: [] });
+        // If permissions API fails, extract role from JWT as fallback
+        try {
+          const token = localStorage.getItem('access_token');
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const role = payload.user_metadata?.role || payload.role || 'store_owner';
+            // store_owner gets all permissions; others get empty
+            setData({ role, permissions: role === 'store_owner' ? ['*'] : [] });
+          } else {
+            setData({ role: 'customer', permissions: [] });
+          }
+        } catch {
+          setData({ role: 'customer', permissions: [] });
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -48,6 +60,8 @@ export function usePermissions() {
       if (!data) return false;
       // store_owner has all permissions
       if (data.role === 'store_owner') return true;
+      // wildcard permission
+      if (data.permissions.includes('*')) return true;
       return data.permissions.includes(permission);
     },
     [data],
@@ -57,6 +71,7 @@ export function usePermissions() {
     (...perms: string[]): boolean => {
       if (!data) return false;
       if (data.role === 'store_owner') return true;
+      if (data.permissions.includes('*')) return true;
       return perms.some((p) => data.permissions.includes(p));
     },
     [data],
