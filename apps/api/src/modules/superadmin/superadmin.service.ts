@@ -857,4 +857,62 @@ export class SuperAdminService {
       lastCheck: new Date(),
     };
   }
+
+  // MODULE 12 — FRAUD & ANOMALY DETECTOR
+  async getFraudAlerts() {
+    const alerts: any[] = [];
+
+    // Query 1: Products priced at 0 or negative
+    const { data: freeProducts, error: prodError } = await this.supabase
+      .from('products')
+      .select('id, name, price, tenant_id, tenants(name)')
+      .lte('price', 0);
+
+    if (!prodError && freeProducts) {
+      freeProducts.forEach((p: any) => {
+        alerts.push({
+          id: `prod-zero-${p.id}`,
+          type: 'danger',
+          category: 'PRECIO_ANORMAL',
+          message: `El producto "${p.name}" tiene un precio de $${p.price} en la tienda "${p.tenants?.name || 'Desconocida'}".`,
+          timestamp: new Date(),
+        });
+      });
+    }
+
+    // Query 2: Multiple orders from the same email in the last hour
+    const oneHourAgo = new Date(Date.now() - 3600 * 1000).toISOString();
+    const { data: activeOrders, error: orderError } = await this.supabase
+      .from('orders')
+      .select('id, customer_email, customer_name, total, created_at, tenant_id, tenants(name)')
+      .gte('created_at', oneHourAgo);
+
+    if (!orderError && activeOrders) {
+      // Group orders by email
+      const emailGroups: Record<string, any[]> = {};
+      activeOrders.forEach(o => {
+        if (o.customer_email) {
+          if (!emailGroups[o.customer_email]) emailGroups[o.customer_email] = [];
+          emailGroups[o.customer_email].push(o);
+        }
+      });
+
+      // Flag emails with >= 3 orders in 1 hour
+      Object.keys(emailGroups).forEach(email => {
+        const orders = emailGroups[email];
+        if (orders.length >= 3) {
+          const storeNames = Array.from(new Set(orders.map(o => o.tenants?.name).filter(Boolean))).join(', ');
+          alerts.push({
+            id: `email-velocity-${email}`,
+            type: 'warning',
+            category: 'VELOCIDAD_ORDENES',
+            message: `El cliente con correo "${email}" ha realizado ${orders.length} pedidos en la(s) tienda(s) "${storeNames}" en la última hora.`,
+            timestamp: new Date(Math.max(...orders.map(o => new Date(o.created_at).getTime()))),
+          });
+        }
+      });
+    }
+
+    return alerts;
+  }
 }

@@ -139,6 +139,10 @@ class UpdateAppearanceDto {
   @IsString()
   @IsOptional()
   color_preset?: string;
+
+  @IsString()
+  @IsOptional()
+  template_id?: string;
 }
 
 @Controller('stores')

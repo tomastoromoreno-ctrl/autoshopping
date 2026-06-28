@@ -157,14 +157,146 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
     );
   }
 
-  const storeBg = store.bg_color || '#ffffff';
-  const storeBtn = store.btn_color || store.primary_color || '#2563eb';
-  const storeBtnText = store.btn_text_color || '#ffffff';
-  const storeFont = store.font_family || 'Inter';
-  const storeTextColor = store.text_color || '#0f172a';
+  // Premium Themes Overrides
+  let finalBg = store.bg_color || '#ffffff';
+  let finalBtn = store.btn_color || store.primary_color || '#2563eb';
+  let finalBtnText = store.btn_text_color || '#ffffff';
+  let finalFont = store.font_family || 'Inter';
+  let finalTextColor = store.text_color || '#0f172a';
+  let additionalStyles = '';
 
-  const fontImport = storeFont !== 'Inter'
-    ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(storeFont)}:wght@400;500;600;700;900&display=swap');`
+  const templateId = (store as any).template_id || 'classic';
+
+  if (templateId === 'minimalist') {
+    finalBg = '#f8fafc';
+    finalBtn = '#0f172a';
+    finalBtnText = '#ffffff';
+    finalFont = 'Outfit';
+    finalTextColor = '#334155';
+    additionalStyles = `
+      .store-btn { border-radius: 6px !important; }
+      .store-btn-outline { border-radius: 6px !important; }
+      .store-input { border-radius: 6px !important; }
+    `;
+  } else if (templateId === 'streetwear') {
+    finalBg = '#ffffff';
+    finalBtn = '#facc15'; // bright yellow
+    finalBtnText = '#000000';
+    finalFont = 'Montserrat';
+    finalTextColor = '#000000';
+    additionalStyles = `
+      .store-btn { border: 3px solid #000000 !important; border-radius: 0px !important; box-shadow: 4px 4px 0px #000000 !important; font-weight: 900 !important; text-transform: uppercase !important; }
+      .store-btn:hover { background-color: #ffffff !important; color: #000000 !important; }
+      .store-btn-outline { border: 3px solid #000000 !important; border-radius: 0px !important; box-shadow: 4px 4px 0px #000000 !important; font-weight: 900 !important; }
+      .store-btn-outline:hover { background-color: #facc15 !important; color: #000000 !important; }
+      .store-bg-card { border: 3px solid #000000 !important; border-radius: 0px !important; box-shadow: 4px 4px 0px #000000 !important; }
+      .store-input { border: 3px solid #000000 !important; border-radius: 0px !important; }
+      .store-chip-active { border: 3px solid #000000 !important; border-radius: 0px !important; box-shadow: 2px 2px 0px #000000 !important; }
+      .store-chip-inactive { border: 3px solid #000000 !important; border-radius: 0px !important; }
+    `;
+  } else if (templateId === 'luxury') {
+    finalBg = '#fcfaf7';
+    finalBtn = '#1e3a1e'; // deep forest green
+    finalBtnText = '#fcfaf7';
+    finalFont = 'Playfair Display';
+    finalTextColor = '#1a0f00';
+    additionalStyles = `
+      body { letter-spacing: 0.05em !important; }
+      .store-brand { color: #b59410 !important; font-family: 'Playfair Display', serif !important; }
+      .store-btn { border-radius: 0px !important; letter-spacing: 0.1em !important; border: 1px solid #1e3a1e !important; text-transform: uppercase !important; font-size: 11px !important; }
+      .store-btn-outline { border-radius: 0px !important; border: 1px solid #1e3a1e !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; font-size: 11px !important; }
+      .store-bg-card { border-radius: 0px !important; border: 1px solid #e5d8c5 !important; }
+    `;
+  } else if (templateId === 'cyberpunk') {
+    finalBg = '#0b0416';
+    finalBtn = '#ff007f'; // neon pink
+    finalBtnText = '#ffffff';
+    finalFont = 'Outfit';
+    finalTextColor = '#e2d9f3';
+    additionalStyles = `
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+      body { font-family: 'Orbitron', sans-serif !important; background-image: radial-gradient(circle at 50% 50%, #160a2c 0%, #0b0416 100%) !important; }
+      .store-brand { color: #00f3ff !important; font-family: 'Orbitron', sans-serif !important; text-shadow: 0 0 10px rgba(0,243,255,0.4) !important; }
+      .store-btn { border-radius: 4px !important; text-transform: uppercase !important; font-weight: bold !important; box-shadow: 0 0 12px rgba(255,0,127,0.5) !important; border: 1px solid #ff007f !important; }
+      .store-btn:hover { background-color: #0b0416 !important; color: #ff007f !important; box-shadow: 0 0 16px rgba(255,0,127,0.8) !important; }
+      .store-btn-outline { border-radius: 4px !important; border: 1px solid #00f3ff !important; color: #00f3ff !important; box-shadow: 0 0 12px rgba(0,243,255,0.4) !important; }
+      .store-btn-outline:hover { background-color: #00f3ff !important; color: #0b0416 !important; }
+      .store-bg-card { border-radius: 4px !important; border: 1px solid #2d1f4d !important; background-color: rgba(18,10,36,0.7) !important; backdrop-filter: blur(10px) !important; }
+      .store-input { border: 1px solid #2d1f4d !important; background-color: #120a24 !important; color: #ffffff !important; }
+      .store-header { background-color: rgba(11,4,22,0.85) !important; border-color: #2d1f4d !important; backdrop-filter: blur(10px) !important; }
+    `;
+  } else if (templateId === 'playful') {
+    finalBg = '#fffaf0';
+    finalBtn = '#ff6b6b';
+    finalBtnText = '#ffffff';
+    finalFont = 'Poppins';
+    finalTextColor = '#4a2c2c';
+    additionalStyles = `
+      .store-btn { border-radius: 9999px !important; font-weight: 700 !important; }
+      .store-btn-outline { border-radius: 9999px !important; font-weight: 700 !important; }
+      .store-bg-card { border-radius: 24px !important; border-width: 2px !important; }
+      .store-input { border-radius: 9999px !important; }
+      .store-chip-active { border-radius: 9999px !important; }
+      .store-chip-inactive { border-radius: 9999px !important; }
+    `;
+  } else if (templateId === 'retro') {
+    finalBg = '#f4ede4';
+    finalBtn = '#a0522d';
+    finalBtnText = '#f4ede4';
+    finalFont = 'Montserrat';
+    finalTextColor = '#2e251b';
+    additionalStyles = `
+      body { background-image: radial-gradient(#d3c6b6 1px, transparent 1px) !important; background-size: 16px 16px !important; }
+      .store-btn { border-radius: 2px !important; font-family: monospace !important; border: 1px solid #2e251b !important; }
+      .store-btn-outline { border-radius: 2px !important; font-family: monospace !important; border: 1px solid #2e251b !important; }
+      .store-bg-card { border-radius: 2px !important; border: 1px solid #2e251b !important; background-color: #fcfbf9 !important; }
+      .store-input { border-radius: 2px !important; border: 1px solid #2e251b !important; }
+    `;
+  } else if (templateId === 'tech') {
+    finalBg = '#0c0c0d';
+    finalBtn = '#3b82f6';
+    finalBtnText = '#ffffff';
+    finalFont = 'Inter';
+    finalTextColor = '#d1d5db';
+    additionalStyles = `
+      @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap');
+      body { font-family: 'Fira Code', monospace !important; }
+      .store-btn { border-radius: 0px !important; font-family: 'Fira Code', monospace !important; border: 1px solid #3b82f6 !important; }
+      .store-btn-outline { border-radius: 0px !important; font-family: 'Fira Code', monospace !important; border: 1px solid #374151 !important; }
+      .store-bg-card { border-radius: 0px !important; border: 1px solid #1f2937 !important; background-color: #121214 !important; }
+      .store-input { border-radius: 0px !important; border: 1px solid #1f2937 !important; background-color: #09090b !important; }
+      .store-header { background-color: #0c0c0d !important; border-color: #1f2937 !important; }
+    `;
+  } else if (templateId === 'organic') {
+    finalBg = '#f5f4ee';
+    finalBtn = '#2d4b3c';
+    finalBtnText = '#f5f4ee';
+    finalFont = 'Outfit';
+    finalTextColor = '#2c3531';
+    additionalStyles = `
+      .store-btn { border-radius: 12px !important; }
+      .store-btn-outline { border-radius: 12px !important; }
+      .store-bg-card { border-radius: 16px !important; border-color: #d8d6cb !important; }
+      .store-input { border-radius: 12px !important; }
+    `;
+  } else if (templateId === 'sunset') {
+    finalBg = '#200b2c';
+    finalBtn = '#f97316';
+    finalBtnText = '#ffffff';
+    finalFont = 'Poppins';
+    finalTextColor = '#fdf4ff';
+    additionalStyles = `
+      body { background-image: linear-gradient(to bottom, #200b2c, #4c1d95) !important; background-attachment: fixed !important; }
+      .store-brand { background: linear-gradient(to right, #f97316, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .store-btn { border-radius: 8px !important; background-image: linear-gradient(to right, #f97316, #db2777) !important; border: none !important; }
+      .store-btn-outline { border-radius: 8px !important; border: 1px solid #ec4899 !important; color: #ec4899 !important; }
+      .store-bg-card { border-radius: 12px !important; border: 1px solid #4c1d95 !important; background-color: rgba(32,11,44,0.6) !important; backdrop-filter: blur(12px) !important; }
+      .store-header { background-color: rgba(32,11,44,0.8) !important; border-color: #4c1d95 !important; }
+    `;
+  }
+
+  const fontImport = finalFont !== 'Inter'
+    ? `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(finalFont)}:wght@400;500;600;700;900&display=swap');`
     : '';
 
   return (
@@ -177,75 +309,77 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
       <style dangerouslySetInnerHTML={{ __html: `
         ${fontImport}
         :root {
-          --store-btn: ${storeBtn};
-          --store-btn-text: ${storeBtnText};
-          --store-bg: ${storeBg};
-          --store-text: ${storeTextColor};
+          --store-btn: ${finalBtn};
+          --store-btn-text: ${finalBtnText};
+          --store-bg: ${finalBg};
+          --store-text: ${finalTextColor};
         }
         body {
-          background-color: ${storeBg} !important;
-          color: ${storeTextColor} !important;
-          font-family: '${storeFont}', 'Inter', sans-serif !important;
+          background-color: ${finalBg} !important;
+          color: ${finalTextColor} !important;
+          font-family: '${finalFont}', 'Inter', sans-serif !important;
         }
         .store-brand {
-          color: ${storeBtn} !important;
+          color: ${finalBtn} !important;
           font-family: 'Plus Jakarta Sans', sans-serif !important;
         }
-        .store-btn { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
+        .store-btn { background-color: ${finalBtn} !important; color: ${finalBtnText} !important; }
         .store-btn:hover { opacity: 0.9; }
-        .store-btn-outline { border-color: ${storeBtn} !important; color: ${storeBtn} !important; }
-        .store-btn-outline:hover { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
-        .store-text { color: ${storeTextColor} !important; }
-        .store-text-muted { color: ${storeTextColor} !important; opacity: 0.7; }
-        .store-text-subtle { color: ${storeTextColor} !important; opacity: 0.5; }
-        .store-bg { background-color: ${storeBg} !important; }
-        .store-bg-card { background-color: ${storeBg} !important; border-color: ${storeTextColor}1a !important; }
-        .store-link { color: ${storeBtn} !important; }
+        .store-btn-outline { border-color: ${finalBtn} !important; color: ${finalBtn} !important; }
+        .store-btn-outline:hover { background-color: ${finalBtn} !important; color: ${finalBtnText} !important; }
+        .store-text { color: ${finalTextColor} !important; }
+        .store-text-muted { color: ${finalTextColor} !important; opacity: 0.7; }
+        .store-text-subtle { color: ${finalTextColor} !important; opacity: 0.5; }
+        .store-bg { background-color: ${finalBg} !important; }
+        .store-bg-card { background-color: ${finalBg} !important; border-color: ${finalTextColor}1a !important; }
+        .store-link { color: ${finalBtn} !important; }
         .store-link:hover { opacity: 0.8; }
-        .store-chip-active { background-color: ${storeBtn} !important; color: ${storeBtnText} !important; }
-        .store-chip-inactive { border-color: ${storeTextColor}20 !important; color: ${storeTextColor} !important; }
-        .store-chip-inactive:hover { border-color: ${storeTextColor}40 !important; }
-        .store-input { border-color: ${storeTextColor}20 !important; }
-        .store-input:focus { border-color: ${storeBtn} !important; box-shadow: 0 0 0 2px ${storeBtn}20 !important; }
+        .store-chip-active { background-color: ${finalBtn} !important; color: ${finalBtnText} !important; }
+        .store-chip-inactive { border-color: ${finalTextColor}20 !important; color: ${finalTextColor} !important; }
+        .store-chip-inactive:hover { border-color: ${finalTextColor}40 !important; }
+        .store-input { border-color: ${finalTextColor}20 !important; }
+        .store-input:focus { border-color: ${finalBtn} !important; box-shadow: 0 0 0 2px ${finalBtn}20 !important; }
         
         .store-header {
-          background-color: color-mix(in srgb, ${storeBg} 80%, transparent) !important;
-          border-color: color-mix(in srgb, ${storeTextColor} 10%, transparent) !important;
-          color: ${storeTextColor} !important;
+          background-color: color-mix(in srgb, ${finalBg} 80%, transparent) !important;
+          border-color: color-mix(in srgb, ${finalTextColor} 10%, transparent) !important;
+          color: ${finalTextColor} !important;
         }
         .store-nav-link {
-          color: ${storeTextColor} !important;
+          color: ${finalTextColor} !important;
           opacity: 0.75;
           transition: all 0.2s ease-out;
         }
         .store-nav-link:hover {
           opacity: 1;
-          background-color: color-mix(in srgb, ${storeTextColor} 8%, transparent) !important;
-          color: ${storeTextColor} !important;
+          background-color: color-mix(in srgb, ${finalTextColor} 8%, transparent) !important;
+          color: ${finalTextColor} !important;
         }
         .store-dropdown {
-          background-color: ${storeBg} !important;
-          border-color: color-mix(in srgb, ${storeTextColor} 10%, transparent) !important;
-          color: ${storeTextColor} !important;
+          background-color: ${finalBg} !important;
+          border-color: color-mix(in srgb, ${finalTextColor} 10%, transparent) !important;
+          color: ${finalTextColor} !important;
         }
         .store-dropdown-link {
-          color: ${storeTextColor} !important;
+          color: ${finalTextColor} !important;
           opacity: 0.8;
           transition: all 0.15s ease;
         }
         .store-dropdown-link:hover {
           opacity: 1;
-          background-color: color-mix(in srgb, ${storeTextColor} 8%, transparent) !important;
-          color: ${storeTextColor} !important;
+          background-color: color-mix(in srgb, ${finalTextColor} 8%, transparent) !important;
+          color: ${finalTextColor} !important;
         }
-        .store-border-t { border-top: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
-        .store-border-b { border-bottom: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
-        .store-border-l { border-left: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
-        .store-border-r { border-right: 1px solid color-mix(in srgb, ${storeTextColor} 10%, transparent) !important; }
+        .store-border-t { border-top: 1px solid color-mix(in srgb, ${finalTextColor} 10%, transparent) !important; }
+        .store-border-b { border-bottom: 1px solid color-mix(in srgb, ${finalTextColor} 10%, transparent) !important; }
+        .store-border-l { border-left: 1px solid color-mix(in srgb, ${finalTextColor} 10%, transparent) !important; }
+        .store-border-r { border-right: 1px solid color-mix(in srgb, ${finalTextColor} 10%, transparent) !important; }
         .store-mobile-panel {
-          background-color: ${storeBg} !important;
-          color: ${storeTextColor} !important;
+          background-color: ${finalBg} !important;
+          color: ${finalTextColor} !important;
         }
+
+        ${additionalStyles}
       ` }} />
 
       {/* Header */}
@@ -399,7 +533,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 <Link
                   href={`/store/${params.subdomain}`}
                   className="text-lg font-bold transition-opacity duration-200 hover:opacity-80"
-                  style={{ color: storeBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ color: finalBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
                   {store.name}
                 </Link>
@@ -522,7 +656,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
               <Link
                 href={`/store/${params.subdomain}`}
                 className="text-base font-bold transition-opacity duration-200 hover:opacity-80"
-                style={{ color: storeBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{ color: finalBtn, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {store.name}
               </Link>

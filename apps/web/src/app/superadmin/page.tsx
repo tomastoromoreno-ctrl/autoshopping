@@ -83,6 +83,7 @@ export default function SuperAdminDashboard() {
     storageLimitMb: number;
   } | null>(null);
   const [loadingResources, setLoadingResources] = useState(false);
+  const [fraudAlerts, setFraudAlerts] = useState<any[]>([]);
   
   // Filters
   const [search, setSearch] = useState('');
@@ -167,6 +168,12 @@ export default function SuperAdminDashboard() {
       const tenantsRes = await api.get<{ data: TenantRow[]; total: number }>(`/superadmin/tenants?${params}`);
       setTenants(tenantsRes.data);
       setTotal(tenantsRes.total);
+
+      // Fetch fraud alerts
+      try {
+        const fraudRes = await api.get<any[]>('/superadmin/fraud-alerts');
+        setFraudAlerts(fraudRes);
+      } catch {}
     } catch (err: any) {
       console.error(err);
     } finally {
@@ -448,6 +455,37 @@ export default function SuperAdminDashboard() {
           <div className="absolute right-4 bottom-4 text-3xl opacity-10">🚫</div>
         </div>
       </div>
+
+      {/* 🛡️ Detector de Anomalías y Seguridad */}
+      {fraudAlerts.length > 0 && (
+        <div className="rounded-xl border border-rose-900/30 bg-rose-950/10 p-5 shadow-lg space-y-3">
+          <h3 className="text-base font-black text-rose-400 flex items-center gap-2">
+            🛡️ Alertas de Seguridad y Anomalías Detectadas
+          </h3>
+          <p className="text-xs text-rose-300/80">
+            El analizador del sistema ha detectado las siguientes alertas automáticas en el catálogo o flujo de transacciones:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+            {fraudAlerts.map((alert) => (
+              <div
+                key={alert.id}
+                className={`rounded-lg border p-3.5 text-xs flex items-start gap-2.5 ${
+                  alert.type === 'danger' ? 'bg-rose-950/40 border-rose-900/60 text-rose-200' :
+                  'bg-amber-950/40 border-amber-900/60 text-amber-200'
+                }`}
+              >
+                <span className="text-base">{alert.type === 'danger' ? '🚨' : '⚠️'}</span>
+                <div>
+                  <span className="font-extrabold uppercase block mb-1 text-[10px] tracking-wider opacity-85">
+                    {alert.category.replace('_', ' ')}
+                  </span>
+                  <p className="leading-relaxed">{alert.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg">

@@ -28,7 +28,18 @@ const fontOptions = [
   { value: 'Montserrat', label: 'Montserrat', sample: 'La mejor tienda online' },
   { value: 'Outfit', label: 'Outfit', sample: 'La mejor tienda online' },
   { value: 'Poppins', label: 'Poppins', sample: 'La mejor tienda online' },
-  { value: 'Playfair Display', label: 'Playfair Display', sample: 'La mejor tienda online' },
+];
+const premiumTemplates = [
+  { id: 'classic', name: 'Original Classic', desc: 'Diseño original limpio y dinámico con colores personalizables.', icon: '⚡', color: 'bg-blue-50 text-blue-600' },
+  { id: 'minimalist', name: 'Minimal & Clean', desc: 'Alto espacio en blanco, fuentes elegantes y bordes ultra suaves.', icon: '🌿', color: 'bg-emerald-50 text-emerald-600' },
+  { id: 'streetwear', name: 'Streetwear Bold', desc: 'Bordes gruesos negros, sombras duras tipo neo-brutalismo.', icon: '🕶️', color: 'bg-amber-50 text-amber-600' },
+  { id: 'luxury', name: 'Luxury Velvet', desc: 'Colores oscuros/beige, acentos dorados y tipografía serif.', icon: '💎', color: 'bg-purple-50 text-purple-600' },
+  { id: 'cyberpunk', name: 'Cyberpunk Neon', desc: 'Base oscura con neones vibrantes rosados/celestes y efecto de brillo.', icon: '👾', color: 'bg-rose-50 text-rose-600' },
+  { id: 'playful', name: 'Playful Pastel', desc: 'Bordes muy redondeados y colores pastel infantiles/divertidos.', icon: '🧸', color: 'bg-orange-50 text-orange-600' },
+  { id: 'retro', name: 'Retro Sepia', desc: 'Fondo de pergamino cálido y texto marrón café retro.', icon: '🛹', color: 'bg-yellow-50 text-yellow-600' },
+  { id: 'tech', name: 'Tech Grid', desc: 'Fondos grises mate estructurados con rejilla fina y fuente de código.', icon: '⚙️', color: 'bg-slate-100 text-slate-700' },
+  { id: 'organic', name: 'Organic Earth', desc: 'Colores naturales de lino y hojas verdes naturales.', icon: '🍃', color: 'bg-teal-50 text-teal-600' },
+  { id: 'sunset', name: 'Sunset Glow', desc: 'Degradados radiales cálidos emulando el atardecer.', icon: '🌅', color: 'bg-pink-50 text-pink-600' },
 ];
 
 export default function AppearancePage() {
@@ -51,6 +62,7 @@ export default function AppearancePage() {
     social_twitter: '',
     social_tiktok: '',
     color_preset: '',
+    template_id: 'classic',
   });
   const [loading, setLoading] = useState(false);
 
@@ -83,6 +95,7 @@ export default function AppearancePage() {
         social_twitter: res.social_twitter || '',
         social_tiktok: res.social_tiktok || '',
         color_preset: res.color_preset || '',
+        template_id: res.template_id || 'classic',
       });
       if (res.logo_url) {
         setOriginalLogo(res.logo_url);
@@ -194,6 +207,38 @@ export default function AppearancePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* 0. Premium Storefront Template */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+          <SectionHeader
+            icon={<Sparkles className="w-5 h-5" />}
+            title="Plantilla de la Tienda (Premium)"
+            desc="Selecciona el diseño y estilo estético para tu tienda pública."
+            color="bg-amber-50 text-amber-600"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {premiumTemplates.map((tpl) => (
+              <button
+                key={tpl.id}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, template_id: tpl.id }))}
+                className={`flex items-start gap-4 rounded-xl border-2 p-4 text-left transition-all hover:shadow-md ${
+                  form.template_id === tpl.id
+                    ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-50/10'
+                    : 'border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className={`p-3 rounded-xl ${tpl.color} text-2xl flex-shrink-0`}>
+                  {tpl.icon}
+                </div>
+                <div>
+                  <span className="text-sm font-bold text-slate-800 block mb-1">{tpl.name}</span>
+                  <p className="text-xs text-slate-500 leading-relaxed">{tpl.desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* 1. Color Presets */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">

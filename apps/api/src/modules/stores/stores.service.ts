@@ -85,6 +85,7 @@ export class StoresService {
     social_twitter?: string;
     social_tiktok?: string;
     color_preset?: string;
+    template_id?: string;
   }) {
     const { data, error } = await this.supabase
       .from('tenants')
@@ -108,6 +109,7 @@ export class StoresService {
         ...(dto.social_twitter !== undefined && { social_twitter: dto.social_twitter }),
         ...(dto.social_tiktok !== undefined && { social_tiktok: dto.social_tiktok }),
         ...(dto.color_preset !== undefined && { color_preset: dto.color_preset }),
+        ...(dto.template_id !== undefined && { template_id: dto.template_id }),
       })
       .eq('id', tenantId)
       .select()
@@ -123,7 +125,7 @@ export class StoresService {
 
     let query = this.supabase
       .from('tenants')
-      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color, text_color, header_style, footer_style, card_style, social_instagram, social_facebook, social_whatsapp, social_twitter, social_tiktok, color_preset');
+      .select('id, name, subdomain, logo_url, favicon_url, primary_color, status, slogan, font_family, bg_color, btn_color, btn_text_color, text_color, header_style, footer_style, card_style, social_instagram, social_facebook, social_whatsapp, social_twitter, social_tiktok, color_preset, template_id');
 
     if (isUuid) {
       query = query.eq('id', idOrSubdomain);

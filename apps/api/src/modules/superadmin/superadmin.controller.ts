@@ -233,4 +233,11 @@ export class SuperAdminController {
   getTenantHealth(@Param('id') id: string) {
     return this.superadminService.getTenantHealth(id);
   }
+
+  // MODULE 12 — FRAUD & ANOMALY DETECTOR
+  @Get('fraud-alerts')
+  getFraudAlerts(@Req() req: any) {
+    this.enforceSuperAdmin(req.user);
+    return this.superadminService.getFraudAlerts();
+  }
 }
