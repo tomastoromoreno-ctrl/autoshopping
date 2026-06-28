@@ -331,7 +331,7 @@ export default function UsersPage() {
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-slate-900">Invitar miembro al equipo</h2>
-              <button onClick={() => setShowInviteModal(false)} className="rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+              <button onClick={() => setShowInviteModal(false)} title="Cerrar modal" className="rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -368,6 +368,8 @@ export default function UsersPage() {
                       <p className="text-xs text-green-600 mb-1">Link de invitación (válido por 7 días):</p>
                       <div className="flex gap-2">
                         <input type="text" readOnly value={inviteResult.link}
+                          title="Enlace de invitación"
+                          placeholder="Enlace de invitación"
                           className="flex-1 rounded border bg-white px-2 py-1.5 text-xs font-mono text-slate-700 select-all" />
                         <button type="button" onClick={() => handleCopyLink(inviteResult.link!)}
                           className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700 whitespace-nowrap">

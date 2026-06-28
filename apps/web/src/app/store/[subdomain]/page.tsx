@@ -232,8 +232,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
     if (showError) {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center store-bg px-4">
-          <div className="flex h-20 w-20 items-center justify-center rounded-3xl mb-6" style={{ backgroundColor: 'color-mix(in srgb, var(--store-text) 8%, transparent)' }}>
-            <Package className="h-10 w-10 opacity-60" style={{ color: 'var(--store-text)' }} />
+          <div className="flex h-20 w-20 items-center justify-center rounded-3xl mb-6 bg-[color-mix(in_srgb,var(--store-text)_8%,transparent)]">
+            <Package className="h-10 w-10 opacity-60 text-[var(--store-text)]" />
           </div>
           <h1 className="text-4xl font-heading font-bold store-text">Tienda no disponible</h1>
           <p className="mt-2 text-lg store-text-muted">No se pudo cargar la tienda</p>
@@ -595,8 +595,8 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         <div className="mx-auto max-w-7xl">
           {products.length === 0 ? (
             <div className="py-20 text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--store-text) 8%, transparent)' }}>
-                <Search className="h-10 w-10 opacity-60" style={{ color: 'var(--store-text)' }} />
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-[color-mix(in_srgb,var(--store-text)_8%,transparent)]">
+                <Search className="h-10 w-10 opacity-60 text-[var(--store-text)]" />
               </div>
               <h3 className="text-xl font-heading font-bold store-text">No se encontraron productos</h3>
               <p className="mt-2 text-sm store-text-muted max-w-sm mx-auto">

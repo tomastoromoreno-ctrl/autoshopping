@@ -217,6 +217,7 @@ export default function InvoicingPage() {
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" checked={config.sii_invoicing_enabled}
+                title="Habilitar Facturación Electrónica SII"
                 onChange={async (e) => {
                   const val = e.target.checked;
                   setConfig({ ...config, sii_invoicing_enabled: val });
@@ -261,10 +262,11 @@ export default function InvoicingPage() {
                   )}
                 </span>
               </div>
-
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Seleccionar Archivo</label>
                 <input type="file" accept=".p12,.pfx"
+                  title="Subir archivo del certificado digital"
+                  placeholder="Ningún archivo seleccionado"
                   onChange={(e) => setCertFile(e.target.files?.[0] || null)}
                   className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
               </div>
@@ -292,6 +294,8 @@ export default function InvoicingPage() {
             <div className="space-y-4">
               <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-blue-400 transition cursor-pointer relative">
                 <input type="file" accept=".xml" onChange={handleUploadCaf} disabled={uploadingCaf}
+                  title="Subir archivo XML CAF del SII"
+                  placeholder="Ningún archivo seleccionado"
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                 <FileCode size={24} className="mx-auto text-slate-400 mb-1" />
                 <span className="text-xs font-medium text-slate-600 block">

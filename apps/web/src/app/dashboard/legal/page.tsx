@@ -104,6 +104,8 @@ export default function LegalPage() {
           value={editing.content}
           onChange={(e) => setEditing({ ...editing, content: e.target.value })}
           rows={30}
+          title="Contenido del documento legal"
+          placeholder="Escribe el contenido aquí..."
           className="mt-4 w-full rounded-xl border bg-white p-5 text-sm text-slate-800 font-mono leading-relaxed outline-none focus:border-blue-600 shadow-sm"
         />
 
@@ -115,7 +117,7 @@ export default function LegalPage() {
               if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold text-slate-900 mb-3">{line.slice(2)}</h1>;
               if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold text-slate-800 mt-4 mb-2">{line.slice(3)}</h2>;
               if (line.startsWith('### ')) return <h3 key={i} className="text-base font-semibold text-slate-700 mt-3 mb-1">{line.slice(4)}</h3>;
-              if (line.startsWith('- ')) return <li key={i} className="ml-4 text-slate-600">{line.slice(2)}</li>;
+              if (line.startsWith('- ')) return <ul key={i} className="list-disc pl-4"><li className="text-slate-600">{line.slice(2)}</li></ul>;
               if (line.startsWith('**') && line.endsWith('**')) return <p key={i} className="font-semibold text-slate-700">{line.slice(2, -2)}</p>;
               if (line.trim() === '') return <br key={i} />;
               return <p key={i} className="text-slate-600 mb-1">{line}</p>;
@@ -171,6 +173,7 @@ export default function LegalPage() {
                         type="checkbox"
                         checked={doc.document.is_active}
                         onChange={(e) => handleToggle(doc.document!.id, e.target.checked)}
+                        title={`Activar o desactivar ${doc.title}`}
                         className="sr-only peer"
                       />
                       <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:bg-green-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />

@@ -269,6 +269,7 @@ export default function InternationalPage() {
                 <select
                   value={newLangCode}
                   onChange={(e) => setNewLangCode(e.target.value)}
+                  title="Seleccionar idioma a activar"
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
                 >
                   {SUPPORTED_LANGUAGES.map((l) => (
@@ -328,6 +329,7 @@ export default function InternationalPage() {
                       {!lang.is_default && (
                         <button
                           onClick={() => handleDeactivateLanguage(lang.language_code)}
+                          title="Desactivar idioma"
                           className="text-red-500 hover:text-red-700 p-1"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -362,6 +364,7 @@ export default function InternationalPage() {
                 <select
                   value={newCurrCode}
                   onChange={(e) => setNewCurrCode(e.target.value)}
+                  title="Seleccionar moneda a activar"
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
                 >
                   {SUPPORTED_CURRENCIES.map((c) => (
@@ -378,6 +381,8 @@ export default function InternationalPage() {
                   required
                   value={newCurrRate}
                   onChange={(e) => setNewCurrRate(parseFloat(e.target.value))}
+                  title="Tasa de cambio"
+                  placeholder="Ej: 0.00125"
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
                 />
               </div>
@@ -387,6 +392,7 @@ export default function InternationalPage() {
                 <select
                   value={newCurrMode}
                   onChange={(e) => setNewCurrMode(e.target.value as 'auto' | 'manual')}
+                  title="Modo de tasa de cambio"
                   className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-white"
                 >
                   <option value="auto">Auto (API automática)</option>
@@ -453,6 +459,7 @@ export default function InternationalPage() {
                       {!curr.is_default && (
                         <button
                           onClick={() => handleDeactivateCurrency(curr.currency_code)}
+                          title="Desactivar moneda"
                           className="text-red-500 hover:text-red-700 p-1"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -523,6 +530,7 @@ export default function InternationalPage() {
               <select
                 value={transLang}
                 onChange={(e) => setTransLang(e.target.value)}
+                title="Idioma de traducción"
                 className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs outline-none bg-white font-bold text-slate-700"
               >
                 {languages.filter(l => !l.is_default).map((l) => (
@@ -540,6 +548,8 @@ export default function InternationalPage() {
                     required
                     value={transName}
                     onChange={(e) => setTransName(e.target.value)}
+                    title="Nombre traducido del producto"
+                    placeholder="Nombre traducido"
                     className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                   />
                 </div>
@@ -550,6 +560,8 @@ export default function InternationalPage() {
                     rows={4}
                     value={transDesc}
                     onChange={(e) => setTransDesc(e.target.value)}
+                    title="Descripción traducida del producto"
+                    placeholder="Descripción traducida"
                     className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-blue-500"
                   />
                 </div>

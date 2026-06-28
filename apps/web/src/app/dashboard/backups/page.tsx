@@ -178,6 +178,8 @@ export default function BackupsPage() {
                   <label className="block text-sm font-medium text-slate-700 mb-1">Retención (días)</label>
                   <input type="number" min="7" max="365" value={config.retention_days}
                     onChange={(e) => setConfig({ ...config, retention_days: Number(e.target.value) })}
+                    title="Días de retención de respaldos"
+                    placeholder="Ej: 30"
                     className="w-full sm:w-48 rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-600" />
                 </div>
                 <label className="flex items-center gap-3">

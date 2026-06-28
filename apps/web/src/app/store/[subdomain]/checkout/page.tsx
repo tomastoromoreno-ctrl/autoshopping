@@ -615,7 +615,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                                 <a 
                                   href="https://www.starken.cl/sucursales" 
                                   target="_blank" 
-                                  rel="noreferrer" 
+                                  rel="noopener noreferrer" 
                                   className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
                                 >
                                   Ver sucursales Starken oficiales más cercanas
@@ -628,7 +628,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                                 <a 
                                   href="https://www.chilexpress.cl/sucursales-oficinas" 
                                   target="_blank" 
-                                  rel="noreferrer" 
+                                  rel="noopener noreferrer" 
                                   className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
                                 >
                                   Ver oficinas Chilexpress oficiales más cercanas
@@ -641,7 +641,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                                 <a 
                                   href="https://www.blue.cl/lockers-puntos/encuentra-tu-punto" 
                                   target="_blank" 
-                                  rel="noreferrer" 
+                                  rel="noopener noreferrer" 
                                   className="ml-1 text-blue-600 font-semibold underline hover:text-blue-800 transition-colors"
                                 >
                                   Ver puntos de retiro Blue Express oficiales

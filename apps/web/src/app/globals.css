@@ -124,13 +124,9 @@
   }
   .scrollbar-hide {
     -ms-overflow-style: none;
-    scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  }
-  .text-balance {
-    text-wrap: balance;
   }
   /* Gradient text */
   .text-gradient {

@@ -348,12 +348,15 @@ export default function AppearancePage() {
               <div className="relative w-40 h-40 rounded-2xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center shadow-inner">
                 {imageSrc ? (
                   <div className="w-full h-full relative">
+                    <style>{`
+                      #logo-preview-image {
+                        transform: scale(${zoom}) translate(${offsetX}px, ${offsetY}px);
+                      }
+                    `}</style>
                     <img
+                      id="logo-preview-image"
                       src={imageSrc}
                       alt="Logo preview"
-                      style={{
-                        transform: `scale(${zoom}) translate(${offsetX}px, ${offsetY}px)`,
-                      }}
                       className="absolute inset-0 transition-transform duration-75 w-full h-full object-contain origin-center"
                     />
                     <div className="absolute inset-0 border-2 border-blue-500/30 pointer-events-none rounded-2xl" />

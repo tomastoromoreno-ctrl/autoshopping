@@ -35,6 +35,7 @@ export default function StoreSelector({ languages, currencies }: StoreSelectorPr
           <select
             value={currentLang}
             onChange={(e) => updateParams('lang', e.target.value)}
+            title="Seleccionar idioma"
             className="bg-transparent text-xs font-semibold text-slate-600 outline-none cursor-pointer pr-1"
           >
             {languages.map((lang) => (
@@ -53,6 +54,7 @@ export default function StoreSelector({ languages, currencies }: StoreSelectorPr
           <select
             value={currentCurr}
             onChange={(e) => updateParams('currency', e.target.value)}
+            title="Seleccionar moneda"
             className="bg-transparent text-xs font-semibold text-slate-600 outline-none cursor-pointer pr-1"
           >
             {currencies.map((curr) => (

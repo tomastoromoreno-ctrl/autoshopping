@@ -286,7 +286,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 <div className="relative group">
                   <button className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out inline-flex items-center gap-1 store-nav-link">
                     Categorías
-                    <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'var(--store-text)', opacity: 0.6 }}>
+                    <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180 text-[var(--store-text)] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -343,7 +343,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                   <div className="relative group">
                     <button className="rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ease-out inline-flex items-center gap-1 store-nav-link">
                       Categorías
-                      <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: 'var(--store-text)', opacity: 0.6 }}>
+                      <svg className="h-4 w-4 transition-transform duration-200 group-hover:rotate-180 text-[var(--store-text)] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
