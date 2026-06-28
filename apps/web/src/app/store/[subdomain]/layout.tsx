@@ -382,7 +382,7 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
         ${additionalStyles}
       ` }} />
 
-      {/* Header */}
+      {/* Store Header */}
       {store.header_style === 'centered' ? (
         <header className="sticky top-0 z-40 w-full border-b store-border-b store-header backdrop-blur-xl">
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-center px-4">
