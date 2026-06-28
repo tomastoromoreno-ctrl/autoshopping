@@ -117,6 +117,7 @@ export default function AuditLogsPage() {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
+            title="Acción de auditoría"
             className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
           >
             <option value="">Todas las acciones</option>
@@ -138,6 +139,7 @@ export default function AuditLogsPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
+            title="Fecha de inicio"
             className="mt-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
           />
         </div>
@@ -148,6 +150,7 @@ export default function AuditLogsPage() {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
+            title="Fecha de fin"
             className="mt-2 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
           />
         </div>

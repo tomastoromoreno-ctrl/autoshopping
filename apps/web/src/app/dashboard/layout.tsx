@@ -164,7 +164,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex h-16 items-center border-b px-6">
             <Link href="/dashboard" className="text-lg font-bold text-blue-600">AutoShopping</Link>
           </div>
-          <nav className="mt-4 space-y-1 px-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 8rem)' }}>
+          <nav className="mt-4 space-y-1 px-3 overflow-y-auto max-h-[calc(100vh-8rem)]">
             {!isSuspended ? (
               visibleNavItems.map((item) => {
                 const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));

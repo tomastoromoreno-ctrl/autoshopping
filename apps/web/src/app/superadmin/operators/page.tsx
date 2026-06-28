@@ -115,6 +115,7 @@ export default function OperatorsPage() {
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as any)}
+                  title="Rol asignado del operador"
                   className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
                 >
                   <option value="support_agent">Agente de Soporte (Lectura + God Mode)</option>

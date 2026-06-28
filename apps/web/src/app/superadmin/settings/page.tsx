@@ -40,6 +40,8 @@ export default function BusinessRulesPage() {
                 max={15}
                 value={gracePeriod}
                 onChange={(e) => setGracePeriod(Number(e.target.value))}
+                title="Días de período de gracia"
+                placeholder="Días"
                 className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500 max-w-[150px]"
               />
             </div>

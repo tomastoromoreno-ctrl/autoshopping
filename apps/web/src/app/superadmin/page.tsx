@@ -492,6 +492,7 @@ export default function SuperAdminDashboard() {
               <select
                 value={godReason}
                 onChange={(e) => setGodReason(e.target.value)}
+                title="Motivo de acceso en Modo Dios"
                 className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
               >
                 <option value="Technical Support">Soporte Técnico</option>
@@ -625,6 +626,8 @@ export default function SuperAdminDashboard() {
                             readOnly
                             value={tempLink}
                             onClick={(e) => (e.target as any).select()}
+                            title="Enlace de acceso temporal"
+                            placeholder="Enlace de acceso temporal"
                             className="w-full font-mono bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-amber-400 select-all"
                           />
                         </div>
@@ -768,6 +771,7 @@ export default function SuperAdminDashboard() {
                         <select
                           value={subPlan}
                           onChange={(e) => setSubPlan(e.target.value)}
+                          title="Nombre del plan"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         >
                           <option value="trial">Trial</option>
@@ -783,6 +787,8 @@ export default function SuperAdminDashboard() {
                           type="number"
                           value={subPrice}
                           onChange={(e) => setSubPrice(Number(e.target.value))}
+                          title="Precio del plan"
+                          placeholder="Precio del plan"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         />
                       </div>
@@ -794,6 +800,7 @@ export default function SuperAdminDashboard() {
                         <select
                           value={subStatus}
                           onChange={(e) => setSubStatus(e.target.value)}
+                          title="Estado de suscripción"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         >
                           <option value="trial">En prueba (Trial)</option>
@@ -807,6 +814,7 @@ export default function SuperAdminDashboard() {
                         <select
                           value={subCycle}
                           onChange={(e) => setSubCycle(e.target.value)}
+                          title="Ciclo de facturación"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         >
                           <option value="monthly">Mensual</option>
@@ -822,6 +830,8 @@ export default function SuperAdminDashboard() {
                           type="date"
                           value={subNextBilling}
                           onChange={(e) => setNextBilling(e.target.value)}
+                          title="Fecha de próximo cobro"
+                          placeholder="Próximo cobro"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         />
                       </div>
@@ -831,6 +841,8 @@ export default function SuperAdminDashboard() {
                           type="date"
                           value={subGracePeriod}
                           onChange={(e) => setSubGracePeriod(e.target.value)}
+                          title="Fin del período de gracia"
+                          placeholder="Fin del período de gracia"
                           className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                         />
                       </div>
@@ -881,6 +893,8 @@ export default function SuperAdminDashboard() {
                         type="number"
                         value={manualPayAmount}
                         onChange={(e) => setManualPayAmount(Number(e.target.value))}
+                        title="Monto del pago manual"
+                        placeholder="Monto del pago manual"
                         className="mt-2 w-full rounded-lg bg-slate-900 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
                       />
                     </div>
