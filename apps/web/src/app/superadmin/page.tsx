@@ -59,6 +59,31 @@ export default function SuperAdminDashboard() {
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   
+  // Health & Pings
+  const [healthMap, setHealthMap] = useState<Record<string, { status: string; latency: number }>>({});
+
+  // Notices state in modal
+  const [tenantNotices, setTenantNotices] = useState<any[]>([]);
+  const [newNoticeText, setNewNoticeText] = useState('');
+  const [newNoticeType, setNewNoticeType] = useState<'info' | 'warning' | 'critical'>('warning');
+
+  // Features state in modal
+  const [tenantFeatures, setTenantFeatures] = useState<Record<string, boolean>>({
+    sii_invoicing: false,
+    blueexpress: false,
+    chilexpress: false,
+    starken: false,
+  });
+
+  // Resources state in modal
+  const [tenantResources, setTenantResources] = useState<{
+    productCount: number;
+    productLimit: number;
+    estimatedStorageMb: number;
+    storageLimitMb: number;
+  } | null>(null);
+  const [loadingResources, setLoadingResources] = useState(false);
+  
   // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -74,7 +99,7 @@ export default function SuperAdminDashboard() {
   const [godReason, setGodReason] = useState('Technical Support');
 
   // Access Management state
-  const [accessSubTab, setAccessSubTab] = useState<'status' | 'password' | 'logout' | 'reset'>('status');
+  const [accessSubTab, setAccessSubTab] = useState<'status' | 'password' | 'logout' | 'reset' | 'notices' | 'features' | 'resources'>('status');
   const [suspendReason, setSuspendReason] = useState('');
   const [suspendMessage, setSuspendMessage] = useState('');
   const [tempLink, setTempLink] = useState('');
@@ -111,6 +136,19 @@ export default function SuperAdminDashboard() {
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, statusFilter, planFilter]);
+
+  useEffect(() => {
+    if (tenants.length > 0) {
+      tenants.forEach(async (t) => {
+        try {
+          const res = await api.get<any>(`/superadmin/tenants/${t.id}/health`);
+          setHealthMap(prev => ({ ...prev, [t.id]: res }));
+        } catch {
+          setHealthMap(prev => ({ ...prev, [t.id]: { status: 'offline', latency: 0 } }));
+        }
+      });
+    }
+  }, [tenants]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -183,12 +221,75 @@ export default function SuperAdminDashboard() {
     setResetConfirmText('');
     setAccessSubTab('status');
     setActiveModal('access');
+    setNewNoticeText('');
+    setNewNoticeType('warning');
     
     // Load notes
     try {
       const notesRes = await api.get<any[]>(`/superadmin/tenants/${tenant.id}/notes`);
       setNotes(notesRes);
     } catch {}
+
+    // Load active notices
+    try {
+      const noticesRes = await api.get<any[]>(`/superadmin/tenants/${tenant.id}/notices`);
+      setTenantNotices(noticesRes);
+    } catch {}
+
+    // Load feature flags
+    const rawFeatures = (tenant as any).features || {};
+    setTenantFeatures({
+      sii_invoicing: !!rawFeatures.sii_invoicing,
+      blueexpress: !!rawFeatures.blueexpress,
+      chilexpress: !!rawFeatures.chilexpress,
+      starken: !!rawFeatures.starken,
+    });
+
+    // Load resource limits
+    setLoadingResources(true);
+    try {
+      const resData = await api.get<any>(`/superadmin/tenants/${tenant.id}/resources`);
+      setTenantResources(resData);
+    } catch {
+      setTenantResources(null);
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+
+  const handleSaveFeatures = async () => {
+    if (!selectedTenant) return;
+    try {
+      await api.patch(`/superadmin/tenants/${selectedTenant.id}/features`, { features: tenantFeatures });
+      alert('Características actualizadas con éxito.');
+      setTenants(tenants.map(t => t.id === selectedTenant.id ? { ...t, features: tenantFeatures } as any : t));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleCreateNotice = async () => {
+    if (!selectedTenant || !newNoticeText.trim()) return;
+    try {
+      const res = await api.post<any>(`/superadmin/tenants/${selectedTenant.id}/notices`, {
+        message: newNoticeText,
+        type: newNoticeType,
+      });
+      setTenantNotices([res, ...tenantNotices]);
+      setNewNoticeText('');
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteNotice = async (noticeId: string) => {
+    if (!selectedTenant) return;
+    try {
+      await api.delete(`/superadmin/tenants/${selectedTenant.id}/notices/${noticeId}`);
+      setTenantNotices(tenantNotices.map(n => n.id === noticeId ? { ...n, is_active: false } : n));
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   const handleSaveNote = async () => {
@@ -433,7 +534,22 @@ export default function SuperAdminDashboard() {
             ) : (
               tenants.map((row) => (
                 <tr key={row.id} className="border-b border-slate-800/60 last:border-b-0 hover:bg-slate-800/35 transition-colors">
-                  <td className="px-6 py-4 font-bold text-slate-100">{row.name}</td>
+                  <td className="px-6 py-4 font-bold text-slate-100 flex items-center">
+                    {row.name}
+                    {healthMap[row.id] ? (
+                      <span
+                        title={`Salud: ${healthMap[row.id].status.toUpperCase()} (Latencia: ${healthMap[row.id].latency}ms)`}
+                        className={`inline-block w-2.5 h-2.5 rounded-full ml-2 ${
+                          healthMap[row.id].status === 'healthy' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                          healthMap[row.id].status === 'warning' ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' :
+                          healthMap[row.id].status === 'degraded' ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]' :
+                          'bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.5)]'
+                        }`}
+                      />
+                    ) : (
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-slate-700 ml-2 animate-pulse" />
+                    )}
+                  </td>
                   <td className="px-6 py-4 font-mono text-xs text-amber-500/80">{row.subdomain}</td>
                   <td className="px-6 py-4 text-xs">{row.owner_email}</td>
                   <td className="px-6 py-4">
@@ -528,7 +644,12 @@ export default function SuperAdminDashboard() {
                     <span className="text-slate-200">{count} ({pct.toFixed(0)}%)</span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
-                    <div className={`h-full rounded-full ${statusColors[status] || 'bg-slate-500'} transition-all`} style={{ width: `${pct}%` }} />
+                    <style>{`
+                      #status-progress-${status} {
+                        width: ${pct}%;
+                      }
+                    `}</style>
+                    <div id={`status-progress-${status}`} className={`h-full rounded-full ${statusColors[status] || 'bg-slate-500'} transition-all`} />
                   </div>
                 </div>
               );
@@ -651,6 +772,9 @@ export default function SuperAdminDashboard() {
               {/* Left sidebar inside modal */}
               <div className="w-48 border-r border-slate-800 bg-slate-900/30 p-4 space-y-1">
                 <button onClick={() => setAccessSubTab('status')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'status' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Estado de Tienda</button>
+                <button onClick={() => setAccessSubTab('notices')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'notices' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Avisos de Cobro</button>
+                <button onClick={() => setAccessSubTab('features')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'features' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Características (Beta)</button>
+                <button onClick={() => setAccessSubTab('resources')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'resources' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Monitoreo Recursos</button>
                 <button onClick={() => setAccessSubTab('password')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'password' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Restablecer Clave</button>
                 <button onClick={() => setAccessSubTab('logout')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'logout' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Cierre de Sesión</button>
                 <button onClick={() => setAccessSubTab('reset')} className={`w-full text-left rounded-lg px-3 py-2 text-xs font-bold transition-all ${accessSubTab === 'reset' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:bg-slate-800'}`}>Reiniciar a Cero</button>
@@ -807,6 +931,231 @@ export default function SuperAdminDashboard() {
                       <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-400">
                         🚫 Solo los usuarios con rol <strong>Super Admin</strong> están facultados para reiniciar tiendas a cero.
                       </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SUBTAB: NOTICES */}
+                {accessSubTab === 'notices' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-100">Avisos en Pantalla y Comunicados</h3>
+                    <p className="text-xs text-slate-400">Envía alertas personalizadas de cobranza o comunicados al panel de control de la tienda.</p>
+
+                    {/* Form to create notice */}
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide">Mensaje del Aviso</label>
+                        <input
+                          type="text"
+                          value={newNoticeText}
+                          onChange={(e) => setNewNoticeText(e.target.value)}
+                          placeholder="Ej: Tu suscripción está atrasada. Paga antes del viernes para evitar cortes."
+                          className="mt-2 w-full rounded-lg bg-slate-900 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wide">Gravedad / Tipo de Aviso</label>
+                        <select
+                          value={newNoticeType}
+                          onChange={(e) => setNewNoticeType(e.target.value as any)}
+                          title="Tipo de aviso"
+                          className="mt-2 w-full rounded-lg bg-slate-900 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"
+                        >
+                          <option value="info">Información (Azul, Cerrable)</option>
+                          <option value="warning">Advertencia (Amarillo, Cerrable)</option>
+                          <option value="critical">Crítico / Cobro (Rojo, No-Cerrable)</option>
+                        </select>
+                      </div>
+                      <button
+                        onClick={handleCreateNotice}
+                        disabled={!newNoticeText.trim()}
+                        className="rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold px-6 py-2 text-xs transition-all"
+                      >
+                        Enviar Aviso a Pantalla
+                      </button>
+                    </div>
+
+                    {/* Active notices list */}
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Avisos Registrados</h4>
+                      <div className="space-y-2">
+                        {tenantNotices.map((n) => (
+                          <div key={n.id} className="p-3 rounded-lg border border-slate-800 bg-slate-950/40 flex items-center justify-between">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase border ${
+                                  n.type === 'critical' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                                  n.type === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                  'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                }`}>
+                                  {n.type}
+                                </span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                                  n.is_active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                  'bg-slate-800 text-slate-500 border-slate-700'
+                                }`}>
+                                  {n.is_active ? 'ACTIVO' : 'DESACTIVADO'}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-200">{n.message}</p>
+                              <span className="text-[10px] text-slate-500">{new Date(n.created_at).toLocaleString()}</span>
+                            </div>
+                            {n.is_active && (
+                              <button
+                                onClick={() => handleDeleteNotice(n.id)}
+                                className="text-rose-500 hover:text-rose-400 font-bold text-xs p-1"
+                              >
+                                Desactivar
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {tenantNotices.length === 0 && (
+                          <p className="text-xs text-slate-500 italic">No hay avisos registrados para esta tienda.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB: FEATURES (Beta) */}
+                {accessSubTab === 'features' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-100">Características Especiales y Módulos</h3>
+                    <p className="text-xs text-slate-400">Activa o desactiva características adicionales tipo Beta o premium para este cliente.</p>
+
+                    <div className="p-5 rounded-xl border border-slate-800 bg-slate-950 space-y-4">
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition">
+                          <input
+                            type="checkbox"
+                            checked={tenantFeatures.sii_invoicing}
+                            onChange={(e) => setTenantFeatures({ ...tenantFeatures, sii_invoicing: e.target.checked })}
+                            title="Habilitar SII"
+                            className="rounded border-slate-800 bg-slate-900 text-amber-500 focus:ring-0 w-4 h-4"
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-slate-200 block">Facturación SII Chilena</span>
+                            <span className="text-[10px] text-slate-500">Permite emitir boletas y facturas oficiales validadas ante el SII.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition">
+                          <input
+                            type="checkbox"
+                            checked={tenantFeatures.blueexpress}
+                            onChange={(e) => setTenantFeatures({ ...tenantFeatures, blueexpress: e.target.checked })}
+                            title="Habilitar BlueExpress"
+                            className="rounded border-slate-800 bg-slate-900 text-amber-500 focus:ring-0 w-4 h-4"
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-slate-200 block">Integración BlueExpress</span>
+                            <span className="text-[10px] text-slate-500">Muestra tarifas y envíos mediante el hub de BlueExpress.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition">
+                          <input
+                            type="checkbox"
+                            checked={tenantFeatures.chilexpress}
+                            onChange={(e) => setTenantFeatures({ ...tenantFeatures, chilexpress: e.target.checked })}
+                            title="Habilitar Chilexpress"
+                            className="rounded border-slate-800 bg-slate-900 text-amber-500 focus:ring-0 w-4 h-4"
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-slate-200 block">Integración Chilexpress</span>
+                            <span className="text-[10px] text-slate-500">Habilita despachos oficiales de Chilexpress.</span>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition">
+                          <input
+                            type="checkbox"
+                            checked={tenantFeatures.starken}
+                            onChange={(e) => setTenantFeatures({ ...tenantFeatures, starken: e.target.checked })}
+                            title="Habilitar Starken"
+                            className="rounded border-slate-800 bg-slate-900 text-amber-500 focus:ring-0 w-4 h-4"
+                          />
+                          <div>
+                            <span className="text-sm font-semibold text-slate-200 block">Integración Starken</span>
+                            <span className="text-[10px] text-slate-500">Habilita despachos y cotizaciones Starken.</span>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800">
+                        <button
+                          onClick={handleSaveFeatures}
+                          className="rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2 text-xs transition-all"
+                        >
+                          Guardar Características
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB: RESOURCES */}
+                {accessSubTab === 'resources' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-bold text-slate-100">Uso de Recursos y Cuotas</h3>
+                    <p className="text-xs text-slate-400">Verifica el consumo de almacenamiento y límites operativos asignados a la tienda.</p>
+
+                    {loadingResources ? (
+                      <div className="py-12 text-center text-slate-500 text-xs">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-amber-500 border-t-transparent mx-auto mb-2" />
+                        Cargando cuotas de recursos...
+                      </div>
+                    ) : tenantResources ? (
+                      <div className="space-y-6">
+                        {/* Quota limit for products */}
+                        <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+                          <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+                            <span>Límite de Catálogo (Productos)</span>
+                            <span>{tenantResources.productCount} / {tenantResources.productLimit}</span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-slate-900 overflow-hidden">
+                            <style>{`
+                              #resource-products-bar {
+                                width: ${Math.min(100, (tenantResources.productCount / tenantResources.productLimit) * 100)}%;
+                              }
+                            `}</style>
+                            <div
+                              id="resource-products-bar"
+                              className={`h-full rounded-full transition-all ${
+                                (tenantResources.productCount / tenantResources.productLimit) > 0.9 ? 'bg-rose-500' :
+                                (tenantResources.productCount / tenantResources.productLimit) > 0.7 ? 'bg-amber-500' : 'bg-emerald-500'
+                              }`}
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">Capacidad máxima permitida según plan estándar.</span>
+                        </div>
+
+                        {/* Quota limit for storage */}
+                        <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+                          <div className="flex justify-between items-center text-xs font-bold text-slate-300">
+                            <span>Almacenamiento Estimado (Imágenes)</span>
+                            <span>{tenantResources.estimatedStorageMb.toFixed(2)} MB / {tenantResources.storageLimitMb} MB</span>
+                          </div>
+                          <div className="h-2.5 w-full rounded-full bg-slate-900 overflow-hidden">
+                            <style>{`
+                              #resource-storage-bar {
+                                width: ${Math.min(100, (tenantResources.estimatedStorageMb / tenantResources.storageLimitMb) * 100)}%;
+                              }
+                            `}</style>
+                            <div
+                              id="resource-storage-bar"
+                              className={`h-full rounded-full transition-all ${
+                                (tenantResources.estimatedStorageMb / tenantResources.storageLimitMb) > 0.9 ? 'bg-rose-500' :
+                                (tenantResources.estimatedStorageMb / tenantResources.storageLimitMb) > 0.7 ? 'bg-amber-500' : 'bg-cyan-500'
+                              }`}
+                            />
+                          </div>
+                          <span className="text-[10px] text-slate-500 block">Tamaño acumulado calculado a partir de los archivos de catálogo subidos.</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500 italic">No se pudieron cargar los datos de cuota de recursos.</p>
                     )}
                   </div>
                 )}

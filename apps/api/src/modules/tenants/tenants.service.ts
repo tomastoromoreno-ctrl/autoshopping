@@ -103,4 +103,16 @@ export class TenantsService {
     if (error) throw new BadRequestException(error.message);
     return { available: !data };
   }
+
+  async getActiveNotices(tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('tenant_notices')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
 }

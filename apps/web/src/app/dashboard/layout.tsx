@@ -51,6 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [godStoreName, setGodStoreName] = useState('');
   const [isSuspended, setIsSuspended] = useState(false);
   const [suspensionReason, setSuspensionReason] = useState('');
+  const [notices, setNotices] = useState<any[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -91,6 +92,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           setIsSuspended(true);
           setSuspensionReason(res.subscription.suspension_reason || 'Incumplimiento en facturación');
         }
+      }).catch(() => {});
+
+      // Obtener avisos activos para el tenant
+      api.get<any[]>(`/tenants/${tenantId}/active-notices`).then((res) => {
+        if (Array.isArray(res)) setNotices(res);
       }).catch(() => {});
 
     } catch { router.push('/auth/login'); return; }
@@ -204,6 +210,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             )}
           </header>
+
+          {/* Active Notices Banners */}
+          {notices.length > 0 && (
+            <div className="flex flex-col gap-2 px-3 sm:px-6 mt-3">
+              {notices.map((notice) => (
+                <div
+                  key={notice.id}
+                  className={`rounded-xl border p-4 shadow-sm text-sm font-semibold flex items-center justify-between transition-all ${
+                    notice.type === 'critical' ? 'bg-rose-50 border-rose-200 text-rose-800' :
+                    notice.type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
+                    'bg-blue-50 border-blue-200 text-blue-800'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">
+                      {notice.type === 'critical' ? '🚨' : notice.type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <span>{notice.message}</span>
+                  </div>
+                  {notice.type !== 'critical' && (
+                    <button
+                      onClick={() => setNotices(notices.filter(n => n.id !== notice.id))}
+                      className="text-xs opacity-60 hover:opacity-100 font-bold animate-pulse"
+                    >
+                      Cerrar
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Body Content - Block if suspended and not on subscription settings */}
           <main className="flex-1 p-3 sm:p-4 md:p-6">

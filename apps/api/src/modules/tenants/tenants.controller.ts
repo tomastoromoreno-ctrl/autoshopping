@@ -76,4 +76,10 @@ export class TenantsController {
   verifySubdomain(@Body() dto: SubdomainDto) {
     return this.tenants.verifySubdomain(dto.subdomain);
   }
+
+  @Get(':id/active-notices')
+  @UseGuards(AuthGuard)
+  getActiveNotices(@Param('id') id: string) {
+    return this.tenants.getActiveNotices(id);
+  }
 }

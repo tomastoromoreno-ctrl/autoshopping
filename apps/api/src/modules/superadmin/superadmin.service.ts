@@ -714,4 +714,147 @@ export class SuperAdminService {
 
     return data;
   }
+
+  // MODULE 9 — NOTICES SYSTEM
+  async getTenantNotices(tenantId: string) {
+    const { data, error } = await this.supabase
+      .from('tenant_notices')
+      .select('*')
+      .eq('tenant_id', tenantId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  async createTenantNotice(operatorId: string, tenantId: string, message: string, type: 'info' | 'warning' | 'critical') {
+    const { data, error } = await this.supabase
+      .from('tenant_notices')
+      .insert({
+        tenant_id: tenantId,
+        message,
+        type,
+        is_active: true,
+        created_by: operatorId,
+      })
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+
+    await this.logAction(
+      operatorId,
+      tenantId,
+      'CREATE_NOTICE',
+      `Creado aviso (${type}): ${message}`
+    );
+
+    return data;
+  }
+
+  async deleteTenantNotice(operatorId: string, tenantId: string, noticeId: string) {
+    const { data, error } = await this.supabase
+      .from('tenant_notices')
+      .update({ is_active: false })
+      .eq('id', noticeId)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+
+    await this.logAction(
+      operatorId,
+      tenantId,
+      'DEACTIVATE_NOTICE',
+      `Desactivado aviso ID: ${noticeId}`
+    );
+
+    return data;
+  }
+
+  // MODULE 10 — FEATURE FLAGS
+  async updateTenantFeatures(operatorId: string, tenantId: string, features: any) {
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .update({ features })
+      .eq('id', tenantId)
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+
+    await this.logAction(
+      operatorId,
+      tenantId,
+      'UPDATE_FEATURES',
+      `Actualizadas características especiales: ${JSON.stringify(features)}`
+    );
+
+    return data;
+  }
+
+  // MODULE 11 — HEALTH & RESOURCES
+  async getTenantResources(tenantId: string) {
+    const { count: productCount, error: productError } = await this.supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('tenant_id', tenantId);
+
+    if (productError) throw new BadRequestException(productError.message);
+
+    // Mock storage calculation based on product images
+    const { data: imagesData } = await this.supabase
+      .from('products')
+      .select('images')
+      .eq('tenant_id', tenantId);
+
+    let imagesCount = 0;
+    if (imagesData) {
+      for (const row of imagesData) {
+        if (Array.isArray(row.images)) {
+          imagesCount += row.images.length;
+        }
+      }
+    }
+
+    // Estimate storage: 450 KB average size per image asset
+    const estimatedStorageMb = Math.round((imagesCount * 0.45) * 100) / 100;
+
+    return {
+      productCount: productCount || 0,
+      productLimit: 500, // standard limit
+      estimatedStorageMb,
+      storageLimitMb: 250, // standard limit
+    };
+  }
+
+  async getTenantHealth(tenantId: string) {
+    // Check if tenant exists and measure database latency
+    const startTime = Date.now();
+    const { data, error } = await this.supabase
+      .from('tenants')
+      .select('id, subdomain, status')
+      .eq('id', tenantId)
+      .single();
+    const latency = Date.now() - startTime;
+
+    if (error || !data) {
+      return { status: 'offline', latency: 0, lastCheck: new Date() };
+    }
+
+    // Determine health based on status and latency parameters
+    let status = 'healthy';
+    if (data.status === 'suspended') {
+      status = 'warning'; // Warning indicator if suspended
+    } else if (latency > 1500) {
+      status = 'degraded'; // Slow responses
+    }
+
+    return {
+      status,
+      latency,
+      lastCheck: new Date(),
+    };
+  }
 }

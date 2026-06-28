@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req, ForbiddenException, Headers
+  Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req, ForbiddenException, Headers
 } from '@nestjs/common';
 import { SuperAdminService } from './superadmin.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -186,5 +186,51 @@ export class SuperAdminController {
   ) {
     this.enforceSuperAdmin(req.user);
     return this.superadminService.toggleOperatorStatus(id, active);
+  }
+
+  // MODULE 9 — NOTICES SYSTEM
+  @Get('tenants/:id/notices')
+  getTenantNotices(@Param('id') id: string) {
+    return this.superadminService.getTenantNotices(id);
+  }
+
+  @Post('tenants/:id/notices')
+  createTenantNotice(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body('message') message: string,
+    @Body('type') type: 'info' | 'warning' | 'critical',
+  ) {
+    return this.superadminService.createTenantNotice(req.user.id, id, message, type);
+  }
+
+  @Delete('tenants/:id/notices/:noticeId')
+  deleteTenantNotice(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Param('noticeId') noticeId: string,
+  ) {
+    return this.superadminService.deleteTenantNotice(req.user.id, id, noticeId);
+  }
+
+  // MODULE 10 — FEATURE FLAGS
+  @Patch('tenants/:id/features')
+  updateTenantFeatures(
+    @Req() req: any,
+    @Param('id') id: string,
+    @Body('features') features: any,
+  ) {
+    return this.superadminService.updateTenantFeatures(req.user.id, id, features);
+  }
+
+  // MODULE 11 — HEALTH & RESOURCES
+  @Get('tenants/:id/resources')
+  getTenantResources(@Param('id') id: string) {
+    return this.superadminService.getTenantResources(id);
+  }
+
+  @Get('tenants/:id/health')
+  getTenantHealth(@Param('id') id: string) {
+    return this.superadminService.getTenantHealth(id);
   }
 }
