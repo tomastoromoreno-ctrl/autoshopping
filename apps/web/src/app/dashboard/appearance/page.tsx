@@ -30,7 +30,7 @@ const fontOptions = [
   { value: 'Poppins', label: 'Poppins', sample: 'La mejor tienda online' },
 ];
 const premiumTemplates = [
-  { id: 'classic', name: 'Original Classic', desc: 'Diseño original limpio y dinámico con colores personalizables.', icon: '⚡', color: 'bg-blue-50 text-blue-600' },
+  { id: 'classic', name: 'Personalizar (Clásico)', desc: 'Diseño limpio con total control sobre colores, fuentes y estilo.', icon: '🎨', color: 'bg-slate-100 text-slate-700' },
   { id: 'minimalist', name: 'Minimal & Clean', desc: 'Alto espacio en blanco, fuentes elegantes y bordes ultra suaves.', icon: '🌿', color: 'bg-emerald-50 text-emerald-600' },
   { id: 'streetwear', name: 'Streetwear Bold', desc: 'Bordes gruesos negros, sombras duras tipo neo-brutalismo.', icon: '🕶️', color: 'bg-amber-50 text-amber-600' },
   { id: 'luxury', name: 'Luxury Velvet', desc: 'Colores oscuros/beige, acentos dorados y tipografía serif.', icon: '💎', color: 'bg-purple-50 text-purple-600' },
@@ -161,6 +161,7 @@ export default function AppearancePage() {
     color_preset: '',
     template_id: 'classic',
   });
+  const isUsingPremiumTemplate = form.template_id !== 'classic';
   const [loading, setLoading] = useState(false);
 
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -309,8 +310,8 @@ export default function AppearancePage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <SectionHeader
             icon={<Sparkles className="w-5 h-5" />}
-            title="Plantilla de la Tienda (Premium)"
-            desc="Selecciona el diseño y estilo estético para tu tienda pública."
+            title="Plantilla de la Tienda"
+            desc="Elige entre un template predefinido o personaliza colores y fuentes manualmente."
             color="bg-amber-50 text-amber-600"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -342,7 +343,21 @@ export default function AppearancePage() {
           </div>
         </div>
 
-        {/* 1. Color Presets */}
+        {/* Info banner when using a premium template */}
+        {isUsingPremiumTemplate && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:p-5 flex items-start gap-3">
+            <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-amber-800">Template activo: colores y fuentes controlados automáticamente</p>
+              <p className="text-xs text-amber-600 mt-1">
+                Este template define los colores, fuentes y estilos de tu tienda. Para personalizar manualmente, selecciona <strong>"Personalizar (Clásico)"</strong> arriba.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 1. Color Presets — only for Classic */}
+        {!isUsingPremiumTemplate && (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <SectionHeader
             icon={<Palette className="w-5 h-5" />}
@@ -375,8 +390,10 @@ export default function AppearancePage() {
             ))}
           </div>
         </div>
+        )}
 
-        {/* 2. Font Preview */}
+        {/* 2. Font Preview — only for Classic */}
+        {!isUsingPremiumTemplate && (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <SectionHeader
             icon={<Type className="w-5 h-5" />}
@@ -404,6 +421,7 @@ export default function AppearancePage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* 3. Logo Upload */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
@@ -582,7 +600,8 @@ export default function AppearancePage() {
           </div>
         </div>
 
-        {/* 5. Color Pickers (manual override) */}
+        {/* 5. Color Pickers (manual override) — only for Classic */}
+        {!isUsingPremiumTemplate && (
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
           <SectionHeader
             icon={<Palette className="w-5 h-5" />}
@@ -615,6 +634,7 @@ export default function AppearancePage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* 6. Header Style */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
