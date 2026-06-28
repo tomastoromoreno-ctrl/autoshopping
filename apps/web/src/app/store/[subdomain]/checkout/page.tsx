@@ -188,6 +188,26 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [loadingQuotes, setLoadingQuotes] = useState(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem('customer_auth');
+    if (saved) {
+      try {
+        const { customer } = JSON.parse(saved);
+        if (customer) {
+          if (customer.name) setCustomerName(customer.name);
+          if (customer.email) setCustomerEmail(customer.email);
+          if (customer.phone) setCustomerPhone(customer.phone);
+          if (customer.default_address) {
+            if (customer.default_address.address) setShippingAddress(customer.default_address.address);
+            if (customer.default_address.city) setShippingCity(customer.default_address.city);
+            if (customer.default_address.state) setShippingState(customer.default_address.state);
+            if (customer.default_address.zip) setShippingZip(customer.default_address.zip);
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
     if (!shippingState || !shippingCity || items.length === 0 || !storeConfig?.shipping_enabled) {
       setQuotes([]);
       setSelectedQuote(null);
@@ -339,6 +359,16 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           customer_email: customerEmail,
           customer_phone: customerPhone,
           payment_method_id: selectedPayment,
+          customer_id: (() => {
+            try {
+              const saved = localStorage.getItem('customer_auth');
+              if (saved) {
+                const { customer } = JSON.parse(saved);
+                return customer?.id || null;
+              }
+            } catch {}
+            return null;
+          })(),
           items: items.map((item) => ({
             product_id: item.product_id,
             variant_id: item.variant_id,

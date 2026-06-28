@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Package, Clock, ChevronRight } from 'lucide-react';
 import { formatPrice } from '@/lib/format';
 
@@ -48,8 +48,48 @@ export default function OrdersPage({ params }: { params: { subdomain: string } }
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [authEmail, setAuthEmail] = useState<string | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('customer_auth');
+      if (saved) {
+        const { customer, token } = JSON.parse(saved);
+        if (token && customer?.email) {
+          setAuthToken(token);
+          setAuthEmail(customer.email);
+          setEmail(customer.email);
+          loadOrdersWithAuth(token);
+        }
+      }
+    } catch {}
+  }, [params.subdomain]);
+
+  async function loadOrdersWithAuth(token: string) {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${apiUrl}/customers/orders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(Array.isArray(data) ? data : data.orders || data.data || []);
+        setSearched(true);
+      } else {
+        setOrders([]);
+        setAuthToken(null);
+      }
+    } catch {
+      setOrders([]);
+      setAuthToken(null);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -82,33 +122,41 @@ export default function OrdersPage({ params }: { params: { subdomain: string } }
       <div className="text-center">
         <Package className="mx-auto h-12 w-12 text-slate-400" />
         <h1 className="mt-4 text-xl sm:text-2xl font-bold text-slate-900">Mis pedidos</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Ingresa tu email para consultar tus pedidos
-        </p>
+        {!authToken ? (
+          <p className="mt-1 text-sm text-slate-500">
+            Ingresa tu email para consultar tus pedidos
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-slate-500">
+            Pedidos asociados a {authEmail}
+          </p>
+        )}
       </div>
 
-      <form onSubmit={handleSearch} className="mt-8">
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@email.com"
-            required
-            className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-          <button
-            type="submit"
-            disabled={loading || !email.trim()}
-            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-          >
-            <Search className="h-4 w-4" />
-            {loading ? 'Buscando...' : 'Buscar'}
-          </button>
-        </div>
-      </form>
+      {!authToken && (
+        <form onSubmit={handleSearch} className="mt-8">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+              required
+              className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              disabled={loading || !email.trim()}
+              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+            >
+              <Search className="h-4 w-4" />
+              {loading ? 'Buscando...' : 'Buscar'}
+            </button>
+          </div>
+        </form>
+      )}
 
-      {searched && (
+      {(searched || authToken) && (
         <div className="mt-8">
           {loading ? (
             <div className="flex justify-center py-12">

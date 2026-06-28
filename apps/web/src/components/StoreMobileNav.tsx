@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { X, Home, Package, ShoppingCart } from 'lucide-react';
+import { X, Home, Package, ShoppingCart, User, ClipboardList } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -98,6 +98,22 @@ export default function StoreMobileNav({ subdomain, storeName, storeLogo, catego
             >
               <Package className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} style={{ color: 'var(--store-text)', opacity: 0.6 }} />
               Productos
+            </Link>
+            <Link
+              href={`/store/${subdomain}/account`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
+            >
+              <User className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} style={{ color: 'var(--store-text)', opacity: 0.6 }} />
+              Mi Cuenta
+            </Link>
+            <Link
+              href={`/store/${subdomain}/orders`}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ease-out store-nav-link"
+            >
+              <ClipboardList className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} style={{ color: 'var(--store-text)', opacity: 0.6 }} />
+              Mis Pedidos
             </Link>
             <Link
               href={`/store/${subdomain}/cart`}

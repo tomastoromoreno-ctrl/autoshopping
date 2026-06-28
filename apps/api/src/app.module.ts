@@ -28,6 +28,7 @@ import { InternationalizationModule } from './modules/internationalization/inter
 import { ShippingModule } from './modules/shipping/shipping.module';
 import { SuperAdminModule } from './modules/superadmin/superadmin.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { CustomersModule } from './modules/customers/customers.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { BillingModule } from './modules/billing/billing.module';
     ShippingModule,
     SuperAdminModule,
     BillingModule,
+    CustomersModule,
   ],
 })
 export class AppModule {}
