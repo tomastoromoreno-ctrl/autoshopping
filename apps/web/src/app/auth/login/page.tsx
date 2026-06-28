@@ -32,8 +32,8 @@ function LoginForm() {
       // If there's a redirect URL (e.g. from invitation), go there first
       if (redirectTo) {
         router.push(redirectTo);
-      } else if (role === 'super_admin') {
-        router.push('/admin');
+      } else if (role === 'super_admin' || role === 'support_agent') {
+        router.push('/superadmin');
       } else if (tenantId) {
         // Any user with a tenant (owner, admin, manager, editor, viewer) goes to dashboard
         router.push('/dashboard');
