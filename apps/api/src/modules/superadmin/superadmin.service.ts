@@ -81,6 +81,42 @@ export class SuperAdminService {
       .select('*', { count: 'exact', head: true })
       .gte('created_at', startOfMonth.toISOString());
 
+    // Legacy Stats Integration
+    const { count: totalUsers } = await this.supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: totalOrders } = await this.supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true });
+
+    const { data: revenueData } = await this.supabase
+      .from('orders')
+      .select('total')
+      .not('status', 'in', '("cancelled","pending")');
+
+    const totalRevenue = (revenueData || []).reduce(
+      (sum, row) => sum + Number(row.total || 0), 0,
+    );
+
+    const { data: recentOrders } = await this.supabase
+      .from('orders')
+      .select('*, tenants!inner(name)')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const { data: ordersByStatus } = await this.supabase
+      .from('orders')
+      .select('status');
+
+    const orders_by_status: Record<string, number> = {};
+    if (ordersByStatus) {
+      for (const row of ordersByStatus) {
+        const s = (row as any).status || 'unknown';
+        orders_by_status[s] = (orders_by_status[s] || 0) + 1;
+      }
+    }
+
     return {
       totalTenants: totalTenants || 0,
       suspendedTenants: suspendedTenants || 0,
@@ -88,6 +124,19 @@ export class SuperAdminService {
       activeTenants: activeTenants || 0,
       mrr: mrr || 0,
       newSignups: newSignups || 0,
+      // Legacy Stats
+      totalUsers: totalUsers || 0,
+      totalOrders: totalOrders || 0,
+      totalRevenue: totalRevenue || 0,
+      recentOrders: (recentOrders || []).map(o => ({
+        id: o.id,
+        tenant_name: o.tenants?.name || 'Tienda',
+        customer_name: o.customer_name || o.email || 'Cliente',
+        total: o.total || 0,
+        status: o.status || 'pending',
+        created_at: o.created_at,
+      })),
+      ordersByStatus: orders_by_status,
     };
   }
 

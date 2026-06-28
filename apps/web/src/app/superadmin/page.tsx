@@ -36,6 +36,19 @@ interface Metrics {
   activeTenants: number;
   mrr: number;
   newSignups: number;
+  // Legacy stats
+  totalUsers?: number;
+  totalOrders?: number;
+  totalRevenue?: number;
+  recentOrders?: {
+    id: string;
+    tenant_name: string;
+    customer_name: string;
+    total: number;
+    status: string;
+    created_at: string;
+  }[];
+  ordersByStatus?: Record<string, number>;
 }
 
 export default function SuperAdminDashboard() {
@@ -302,26 +315,36 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">MRR Total</p>
-          <p className="mt-2 text-3xl font-black text-amber-500">${(metrics?.mrr ?? 0).toLocaleString('es-CL')}</p>
-          <div className="absolute right-4 bottom-4 text-4xl opacity-10">💵</div>
+          <p className="mt-2 text-2xl font-black text-amber-500">${(metrics?.mrr ?? 0).toLocaleString('es-CL')}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">💵</div>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ventas Totales</p>
+          <p className="mt-2 text-2xl font-black text-emerald-400">${(metrics?.totalRevenue ?? 0).toLocaleString('es-CL')}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">💰</div>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tiendas Activas</p>
-          <p className="mt-2 text-3xl font-black text-emerald-400">{metrics?.activeTenants ?? 0}</p>
-          <div className="absolute right-4 bottom-4 text-4xl opacity-10">🏬</div>
+          <p className="mt-2 text-2xl font-black text-cyan-400">{metrics?.activeTenants ?? 0}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">🏬</div>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">En Prueba (Trial)</p>
-          <p className="mt-2 text-3xl font-black text-cyan-400">{metrics?.trialTenants ?? 0}</p>
-          <div className="absolute right-4 bottom-4 text-4xl opacity-10">⏳</div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Usuarios</p>
+          <p className="mt-2 text-2xl font-black text-indigo-400">{metrics?.totalUsers ?? 0}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">👥</div>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Total Órdenes</p>
+          <p className="mt-2 text-2xl font-black text-orange-400">{metrics?.totalOrders ?? 0}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">📦</div>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg relative overflow-hidden">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Suspendidas</p>
-          <p className="mt-2 text-3xl font-black text-rose-500">{metrics?.suspendedTenants ?? 0}</p>
-          <div className="absolute right-4 bottom-4 text-4xl opacity-10">🚫</div>
+          <p className="mt-2 text-2xl font-black text-rose-500">{metrics?.suspendedTenants ?? 0}</p>
+          <div className="absolute right-4 bottom-4 text-3xl opacity-10">🚫</div>
         </div>
       </div>
 
@@ -480,6 +503,96 @@ export default function SuperAdminDashboard() {
           </button>
         </div>
       )}
+
+      {/* Integrated Legacy Stats & Recent Activity Section */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Orders by Status Progress Box */}
+        <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg space-y-4">
+          <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">📊 Órdenes por Estado (Global)</h3>
+          <div className="space-y-3">
+            {metrics?.ordersByStatus && Object.entries(metrics.ordersByStatus).map(([status, count]) => {
+              const statusLabels: Record<string, string> = {
+                pending: 'Pendiente', confirmed: 'Confirmado', processing: 'Procesando',
+                shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado',
+              };
+              const statusColors: Record<string, string> = {
+                pending: 'bg-amber-500', confirmed: 'bg-blue-500', processing: 'bg-indigo-500',
+                shipped: 'bg-purple-500', delivered: 'bg-emerald-500', cancelled: 'bg-rose-500',
+              };
+              const total = Object.values(metrics.ordersByStatus || {}).reduce((a, b) => a + b, 0);
+              const pct = total ? (count / total) * 100 : 0;
+              return (
+                <div key={status} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="text-slate-400">{statusLabels[status] || status}</span>
+                    <span className="text-slate-200">{count} ({pct.toFixed(0)}%)</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
+                    <div className={`h-full rounded-full ${statusColors[status] || 'bg-slate-500'} transition-all`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            {(!metrics?.ordersByStatus || Object.keys(metrics.ordersByStatus).length === 0) && (
+              <p className="text-sm text-slate-500 italic text-center py-6">Sin información de órdenes.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Orders List Box */}
+        <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900 p-5 shadow-lg space-y-4">
+          <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">📦 Órdenes Recientes en Tiendas</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 font-semibold bg-slate-900/50">
+                  <th className="px-4 py-2.5">ID</th>
+                  <th className="px-4 py-2.5">Tienda</th>
+                  <th className="px-4 py-2.5">Cliente</th>
+                  <th className="px-4 py-2.5">Total</th>
+                  <th className="px-4 py-2.5">Estado</th>
+                  <th className="px-4 py-2.5">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics?.recentOrders && metrics.recentOrders.map((order) => {
+                  const statusColors: Record<string, string> = {
+                    pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                    confirmed: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                    processing: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+                    shipped: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                    delivered: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                    cancelled: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+                  };
+                  const statusLabels: Record<string, string> = {
+                    pending: 'Pendiente', confirmed: 'Confirmado', processing: 'Procesando',
+                    shipped: 'Enviado', delivered: 'Entregado', cancelled: 'Cancelado',
+                  };
+                  return (
+                    <tr key={order.id} className="border-b border-slate-800/40 hover:bg-slate-800/20 transition-colors">
+                      <td className="px-4 py-2.5 font-mono text-[10px] text-slate-500">#{order.id.slice(0, 8)}</td>
+                      <td className="px-4 py-2.5 font-bold text-slate-200">{order.tenant_name}</td>
+                      <td className="px-4 py-2.5">{order.customer_name}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-100">${order.total.toLocaleString()}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${statusColors[order.status] || 'bg-slate-800 text-slate-400 border-slate-700'}`}>
+                          {statusLabels[order.status] || order.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-400">{new Date(order.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  );
+                })}
+                {(!metrics?.recentOrders || metrics.recentOrders.length === 0) && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500 italic">No hay órdenes recientes registradas.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       {/* ─── MODAL GOD MODE ─── */}
       {activeModal === 'god' && selectedTenant && (
