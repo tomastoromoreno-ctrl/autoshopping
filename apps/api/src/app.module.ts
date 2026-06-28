@@ -26,6 +26,8 @@ import { BackupsModule } from './modules/backups/backups.module';
 import { PublicApiModule } from './modules/public-api/public-api.module';
 import { InternationalizationModule } from './modules/internationalization/internationalization.module';
 import { ShippingModule } from './modules/shipping/shipping.module';
+import { SuperAdminModule } from './modules/superadmin/superadmin.module';
+import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -56,6 +58,8 @@ import { ShippingModule } from './modules/shipping/shipping.module';
     PublicApiModule,
     InternationalizationModule,
     ShippingModule,
+    SuperAdminModule,
+    BillingModule,
   ],
 })
 export class AppModule {}

@@ -371,4 +371,286 @@ export class EmailService {
     </body>
     </html>`;
   }
+
+  // ─── SuperAdmin & Billing Transactional Emails ────────────────────────
+
+  private buildBaseTemplate(title: string, bodyContent: string): string {
+    return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+    <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+        <div style="background-color:#022759;padding:24px;border-top-left-radius:12px;border-top-right-radius:12px;text-align:center;">
+          <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0;letter-spacing:1px;">AutoGastos</h1>
+        </div>
+        <div style="background:#ffffff;border-bottom-left-radius:12px;border-bottom-right-radius:12px;border:1px solid #e2e8f0;border-top:none;padding:32px;box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <h2 style="font-size:20px;font-weight:600;color:#0f172a;margin-top:0;margin-bottom:18px;">${title}</h2>
+          <div style="font-size:15px;line-height:1.6;color:#334155;margin-bottom:24px;">
+            ${bodyContent}
+          </div>
+          <div style="border-top:1px solid #e2e8f0;padding-top:20px;text-align:center;font-size:12px;color:#94a3b8;">
+            Este es un correo transaccional automático enviado por AutoGastos.<br/>
+            Si tienes dudas, contáctanos en soporte@autogastos.com.
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>`;
+  }
+
+  async sendStoreSuspended(email: string, storeName: string, reason: string): Promise<boolean> {
+    const title = 'Tu tienda ha sido suspendida';
+    const content = `
+      <p>Hola,</p>
+      <p>Te informamos que tu tienda <strong>${storeName}</strong> ha sido suspendida por el siguiente motivo:</p>
+      <blockquote style="background:#f1f5f9;border-left:4px solid #ef4444;padding:12px 16px;margin:16px 0;font-style:italic;color:#475569;">
+        ${reason || 'Incumplimiento de términos o facturación pendiente.'}
+      </blockquote>
+      <p>Para restaurar el acceso, por favor sigue las instrucciones ingresando a tu panel de configuración o contacta al equipo de soporte.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `⚠️ Tu tienda ${storeName} ha sido suspendida - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, `Tienda ${storeName} suspendida`, 'store_suspended', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, `Tienda ${storeName} suspendida`, 'store_suspended', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendStoreReactivated(email: string, storeName: string): Promise<boolean> {
+    const title = 'Tu tienda ha sido reactivada';
+    const content = `
+      <p>Hola,</p>
+      <p>¡Buenas noticias! Tu tienda <strong>${storeName}</strong> ha sido reactivada de forma exitosa y ya se encuentra totalmente funcional.</p>
+      <p>Puedes ingresar a tu panel de administración como de costumbre para gestionar tus operaciones.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${this.config.get('APP_URL')}/dashboard" style="background:#022759;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Ingresar al Panel</a>
+      </div>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `✅ Acceso restablecido: Tienda ${storeName} reactivada - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, `Tienda ${storeName} reactivada`, 'store_reactivated', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, `Tienda ${storeName} reactivada`, 'store_reactivated', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendStoreReset(email: string, storeName: string): Promise<boolean> {
+    const title = 'Tu tienda ha sido reiniciada a cero';
+    const content = `
+      <p>Hola,</p>
+      <p>Te confirmamos que todos los productos, órdenes, clientes e historial de tu tienda <strong>${storeName}</strong> han sido eliminados de manera permanente.</p>
+      <p>Esta acción fue solicitada y ejecutada por el administrador y es totalmente irreversible.</p>
+      <p>Si consideras que esto es un error o requieres ayuda adicional, por favor ponte en contacto con nuestro equipo de soporte técnico inmediatamente.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `🚨 Alerta de seguridad: Tienda ${storeName} reiniciada a cero - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, `Tienda ${storeName} reiniciada`, 'store_reset', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, `Tienda ${storeName} reiniciada`, 'store_reset', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendPasswordResetLink(email: string, resetLink: string): Promise<boolean> {
+    const title = 'Restablecer contraseña';
+    const content = `
+      <p>Hola,</p>
+      <p>Se ha solicitado un enlace para restablecer la contraseña de tu cuenta asociada en AutoGastos.</p>
+      <p>Haz clic en el siguiente enlace para establecer una nueva contraseña (este enlace es válido por 1 hora):</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${resetLink}" style="background:#022759;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Restablecer Contraseña</a>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;word-break:break-all;">Si no puedes hacer clic en el botón anterior, copia y pega esta dirección en tu navegador: <br/>${resetLink}</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `🔑 Restablecer tu contraseña - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Restablecer contraseña', 'password_reset', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Restablecer contraseña', 'password_reset', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendTemporaryCredentials(email: string, tempLink: string): Promise<boolean> {
+    const title = 'Enlace de acceso temporal';
+    const content = `
+      <p>Hola,</p>
+      <p>Un administrador de soporte ha generado un enlace de inicio de sesión único y de un solo uso para tu cuenta.</p>
+      <p>Este enlace es válido durante 1 hora. Úsalo para acceder directamente a tu panel:</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${tempLink}" style="background:#2563eb;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Ingreso Temporal Único</a>
+      </div>
+      <p style="font-size:12px;color:#94a3b8;word-break:break-all;">Dirección completa de acceso: <br/>${tempLink}</p>
+      <p>Una vez dentro, te recomendamos revisar y actualizar tus credenciales de acceso normales en la configuración de tu perfil.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `⚡ Enlace de ingreso temporal - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Ingreso temporal', 'temp_login', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Ingreso temporal', 'temp_login', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendPaymentFailed(email: string, amount: number, retryLink: string): Promise<boolean> {
+    const title = 'Pago rechazado';
+    const content = `
+      <p>Hola,</p>
+      <p>Lamentamos informarte que el cobro automático de tu suscripción de AutoGastos por un monto de <strong>$${amount.toLocaleString('es-CL')}</strong> ha sido rechazado por tu entidad financiera.</p>
+      <p>Por favor, actualiza tu método de pago ingresando a tu portal de facturación en el siguiente botón para evitar interrupciones en el servicio:</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${retryLink}" style="background:#e11d48;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Actualizar Método de Pago</a>
+      </div>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `❌ Falló el pago de tu suscripción - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Pago fallido', 'payment_failed', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Pago fallido', 'payment_failed', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendPaymentOverdueWarning(email: string, daysOverdue: number, paymentLink: string): Promise<boolean> {
+    const title = `Tu suscripción tiene un retraso de ${daysOverdue} días`;
+    const content = `
+      <p>Hola,</p>
+      <p>Este es un recordatorio amistoso de que tu pago de AutoGastos se encuentra vencido desde hace <strong>${daysOverdue}</strong> días.</p>
+      <p>Te solicitamos regularizar tu estado de pagos para asegurar la continuidad del servicio y evitar la suspensión automática de tu tienda.</p>
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${paymentLink}" style="background:#d97706;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Regularizar Pago</a>
+      </div>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `⚠️ Recordatorio de pago atrasado (${daysOverdue} días) - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Pago atrasado', 'payment_overdue', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Pago atrasado', 'payment_overdue', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendSubscriptionSuspensionNotice(email: string, storeName: string): Promise<boolean> {
+    const title = 'Aviso de Suspensión por falta de pago';
+    const content = `
+      <p>Hola,</p>
+      <p>Te notificamos que debido a que no hemos recibido el pago de tu suscripción vencida tras vencerse el período de gracia, la tienda <strong>${storeName}</strong> ha sido suspendida automáticamente.</p>
+      <p>Tus datos siguen a salvo, pero tu acceso al panel administrativo y las ventas de cara al público se encuentran bloqueados temporalmente.</p>
+      <p>Para reactivar tu servicio, ingresa a tu portal y procesa el pago pendiente.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `🚫 Tienda suspendida por no pago: ${storeName} - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Aviso de suspensión por pago', 'suspension_no_payment', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Aviso de suspensión por pago', 'suspension_no_payment', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendPlanChanged(email: string, storeName: string, newPlanName: string, price: number): Promise<boolean> {
+    const title = 'Cambio de Plan de Suscripción';
+    const content = `
+      <p>Hola,</p>
+      <p>Te confirmamos que el plan de suscripción de tu tienda <strong>${storeName}</strong> ha sido modificado.</p>
+      <p>Tu nuevo plan es: <strong style="text-transform: uppercase;">${newPlanName}</strong> por un costo de <strong>$${price.toLocaleString('es-CL')} / mensual</strong>.</p>
+      <p>Este cambio se aplicará a partir de este momento o en tu próximo ciclo de facturación según corresponda.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `🔄 Actualización de suscripción: Nuevo plan ${newPlanName} - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, `Plan cambiado a ${newPlanName}`, 'plan_changed', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, `Plan cambiado a ${newPlanName}`, 'plan_changed', 'failed', { error: e.message });
+      return false;
+    }
+  }
+
+  async sendGodModeAccessedAlert(email: string, storeName: string, reason: string): Promise<boolean> {
+    const title = 'Acceso de soporte a tu cuenta';
+    const content = `
+      <p>Hola,</p>
+      <p>Te informamos que un operador del equipo de soporte de AutoGastos ha accedido de forma temporal a la administración de tu tienda <strong>${storeName}</strong> bajo el Modo Dios.</p>
+      <p><strong>Motivo declarado:</strong> ${reason}</p>
+      <p>Esta es una notificación de seguridad estándar para asegurar la transparencia e integridad de tus datos. Si no solicitaste asistencia, repórtalo de inmediato.</p>
+    `;
+    const html = this.buildBaseTemplate(title, content);
+    try {
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [email],
+        subject: `⚡ Notificación de seguridad: Acceso de soporte a tu cuenta - AutoGastos`,
+        html,
+      });
+      await this.logEmail(email, 'Acceso Modo Dios', 'god_mode_alert', !result.error ? 'sent' : 'failed', { error: result.error?.message });
+      return !result.error;
+    } catch (e) {
+      await this.logEmail(email, 'Acceso Modo Dios', 'god_mode_alert', 'failed', { error: e.message });
+      return false;
+    }
+  }
 }

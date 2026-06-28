@@ -55,9 +55,15 @@ export default function ConfigPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Configuración</h1>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+      
+      <div className="flex border-b">
+        <a href="/dashboard/config" className="border-b-2 border-blue-600 px-4 py-2.5 text-sm font-bold text-blue-600">Configuración General</a>
+        <a href="/dashboard/config/subscription" className="border-b-2 border-transparent px-4 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700">Mi Suscripción</a>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Moneda y pagos</h2>
           <div className="mt-4 space-y-4">
