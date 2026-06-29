@@ -4,6 +4,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { EmailService } from '../notifications/email.service';
 import { WebhooksService } from '../webhooks/webhooks.service';
 import { InvoicingService } from '../invoicing/invoicing.service';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class OrdersService {
@@ -14,6 +15,7 @@ export class OrdersService {
     private readonly emailService: EmailService,
     private readonly invoicingService: InvoicingService,
     @Optional() private readonly webhooks?: WebhooksService,
+    @Optional() private readonly inventoryService?: InventoryService,
   ) {}
 
   async createFromCart(dto: {
@@ -111,26 +113,34 @@ export class OrdersService {
       throw new BadRequestException('Cart is empty');
     }
 
-    for (const item of cartItems) {
-      const { data: product } = await this.supabase
-        .from('products')
-        .select('stock, name')
-        .eq('id', item.product_id)
-        .single();
+    if (this.inventoryService) {
+      await this.inventoryService.decrementStockForOrder(
+        dto.tenant_id,
+        'pending-order',
+        cartItems.map((item: any) => ({ product_id: item.product_id, quantity: item.quantity })),
+      );
+    } else {
+      for (const item of cartItems) {
+        const { data: product } = await this.supabase
+          .from('products')
+          .select('stock, name')
+          .eq('id', item.product_id)
+          .single();
 
-      if (!product) throw new NotFoundException(`Product ${item.product_id} not found`);
+        if (!product) throw new NotFoundException(`Product ${item.product_id} not found`);
 
-      if (product.stock !== null && product.stock < item.quantity) {
-        throw new BadRequestException(`Insufficient stock for product ${product.name}`);
+        if (product.stock !== null && product.stock < item.quantity) {
+          throw new BadRequestException(`Insufficient stock for product ${product.name}`);
+        }
+
+        const newStock = product.stock !== null ? product.stock - item.quantity : null;
+        const { error: stockError } = await this.supabase
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', item.product_id);
+
+        if (stockError) throw new BadRequestException(stockError.message);
       }
-
-      const newStock = product.stock !== null ? product.stock - item.quantity : null;
-      const { error: stockError } = await this.supabase
-        .from('products')
-        .update({ stock: newStock })
-        .eq('id', item.product_id);
-
-      if (stockError) throw new BadRequestException(stockError.message);
     }
 
     const orderTotal = cart.subtotal || 0;

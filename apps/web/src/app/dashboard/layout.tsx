@@ -23,6 +23,7 @@ const navItems = [
   { href: '/dashboard/banners', label: 'Banners', icon: '🖼', requiredPermission: 'banners.read' },
   { href: '/dashboard/promotions', label: 'Promociones', icon: '★', requiredPermission: 'promotions.read' },
   { href: '/dashboard/orders', label: 'Órdenes', icon: '☰', requiredPermission: 'orders.read' },
+  { href: '/dashboard/inventory', label: 'Inventario', icon: '📦', requiredPermission: 'inventory.read' },
   { href: '/dashboard/analytics', label: 'Analytics', icon: '📊', requiredPermission: 'analytics.read' },
   { href: '/dashboard/blog', label: 'Blog', icon: '✎', requiredPermission: 'blog.read' },
   { href: '/dashboard/invoicing', label: 'Facturación SII', icon: '📄', requiredPermission: 'invoicing.read' },

@@ -279,7 +279,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
       {/* 2. Category Showcase - Horizontal scroll */}
       <section className="px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto">
           <CategoryShowcase
             categories={categories}
             subdomain={params.subdomain}
@@ -291,7 +291,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
       {/* 3. Compact search + filter bar */}
       <section className="px-4 sm:px-6 lg:px-8 py-4">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto">
           {/* Desktop: search + sort + filter inline */}
             <div className="hidden lg:flex items-center gap-3">
             <div className="flex-1 max-w-xl">
@@ -474,7 +474,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       {/* Active filters display */}
       {hasActiveFilters && (
         <section className="px-4 sm:px-6 lg:px-8 pb-2">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto">
             <div className="flex flex-wrap items-center gap-2 animate-in fade-in duration-200">
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Filtros:</span>
               {searchQuery && (
@@ -529,7 +529,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
       {/* 4. Featured Carousel */}
       <section className="px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto">
           <FeaturedCarousel
             products={featured}
             subdomain={params.subdomain}
@@ -542,7 +542,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       {/* 4.5. Active Promotions */}
       {promotions.length > 0 && (
         <section className="px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-500">
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
@@ -582,7 +582,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
       {/* 5. All Products heading */}
       <section className="px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-heading font-bold store-text">Todos los productos</h2>
             <span className="text-sm text-slate-500 font-medium">{totalCount} productos</span>
@@ -592,7 +592,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
       {/* 6. Product grid */}
       <section className="px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto">
           {products.length === 0 ? (
             <div className="py-20 text-center">
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-[color-mix(in_srgb,var(--store-text)_8%,transparent)]">
@@ -615,7 +615,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 lg:gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 lg:gap-6">
               {products.map((product) => (
                 <Link key={product.id} href={`/store/${params.subdomain}/product/${product.slug}`}>
                   <ProductCard product={product} onAddToCart={handleAddToCart} cardStyle={store.card_style} />

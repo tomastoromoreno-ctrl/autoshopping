@@ -3,9 +3,10 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { InvoicingModule } from '../invoicing/invoicing.module';
+import { InventoryModule } from '../inventory/inventory.module';
 
 @Module({
-  imports: [NotificationsModule, InvoicingModule],
+  imports: [NotificationsModule, InvoicingModule, InventoryModule],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
