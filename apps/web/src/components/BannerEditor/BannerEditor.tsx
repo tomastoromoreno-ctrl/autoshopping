@@ -349,13 +349,11 @@ export default function BannerEditor({
     c.discardActiveObject();
     c.renderAll();
 
-    // multiplier = desired output px / display px
-    // display px = logical * scale, so multiplier = logical / (logical * scale) = 1/scale
-    // This gives us an output at canvasSize.width × canvasSize.height
+    const multiplier = scale > 0 ? Math.min(1 / scale, 3) : 1;
     const dataUrl = c.toDataURL({
       format: 'png',
       quality: 1,
-      multiplier: 1 / scale,
+      multiplier,
     });
 
     onSave(dataUrl);

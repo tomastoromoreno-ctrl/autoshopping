@@ -21,36 +21,59 @@ interface Banner {
 
 function compressImage(dataUrl: string, maxWidth = 1200, quality = 0.8): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
-        if (w > maxWidth) {
-          h = Math.round((h * maxWidth) / w);
-          w = maxWidth;
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (w <= 0 || h <= 0) return reject(new Error(`Dimensiones inválidas: ${w}x${h}`));
+          if (w > maxWidth) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('No se pudo crear contexto 2D'));
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(
+            (blob) => {
+              if (blob && blob.size > 0) resolve(blob);
+              else reject(new Error('Blob vacío al comprimir'));
+            },
+            'image/jpeg',
+            quality,
+          );
+        } catch (e: any) {
+          reject(new Error('Error dibujando en canvas: ' + e.message));
         }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return reject(new Error('No se pudo crear canvas'));
-        ctx.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Error al comprimir imagen'));
-          },
-          'image/jpeg',
-          quality,
-        );
-      } catch (e) {
-        reject(e);
-      }
-    };
-    img.onerror = () => reject(new Error('Error al cargar imagen para comprimir'));
-    img.src = dataUrl;
+      };
+      img.onerror = () => reject(new Error('No se pudo cargar la imagen del canvas'));
+      img.src = dataUrl;
+    } catch (e: any) {
+      reject(new Error('Error inicial: ' + e.message));
+    }
+  });
+}
+
+function dataUrlToBlob(dataUrl: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    try {
+      const parts = dataUrl.split(',');
+      const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
+      const binary = atob(parts[1]);
+      const len = binary.length;
+      const arr = new Uint8Array(len);
+      for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+      resolve(new Blob([arr], { type: mime }));
+    } catch (e: any) {
+      reject(new Error('Error convirtiendo dataUrl: ' + e.message));
+    }
   });
 }
 
@@ -85,8 +108,17 @@ export default function BannerEditorPage() {
   const handleSave = async (dataUrl: string) => {
     setSaving(true);
     try {
-      const blob = await compressImage(dataUrl, 1200, 0.8);
-      const file = new File([blob], `banner-${slot}.jpg`, { type: 'image/jpeg' });
+      let blob: Blob;
+      try {
+        blob = await compressImage(dataUrl, 1200, 0.8);
+      } catch {
+        blob = await dataUrlToBlob(dataUrl);
+      }
+
+      if (!blob || blob.size === 0) throw new Error('Imagen vacía');
+
+      const ext = blob.type.includes('jpeg') ? 'jpg' : 'png';
+      const file = new File([blob], `banner-${slot}.${ext}`, { type: blob.type });
 
       const formData = new FormData();
       formData.append('file', file);
