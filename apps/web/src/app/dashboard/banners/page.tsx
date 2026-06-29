@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Plus, Trash2, Edit, Eye, EyeOff, Image, Palette } from 'lucide-react';
+import { Plus, Trash2, Edit, Eye, EyeOff, Image, Palette, Paintbrush } from 'lucide-react';
 import ImageUpload from '@/components/ImageUpload';
 
 interface Banner {
@@ -122,11 +123,18 @@ export default function BannersPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Banners</h1>
-        <button onClick={openNew}
-          className="rounded-lg bg-primary px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-primary/90 w-full sm:w-auto flex items-center justify-center gap-2">
-          <Plus size={16} />
-          Nuevo banner
-        </button>
+        <div className="flex gap-2">
+          <Link href="/dashboard/banners/editor"
+            className="rounded-lg border border-primary bg-primary/5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-primary hover:bg-primary/10 w-full sm:w-auto flex items-center justify-center gap-2">
+            <Paintbrush size={16} />
+            Diseñar Banner
+          </Link>
+          <button onClick={openNew}
+            className="rounded-lg bg-primary px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-primary/90 w-full sm:w-auto flex items-center justify-center gap-2">
+            <Plus size={16} />
+            Nuevo banner
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 p-4">
@@ -293,10 +301,16 @@ export default function BannersPage() {
             <Palette className="mx-auto h-12 w-12 text-slate-300" />
             <p className="mt-4 text-sm font-medium text-slate-500">No hay banners</p>
             <p className="mt-1 text-xs text-slate-400">Crea tu primer banner para mostrar en el carrusel de inicio</p>
-            <button onClick={openNew}
-              className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-              Crear primer banner
-            </button>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <Link href="/dashboard/banners/editor"
+                className="rounded-lg border border-primary bg-primary/5 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10">
+                Diseñar con editor
+              </Link>
+              <button onClick={openNew}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
+                Crear manual
+              </button>
+            </div>
           </div>
         )}
       </div>
