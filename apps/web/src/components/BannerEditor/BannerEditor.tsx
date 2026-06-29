@@ -28,6 +28,7 @@ interface BannerEditorProps {
   initialWidth?: number;
   initialHeight?: number;
   initialBg?: string;
+  initialImageUrl?: string;
 }
 
 export default function BannerEditor({
@@ -35,6 +36,7 @@ export default function BannerEditor({
   initialWidth = 1200,
   initialHeight = 400,
   initialBg = '#2563eb',
+  initialImageUrl,
 }: BannerEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -77,7 +79,18 @@ export default function BannerEditor({
     c.on('selection:updated', (e) => setSelectedObj(e.selected?.[0] || null));
     c.on('selection:cleared', () => setSelectedObj(null));
 
-    saveHistory();
+    if (initialImageUrl) {
+      fabric.FabricImage.fromURL(initialImageUrl).then((img) => {
+        const scale = Math.min(canvasSize.width / (img.width || 1), canvasSize.height / (img.height || 1));
+        img.scale(scale);
+        img.set({ left: canvasSize.width / 2, top: canvasSize.height / 2, originX: 'center', originY: 'center' });
+        c.add(img);
+        c.renderAll();
+        saveHistory();
+      }).catch(() => {});
+    } else {
+      saveHistory();
+    }
     return () => { c.dispose(); };
   }, [canvasSize]);
 

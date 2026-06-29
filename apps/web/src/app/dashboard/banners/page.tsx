@@ -283,7 +283,11 @@ export default function BannersPage() {
                     className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
                     {banner.is_active ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
-                  <button onClick={() => openEdit(banner)} title="Editar"
+                  <Link href={`/dashboard/banners/editor?edit=${banner.id}`} title="Abrir en editor"
+                    className="rounded-lg p-1.5 text-slate-400 hover:bg-primary/10 hover:text-primary transition">
+                    <Paintbrush size={14} />
+                  </Link>
+                  <button onClick={() => openEdit(banner)} title="Editar texto"
                     className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
                     <Edit size={14} />
                   </button>
