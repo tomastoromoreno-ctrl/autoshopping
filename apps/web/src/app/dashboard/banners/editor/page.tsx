@@ -11,7 +11,10 @@ const BannerEditor = dynamic(() => import('@/components/BannerEditor/BannerEdito
 interface Banner {
   id: string;
   title: string;
+  subtitle?: string;
   image_url: string;
+  bg_color?: string;
+  text_color?: string;
   sort_order: number;
   is_active: boolean;
 }
