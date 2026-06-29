@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 
@@ -95,7 +96,10 @@ export default function StockListPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Stock de Productos</h1>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/inventory" className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50">← Inventario</Link>
+          <h1 className="text-2xl font-bold">Stock de Productos</h1>
+        </div>
         <span className="text-sm text-slate-500">{total} productos</span>
       </div>
 

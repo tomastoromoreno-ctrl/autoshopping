@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 
 interface Supplier {
@@ -72,7 +73,10 @@ export default function SuppliersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Proveedores</h1>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/inventory" className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50">← Inventario</Link>
+          <h1 className="text-2xl font-bold">Proveedores</h1>
+        </div>
         <button onClick={() => { setShowForm(true); setEditingId(null); setForm({ name: '', contact_name: '', email: '', phone: '', address: '', notes: '' }); }} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
           + Nuevo Proveedor
         </button>
