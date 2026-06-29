@@ -37,7 +37,7 @@ export default function PurchaseOrdersPage() {
     try {
       const params = new URLSearchParams();
       if (statusFilter) params.set('status', statusFilter);
-      const data = await api.get(`/inventory/purchase-orders?${params}`);
+      const data = await api.get<{ data: PurchaseOrder[]; total: number }>(`/inventory/purchase-orders?${params}`);
       setOrders(data.data);
       setTotal(data.total);
     } catch (err) {
@@ -51,9 +51,9 @@ export default function PurchaseOrdersPage() {
 
   const openCreate = async () => {
     try {
-      const [s, p] = await Promise.all([
-        api.get('/inventory/suppliers'),
-        api.get('/products?limit=100'),
+        const [s, p] = await Promise.all([
+        api.get<any[]>('/inventory/suppliers'),
+        api.get<any>('/products?limit=100'),
       ]);
       setSuppliers(Array.isArray(s) ? s : []);
       setProducts(Array.isArray(p) ? p : p.data || []);

@@ -40,7 +40,7 @@ export default function MovementsPage() {
       const params = new URLSearchParams();
       if (typeFilter) params.set('type', typeFilter);
       params.set('page', String(page));
-      const data = await api.get(`/inventory/movements?${params}`);
+      const data = await api.get<{ data: Movement[]; total: number }>(`/inventory/movements?${params}`);
       setMovements(data.data);
       setTotal(data.total);
     } catch (err) {
@@ -54,7 +54,7 @@ export default function MovementsPage() {
 
   const fetchProducts = async () => {
     try {
-      const data = await api.get('/products?limit=100');
+      const data = await api.get<any>('/products?limit=100');
       setProducts(Array.isArray(data) ? data : data.data || []);
     } catch (err) {
       console.error(err);

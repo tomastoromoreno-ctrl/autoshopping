@@ -25,7 +25,7 @@ export default function SuppliersPage() {
   const fetchSuppliers = async () => {
     setLoading(true);
     try {
-      const data = await api.get('/inventory/suppliers');
+      const data = await api.get<Supplier[]>('/inventory/suppliers');
       setSuppliers(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);

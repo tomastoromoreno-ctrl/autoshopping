@@ -37,7 +37,7 @@ export default function StockListPage() {
       params.set('page', String(page));
       params.set('limit', '20');
 
-      const data = await api.get(`/inventory/stock?${params}`);
+      const data = await api.get<{ data: StockItem[]; total: number }>(`/inventory/stock?${params}`);
       setItems(data.data);
       setTotal(data.total);
     } catch (err) {

@@ -30,7 +30,7 @@ export default function InventoryDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/inventory/dashboard')
+    api.get<DashboardData>('/inventory/dashboard')
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
