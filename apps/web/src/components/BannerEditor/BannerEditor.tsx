@@ -4,11 +4,12 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import * as fabric from 'fabric';
 
 const BANNER_SIZES = [
+  { label: '1200×600 (Recomendado)', width: 1200, height: 600 },
   { label: '1200×400', width: 1200, height: 400 },
+  { label: '800×400', width: 800, height: 400 },
   { label: '800×300', width: 800, height: 300 },
-  { label: '600×200', width: 600, height: 200 },
-  { label: '600×600', width: 600, height: 600 },
-  { label: '1080×1920', width: 1080, height: 1920 },
+  { label: '600×300', width: 600, height: 300 },
+  { label: 'Cuadrado 600×600', width: 600, height: 600 },
 ];
 
 const FONTS = [
@@ -33,7 +34,7 @@ interface BannerEditorProps {
 export default function BannerEditor({
   onSave,
   initialWidth = 1200,
-  initialHeight = 400,
+  initialHeight = 600,
   initialBg = '#2563eb',
   initialCanvasJson,
 }: BannerEditorProps) {
