@@ -24,6 +24,7 @@ export default function SuppliersPage() {
   const [form, setForm] = useState({ name: '', contact_name: '', email: '', phone: '', address: '', notes: '' });
   const [viewProducts, setViewProducts] = useState<{ supplierId: string; supplierName: string } | null>(null);
   const [supplierProducts, setSupplierProducts] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
 
   const fetchSuppliers = async () => {
     setLoading(true);
@@ -40,7 +41,8 @@ export default function SuppliersPage() {
   useEffect(() => { fetchSuppliers(); }, []);
 
   const handleSave = async () => {
-    if (!form.name) return;
+    if (!form.name) { alert('El nombre es obligatorio'); return; }
+    setSaving(true);
     try {
       if (editingId) {
         await api.patch(`/inventory/suppliers/${editingId}`, form);
@@ -51,8 +53,10 @@ export default function SuppliersPage() {
       setEditingId(null);
       setForm({ name: '', contact_name: '', email: '', phone: '', address: '', notes: '' });
       fetchSuppliers();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert('Error al guardar: ' + (err.message || err));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -159,7 +163,9 @@ export default function SuppliersPage() {
               </div>
               <div className="flex justify-end gap-2">
                 <button onClick={() => setShowForm(false)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm">Cancelar</button>
-                <button onClick={handleSave} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Guardar</button>
+                <button onClick={handleSave} disabled={saving} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {saving ? 'Guardando...' : 'Guardar'}
+                </button>
               </div>
             </div>
           </div>
