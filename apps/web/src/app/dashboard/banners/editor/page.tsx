@@ -20,22 +20,36 @@ interface Banner {
 }
 
 function compressImage(dataUrl: string, maxWidth = 1200, quality = 0.8): Promise<Blob> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let w = img.width;
-      let h = img.height;
-      if (w > maxWidth) {
-        h = Math.round((h * maxWidth) / w);
-        w = maxWidth;
+      try {
+        const canvas = document.createElement('canvas');
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+        if (w > maxWidth) {
+          h = Math.round((h * maxWidth) / w);
+          w = maxWidth;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('No se pudo crear canvas'));
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Error al comprimir imagen'));
+          },
+          'image/jpeg',
+          quality,
+        );
+      } catch (e) {
+        reject(e);
       }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, w, h);
-      canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', quality);
     };
+    img.onerror = () => reject(new Error('Error al cargar imagen para comprimir'));
     img.src = dataUrl;
   });
 }
@@ -99,9 +113,9 @@ export default function BannerEditorPage() {
 
       setSaved(true);
       setTimeout(() => router.push('/dashboard/banners'), 1500);
-    } catch (err) {
-      console.error(err);
-      alert('Error al guardar el banner');
+    } catch (err: any) {
+      console.error('Banner save error:', err);
+      alert(`Error al guardar: ${err.message || err}`);
     } finally {
       setSaving(false);
     }
@@ -122,7 +136,6 @@ export default function BannerEditorPage() {
         </div>
       </div>
 
-      {/* Slot selector */}
       <div className="border-b border-slate-200 bg-white px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium text-slate-600">Slot del carrusel:</span>
@@ -132,7 +145,9 @@ export default function BannerEditorPage() {
             return (
               <button
                 key={s}
-                onClick={() => !isOccupied || isCurrent ? setSlot(s) : null}
+                onClick={() => {
+                  if (!isOccupied || isCurrent) setSlot(s);
+                }}
                 className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
                   isCurrent
                     ? 'bg-primary text-white'
@@ -146,12 +161,11 @@ export default function BannerEditorPage() {
             );
           })}
           <span className="text-xs text-slate-400">
-            {existingBanners.length}/5 banners creados
+            {existingBanners.length}/5
           </span>
         </div>
       </div>
 
-      {/* Editor */}
       <div className="flex-1 overflow-hidden">
         <BannerEditor
           onSave={handleSave}
