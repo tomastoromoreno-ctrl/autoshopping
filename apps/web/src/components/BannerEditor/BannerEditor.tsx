@@ -121,8 +121,9 @@ export default function BannerEditor({
       if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const c = fabricRef.current;
-        if (c && c.getActiveObject()) {
-          c.remove(c.getActiveObject());
+        const obj = c?.getActiveObject();
+        if (c && obj) {
+          c.remove(obj);
           c.renderAll();
           setSelectedObj(null);
           saveHistory();
