@@ -128,6 +128,41 @@ export class UploadService {
     };
   }
 
+  async uploadWithFixedPath(
+    tenantId: string,
+    file: Buffer,
+    filename: string,
+    mimetype: string,
+    folder: string,
+    fixedName: string,
+  ): Promise<{ url: string; path: string }> {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(mimetype)) {
+      throw new BadRequestException('Tipo de archivo no permitido.');
+    }
+    if (file.length > 5 * 1024 * 1024) {
+      throw new BadRequestException('El archivo no puede superar 5MB.');
+    }
+
+    const ext = filename.split('.').pop() || 'png';
+    const filePath = `tenants/${tenantId}/${folder}/${fixedName}.${ext}`;
+
+    const { error } = await this.supabase.storage
+      .from('store-assets')
+      .upload(filePath, file, {
+        contentType: mimetype,
+        upsert: true,
+      });
+
+    if (error) throw new BadRequestException(`Error subiendo archivo: ${error.message}`);
+
+    const { data: urlData } = this.supabase.storage
+      .from('store-assets')
+      .getPublicUrl(filePath);
+
+    return { url: urlData.publicUrl, path: filePath };
+  }
+
   async deleteImage(path: string): Promise<void> {
     const { error } = await this.supabase.storage
       .from('store-assets')
