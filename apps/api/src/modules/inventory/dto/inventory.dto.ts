@@ -1,9 +1,9 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsUUID, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsIn, IsUUID, Min } from 'class-validator';
 
 export class CreateStockMovementDto {
   @IsUUID() product_id: string;
   @IsOptional() @IsUUID() variant_id?: string;
-  @IsEnum(['purchase', 'sale', 'adjustment', 'return', 'transfer', 'damage', 'expired']) type: string;
+  @IsIn(['purchase', 'sale', 'adjustment', 'return', 'transfer', 'damage', 'expired']) type: string;
   @IsNumber() quantity: number;
   @IsOptional() @IsString() reference_id?: string;
   @IsOptional() @IsString() reference_type?: string;

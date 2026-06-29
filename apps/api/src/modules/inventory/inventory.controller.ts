@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Req, UseGuards } from '@nestjs/common';
-import { AuthGuard } from '../auth/auth.guard';
+import { AuthGuard } from '../../common/guards/auth.guard';
 import { InventoryService } from './inventory.service';
 import {
   CreateStockMovementDto,
