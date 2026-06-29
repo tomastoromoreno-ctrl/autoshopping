@@ -42,6 +42,9 @@ export default function BannerEditor({
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const readyRef = useRef(false);
   const loadedJsonRef = useRef(false);
+  const historyRef = useRef<string[]>([]);
+  const historyIdx = useRef(-1);
+  const skipHistory = useRef(false);
 
   const [canvasSize, setCanvasSize] = useState({ width: initialWidth, height: initialHeight });
   const [selectedObj, setSelectedObj] = useState<fabric.Object | null>(null);
@@ -61,6 +64,38 @@ export default function BannerEditor({
     const maxW = container.clientWidth - 32;
     return Math.min(maxW / canvasSize.width, 0.8);
   }, [canvasSize.width]);
+
+  const saveHistory = useCallback(() => {
+    if (skipHistory.current) return;
+    const c = fabricRef.current;
+    if (!c) return;
+    const json = JSON.stringify(c.toJSON());
+    historyRef.current = historyRef.current.slice(0, historyIdx.current + 1);
+    historyRef.current.push(json);
+    historyIdx.current = historyRef.current.length - 1;
+  }, []);
+
+  const doUndo = useCallback(() => {
+    const c = fabricRef.current;
+    if (!c || historyIdx.current <= 0) return;
+    historyIdx.current--;
+    skipHistory.current = true;
+    c.loadFromJSON(JSON.parse(historyRef.current[historyIdx.current])).then(() => {
+      c.renderAll();
+      skipHistory.current = false;
+    });
+  }, []);
+
+  const doRedo = useCallback(() => {
+    const c = fabricRef.current;
+    if (!c || historyIdx.current >= historyRef.current.length - 1) return;
+    historyIdx.current++;
+    skipHistory.current = true;
+    c.loadFromJSON(JSON.parse(historyRef.current[historyIdx.current])).then(() => {
+      c.renderAll();
+      skipHistory.current = false;
+    });
+  }, []);
 
   // Initialize canvas
   useEffect(() => {
@@ -92,8 +127,11 @@ export default function BannerEditor({
         c.loadFromJSON(json).then(() => {
           c.renderAll();
           loadedJsonRef.current = true;
+          saveHistory();
         });
       } catch {}
+    } else {
+      saveHistory();
     }
 
     return () => {
@@ -126,11 +164,11 @@ export default function BannerEditor({
 
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
-        c.undo();
+        doUndo();
       }
       if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
         e.preventDefault();
-        c.redo();
+        doRedo();
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const obj = c.getActiveObject();
@@ -138,12 +176,13 @@ export default function BannerEditor({
           c.remove(obj);
           c.renderAll();
           setSelectedObj(null);
+          saveHistory();
         }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [doUndo, doRedo, saveHistory]);
 
   // --- Actions ---
   const addText = () => {
@@ -162,6 +201,7 @@ export default function BannerEditor({
     c.add(text);
     c.setActiveObject(text);
     c.renderAll();
+    saveHistory();
   };
 
   const addImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,6 +219,7 @@ export default function BannerEditor({
         c.add(img);
         c.setActiveObject(img);
         c.renderAll();
+        saveHistory();
       };
       imgEl.src = ev.target?.result as string;
     };
@@ -207,6 +248,7 @@ export default function BannerEditor({
     c.add(obj);
     c.setActiveObject(obj);
     c.renderAll();
+    saveHistory();
   };
 
   const changeBg = (color: string) => {
@@ -331,7 +373,7 @@ export default function BannerEditor({
             <div className="flex gap-1">
               <button onClick={() => { const c = fabricRef.current; if (c && selectedObj) { c.bringObjectForward(selectedObj); c.renderAll(); } }} className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs hover:bg-slate-50">↑</button>
               <button onClick={() => { const c = fabricRef.current; if (c && selectedObj) { c.sendObjectBackwards(selectedObj); c.renderAll(); } }} className="flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs hover:bg-slate-50">↓</button>
-              <button onClick={() => { const c = fabricRef.current; if (c && selectedObj) { c.remove(selectedObj); c.renderAll(); setSelectedObj(null); } }} className="flex-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">🗑</button>
+              <button onClick={() => { const c = fabricRef.current; if (c && selectedObj) { c.remove(selectedObj); c.renderAll(); setSelectedObj(null); saveHistory(); } }} className="flex-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">🗑</button>
             </div>
           </div>
         )}
@@ -340,8 +382,8 @@ export default function BannerEditor({
       {/* Canvas */}
       <div ref={containerRef} className="flex flex-1 flex-col items-center overflow-auto bg-slate-50 p-4">
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
-          <button onClick={() => fabricRef.current?.undo()} disabled={!ready} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↩️</button>
-          <button onClick={() => fabricRef.current?.redo()} disabled={!ready} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↪️</button>
+          <button onClick={doUndo} disabled={!ready} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↩️</button>
+          <button onClick={doRedo} disabled={!ready} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30">↪️</button>
           <div className="mx-1 h-6 w-px bg-slate-200" />
           <span className="text-xs text-slate-400">{canvasSize.width}×{canvasSize.height}</span>
           <div className="mx-1 h-6 w-px bg-slate-200" />
