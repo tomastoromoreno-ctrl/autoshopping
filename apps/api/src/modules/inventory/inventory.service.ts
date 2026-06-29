@@ -63,7 +63,7 @@ export class InventoryService {
 
     let query = this.supabase
       .from('products')
-      .select('id, name, slug, sku, stock, price, images, category_id, category:categories(name)', { count: 'exact' })
+      .select('id, name, slug, sku, stock, price, images, category_id, category:categories(name), product_suppliers(*, supplier:suppliers(id, name))', { count: 'exact' })
       .eq('tenant_id', tenantId)
       .eq('is_active', true);
 
@@ -450,5 +450,71 @@ export class InventoryService {
 
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  // --- Product-Supplier relationships ---
+  async getProductSuppliers(tenantId: string, productId: string) {
+    const { data, error } = await this.supabase
+      .from('product_suppliers')
+      .select('*, supplier:suppliers(id, name, contact_name, email, phone)')
+      .eq('tenant_id', tenantId)
+      .eq('product_id', productId)
+      .order('is_preferred', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  async getSupplierProducts(tenantId: string, supplierId: string) {
+    const { data, error } = await this.supabase
+      .from('product_suppliers')
+      .select('*, product:products(id, name, sku, stock, images, price)')
+      .eq('tenant_id', tenantId)
+      .eq('supplier_id', supplierId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw new BadRequestException(error.message);
+    return data || [];
+  }
+
+  async addProductSupplier(tenantId: string, dto: {
+    product_id: string;
+    supplier_id: string;
+    supplier_sku?: string;
+    unit_cost?: number;
+    lead_time_days?: number;
+    min_order_quantity?: number;
+    is_preferred?: boolean;
+    notes?: string;
+  }) {
+    const { data, error } = await this.supabase
+      .from('product_suppliers')
+      .upsert({
+        tenant_id: tenantId,
+        product_id: dto.product_id,
+        supplier_id: dto.supplier_id,
+        supplier_sku: dto.supplier_sku || null,
+        unit_cost: dto.unit_cost || null,
+        lead_time_days: dto.lead_time_days || 0,
+        min_order_quantity: dto.min_order_quantity || 1,
+        is_preferred: dto.is_preferred || false,
+        notes: dto.notes || null,
+      }, { onConflict: 'tenant_id,product_id,supplier_id' })
+      .select('*, supplier:suppliers(id, name)')
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    return data;
+  }
+
+  async removeProductSupplier(tenantId: string, id: string) {
+    const { error } = await this.supabase
+      .from('product_suppliers')
+      .delete()
+      .eq('id', id)
+      .eq('tenant_id', tenantId);
+
+    if (error) throw new BadRequestException(error.message);
+    return { success: true };
   }
 }

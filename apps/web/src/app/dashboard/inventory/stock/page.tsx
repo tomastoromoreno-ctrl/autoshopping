@@ -15,6 +15,7 @@ interface StockItem {
   price: number;
   images: string[];
   category: { name: string } | null;
+  product_suppliers: { id: string; supplier: { id: string; name: string }; unit_cost: number; is_preferred: boolean }[];
 }
 
 export default function StockListPage() {
@@ -28,6 +29,10 @@ export default function StockListPage() {
   const [page, setPage] = useState(1);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [supplierModal, setSupplierModal] = useState<{ productId: string; productName: string } | null>(null);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [supplierCost, setSupplierCost] = useState('');
 
   const fetchStock = useCallback(async () => {
     setLoading(true);
@@ -91,6 +96,36 @@ export default function StockListPage() {
     setEditingId(null);
   };
 
+  const openSupplierModal = async (productId: string, productName: string) => {
+    try {
+      const data = await api.get<any[]>('/inventory/suppliers');
+      setSuppliers(Array.isArray(data) ? data : []);
+    } catch (err) { console.error(err); }
+    setSupplierModal({ productId, productName });
+    setSelectedSupplierId('');
+    setSupplierCost('');
+  };
+
+  const assignSupplier = async () => {
+    if (!supplierModal || !selectedSupplierId) return;
+    try {
+      await api.post('/inventory/product-suppliers', {
+        product_id: supplierModal.productId,
+        supplier_id: selectedSupplierId,
+        unit_cost: supplierCost ? parseFloat(supplierCost) : null,
+      });
+      setSupplierModal(null);
+      fetchStock();
+    } catch (err) { console.error(err); }
+  };
+
+  const removeSupplier = async (psId: string) => {
+    try {
+      await api.delete(`/inventory/product-suppliers/${psId}`);
+      fetchStock();
+    } catch (err) { console.error(err); }
+  };
+
   const totalPages = Math.ceil(total / 20);
 
   return (
@@ -137,6 +172,7 @@ export default function StockListPage() {
                 <th className="px-4 py-3 font-medium text-slate-600">Producto</th>
                 <th className="px-4 py-3 font-medium text-slate-600">SKU</th>
                 <th className="px-4 py-3 font-medium text-slate-600">Categoría</th>
+                <th className="px-4 py-3 font-medium text-slate-600">Proveedor</th>
                 <th className="px-4 py-3 font-medium text-slate-600">Precio</th>
                 <th className="px-4 py-3 font-medium text-slate-600 text-center">Stock</th>
                 <th className="px-4 py-3 font-medium text-slate-600 text-center">Acciones</th>
@@ -155,6 +191,22 @@ export default function StockListPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-500">{item.sku || '-'}</td>
                   <td className="px-4 py-3 text-slate-500">{item.category?.name || '-'}</td>
+                  <td className="px-4 py-3">
+                    {item.product_suppliers && item.product_suppliers.length > 0 ? (
+                      <div className="space-y-1">
+                        {item.product_suppliers.slice(0, 2).map((ps: any) => (
+                          <div key={ps.id} className="flex items-center gap-1">
+                            <span className="text-xs font-medium">{ps.supplier?.name}</span>
+                            {ps.is_preferred && <span className="text-[10px] text-primary">★</span>}
+                            <button onClick={() => removeSupplier(ps.id)} className="ml-1 text-[10px] text-red-400 hover:text-red-600">✕</button>
+                          </div>
+                        ))}
+                        {item.product_suppliers.length > 2 && <span className="text-[10px] text-slate-400">+{item.product_suppliers.length - 2} más</span>}
+                      </div>
+                    ) : (
+                      <button onClick={() => openSupplierModal(item.id, item.name)} className="text-xs text-primary hover:underline">+ Asignar</button>
+                    )}
+                  </td>
                   <td className="px-4 py-3">{formatPrice(item.price)}</td>
                   <td className="px-4 py-3 text-center">
                     {editingId === item.id ? (
@@ -222,6 +274,31 @@ export default function StockListPage() {
           >
             Siguiente
           </button>
+        </div>
+      )}
+      {supplierModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <h2 className="mb-1 text-lg font-semibold">Asignar Proveedor</h2>
+            <p className="mb-4 text-sm text-slate-500">{supplierModal.productName}</p>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Proveedor</label>
+                <select value={selectedSupplierId} onChange={(e) => setSelectedSupplierId(e.target.value)} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <option value="">Seleccionar...</option>
+                  {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Costo unitario (opcional)</label>
+                <input type="number" value={supplierCost} onChange={(e) => setSupplierCost(e.target.value)} className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="Ej: 5000" />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setSupplierModal(null)} className="rounded-lg border border-slate-200 px-4 py-2 text-sm">Cancelar</button>
+                <button onClick={assignSupplier} disabled={!selectedSupplierId} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50">Asignar</button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -145,4 +145,24 @@ export class InventoryController {
   updateConfig(@Req() req: any, @Body() dto: UpdateInventoryConfigDto) {
     return this.inventoryService.updateConfig(this.getTenantId(req), dto);
   }
+
+  @Get('product-suppliers/:productId')
+  getProductSuppliers(@Req() req: any, @Param('productId') productId: string) {
+    return this.inventoryService.getProductSuppliers(this.getTenantId(req), productId);
+  }
+
+  @Get('supplier-products/:supplierId')
+  getSupplierProducts(@Req() req: any, @Param('supplierId') supplierId: string) {
+    return this.inventoryService.getSupplierProducts(this.getTenantId(req), supplierId);
+  }
+
+  @Post('product-suppliers')
+  addProductSupplier(@Req() req: any, @Body() dto: any) {
+    return this.inventoryService.addProductSupplier(this.getTenantId(req), dto);
+  }
+
+  @Delete('product-suppliers/:id')
+  removeProductSupplier(@Req() req: any, @Param('id') id: string) {
+    return this.inventoryService.removeProductSupplier(this.getTenantId(req), id);
+  }
 }

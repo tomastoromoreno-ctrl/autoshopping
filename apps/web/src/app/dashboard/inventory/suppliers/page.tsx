@@ -22,6 +22,8 @@ export default function SuppliersPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: '', contact_name: '', email: '', phone: '', address: '', notes: '' });
+  const [viewProducts, setViewProducts] = useState<{ supplierId: string; supplierName: string } | null>(null);
+  const [supplierProducts, setSupplierProducts] = useState<any[]>([]);
 
   const fetchSuppliers = async () => {
     setLoading(true);
@@ -70,6 +72,14 @@ export default function SuppliersPage() {
     setShowForm(true);
   };
 
+  const viewSupplierProducts = async (supplierId: string, supplierName: string) => {
+    try {
+      const data = await api.get<any[]>(`/inventory/supplier-products/${supplierId}`);
+      setSupplierProducts(Array.isArray(data) ? data : []);
+    } catch (err) { console.error(err); }
+    setViewProducts({ supplierId, supplierName });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -107,6 +117,7 @@ export default function SuppliersPage() {
                 {s.address && <p>📍 {s.address}</p>}
               </div>
               <div className="mt-4 flex gap-2">
+                <button onClick={() => viewSupplierProducts(s.id, s.name)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50">Productos</button>
                 <button onClick={() => startEdit(s)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium hover:bg-slate-50">Editar</button>
                 <button onClick={() => handleDelete(s.id)} className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">Eliminar</button>
               </div>
@@ -151,6 +162,39 @@ export default function SuppliersPage() {
                 <button onClick={handleSave} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white">Guardar</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {viewProducts && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Productos de {viewProducts.supplierName}</h2>
+                <p className="text-sm text-slate-500">{supplierProducts.length} productos asignados</p>
+              </div>
+              <button onClick={() => setViewProducts(null)} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm">Cerrar</button>
+            </div>
+            {supplierProducts.length === 0 ? (
+              <p className="py-6 text-center text-sm text-slate-400">Este proveedor no tiene productos asignados</p>
+            ) : (
+              <div className="space-y-3">
+                {supplierProducts.map((ps: any) => (
+                  <div key={ps.id} className="flex items-center gap-3 rounded-lg border border-slate-50 p-3">
+                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                      <img src={ps.product?.images?.[0] || '/placeholder.svg'} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-medium">{ps.product?.name}</p>
+                      <p className="text-xs text-slate-500">SKU: {ps.product?.sku || '-'} · Stock: {ps.product?.stock}</p>
+                    </div>
+                    {ps.unit_cost && <span className="text-sm font-semibold">${ps.unit_cost.toLocaleString('es-CL')}</span>}
+                    {ps.is_preferred && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">Principal</span>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
