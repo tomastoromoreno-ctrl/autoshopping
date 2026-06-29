@@ -13,6 +13,7 @@ interface Banner {
   title: string;
   subtitle?: string;
   image_url: string;
+  canvas_json?: string;
   bg_color?: string;
   text_color?: string;
   sort_order: number;
@@ -30,34 +31,23 @@ function compressImage(dataUrl: string, maxWidth = 1200, quality = 0.8): Promise
           let w = img.naturalWidth || img.width;
           let h = img.naturalHeight || img.height;
           if (w <= 0 || h <= 0) return reject(new Error(`Dimensiones inválidas: ${w}x${h}`));
-          if (w > maxWidth) {
-            h = Math.round((h * maxWidth) / w);
-            w = maxWidth;
-          }
+          if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext('2d');
-          if (!ctx) return reject(new Error('No se pudo crear contexto 2D'));
+          if (!ctx) return reject(new Error('No se pudo crear contexto'));
           ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, w, h);
           ctx.drawImage(img, 0, 0, w, h);
-          canvas.toBlob(
-            (blob) => {
-              if (blob && blob.size > 0) resolve(blob);
-              else reject(new Error('Blob vacío al comprimir'));
-            },
-            'image/jpeg',
-            quality,
-          );
-        } catch (e: any) {
-          reject(new Error('Error dibujando en canvas: ' + e.message));
-        }
+          canvas.toBlob((blob) => {
+            if (blob && blob.size > 0) resolve(blob);
+            else reject(new Error('Blob vacío'));
+          }, 'image/jpeg', quality);
+        } catch (e: any) { reject(e); }
       };
-      img.onerror = () => reject(new Error('No se pudo cargar la imagen del canvas'));
+      img.onerror = () => reject(new Error('No se pudo cargar imagen'));
       img.src = dataUrl;
-    } catch (e: any) {
-      reject(new Error('Error inicial: ' + e.message));
-    }
+    } catch (e: any) { reject(e); }
   });
 }
 
@@ -67,13 +57,10 @@ function dataUrlToBlob(dataUrl: string): Promise<Blob> {
       const parts = dataUrl.split(',');
       const mime = parts[0].match(/:(.*?);/)?.[1] || 'image/png';
       const binary = atob(parts[1]);
-      const len = binary.length;
-      const arr = new Uint8Array(len);
-      for (let i = 0; i < len; i++) arr[i] = binary.charCodeAt(i);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
       resolve(new Blob([arr], { type: mime }));
-    } catch (e: any) {
-      reject(new Error('Error convirtiendo dataUrl: ' + e.message));
-    }
+    } catch (e: any) { reject(e); }
   });
 }
 
@@ -96,7 +83,7 @@ export default function BannerEditorPage() {
   }, []);
 
   useEffect(() => {
-    if (editId) {
+    if (editId && existingBanners.length > 0) {
       const found = existingBanners.find((b) => b.id === editId);
       if (found) setSlot(found.sort_order || 1);
     }
@@ -105,16 +92,15 @@ export default function BannerEditorPage() {
   const occupiedSlots = existingBanners.map((b) => b.sort_order);
   const currentBanner = editId ? existingBanners.find((b) => b.id === editId) : null;
 
-  const handleSave = async (dataUrl: string) => {
+  const handleSave = async (payload: { dataUrl: string; canvasJson: string }) => {
     setSaving(true);
     try {
       let blob: Blob;
       try {
-        blob = await compressImage(dataUrl, 1200, 0.8);
+        blob = await compressImage(payload.dataUrl, 1200, 0.8);
       } catch {
-        blob = await dataUrlToBlob(dataUrl);
+        blob = await dataUrlToBlob(payload.dataUrl);
       }
-
       if (!blob || blob.size === 0) throw new Error('Imagen vacía');
 
       const ext = blob.type.includes('jpeg') ? 'jpg' : 'png';
@@ -129,6 +115,7 @@ export default function BannerEditorPage() {
       if (currentBanner) {
         await api.patch(`/banners/${currentBanner.id}`, {
           image_url: uploadRes.url,
+          canvas_json: payload.canvasJson,
           sort_order: slot,
         });
       } else {
@@ -136,6 +123,7 @@ export default function BannerEditorPage() {
           title: `Banner ${slot}`,
           subtitle: '',
           image_url: uploadRes.url,
+          canvas_json: payload.canvasJson,
           bg_color: '#2563eb',
           text_color: '#ffffff',
           sort_order: slot,
@@ -170,39 +158,26 @@ export default function BannerEditorPage() {
 
       <div className="border-b border-slate-200 bg-white px-4 sm:px-6 py-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-sm font-medium text-slate-600">Slot del carrusel:</span>
+          <span className="text-sm font-medium text-slate-600">Slot:</span>
           {[1, 2, 3, 4, 5].map((s) => {
-            const isOccupied = occupiedSlots.includes(s) && !(editId && currentBanner?.sort_order === s);
-            const isCurrent = editId ? currentBanner?.sort_order === s : slot === s;
+            const occupied = occupiedSlots.includes(s) && !(editId && currentBanner?.sort_order === s);
+            const active = editId ? currentBanner?.sort_order === s : slot === s;
             return (
-              <button
-                key={s}
-                onClick={() => {
-                  if (!isOccupied || isCurrent) setSlot(s);
-                }}
-                className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
-                  isCurrent
-                    ? 'bg-primary text-white'
-                    : isOccupied
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
+              <button key={s} onClick={() => { if (!occupied || active) setSlot(s); }}
+                className={`w-9 h-9 rounded-lg text-sm font-bold transition ${active ? 'bg-primary text-white' : occupied ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {s}
               </button>
             );
           })}
-          <span className="text-xs text-slate-400">
-            {existingBanners.length}/5
-          </span>
+          <span className="text-xs text-slate-400">{existingBanners.length}/5</span>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
         <BannerEditor
           onSave={handleSave}
-          initialImageUrl={currentBanner?.image_url}
           initialBg={currentBanner?.bg_color || '#2563eb'}
+          initialCanvasJson={currentBanner?.canvas_json}
         />
       </div>
     </div>

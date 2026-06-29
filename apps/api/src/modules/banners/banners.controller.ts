@@ -21,6 +21,10 @@ class CreateBannerDto {
 
   @IsString()
   @IsOptional()
+  canvas_json?: string;
+
+  @IsString()
+  @IsOptional()
   link_url?: string;
 
   @IsString()
@@ -56,6 +60,10 @@ class UpdateBannerDto {
   @IsString()
   @IsOptional()
   image_url?: string;
+
+  @IsString()
+  @IsOptional()
+  canvas_json?: string;
 
   @IsString()
   @IsOptional()

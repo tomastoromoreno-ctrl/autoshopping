@@ -8,25 +8,39 @@ export class BannersService {
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
   ) {}
 
-  async create(tenantId: string, dto: {
-    title: string;
-    subtitle?: string;
-    image_url?: string;
-    link_url?: string;
-    btn_text?: string;
-    bg_color?: string;
-    text_color?: string;
-    sort_order?: number;
-    is_active?: boolean;
-  }) {
+  private async insertWithFallback(payload: any) {
     const { data, error } = await this.supabase
       .from('store_banners')
-      .insert({ tenant_id: tenantId, ...dto })
+      .insert(payload)
       .select()
       .single();
-
     if (error) throw new BadRequestException(error.message);
     return data;
+  }
+
+  private async updateWithFallback(id: string, tenantId: string, dto: any) {
+    const { data, error } = await this.supabase
+      .from('store_banners')
+      .update(dto)
+      .eq('id', id)
+      .eq('tenant_id', tenantId)
+      .select()
+      .single();
+    if (error) throw new BadRequestException(error.message);
+    if (!data) throw new NotFoundException('Banner no encontrado');
+    return data;
+  }
+
+  async create(tenantId: string, dto: any) {
+    try {
+      return await this.insertWithFallback({ tenant_id: tenantId, ...dto });
+    } catch (e: any) {
+      if (dto.canvas_json && e.message?.includes('column')) {
+        delete dto.canvas_json;
+        return await this.insertWithFallback({ tenant_id: tenantId, ...dto });
+      }
+      throw e;
+    }
   }
 
   async list(tenantId: string) {
@@ -35,7 +49,6 @@ export class BannersService {
       .select('*')
       .eq('tenant_id', tenantId)
       .order('sort_order', { ascending: true });
-
     if (error) throw new BadRequestException(error.message);
     return data || [];
   }
@@ -47,33 +60,20 @@ export class BannersService {
       .eq('tenant_id', tenantId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true });
-
     if (error) throw new BadRequestException(error.message);
     return data || [];
   }
 
-  async update(id: string, tenantId: string, dto: {
-    title?: string;
-    subtitle?: string;
-    image_url?: string;
-    link_url?: string;
-    btn_text?: string;
-    bg_color?: string;
-    text_color?: string;
-    sort_order?: number;
-    is_active?: boolean;
-  }) {
-    const { data, error } = await this.supabase
-      .from('store_banners')
-      .update(dto)
-      .eq('id', id)
-      .eq('tenant_id', tenantId)
-      .select()
-      .single();
-
-    if (error) throw new BadRequestException(error.message);
-    if (!data) throw new NotFoundException('Banner no encontrado');
-    return data;
+  async update(id: string, tenantId: string, dto: any) {
+    try {
+      return await this.updateWithFallback(id, tenantId, dto);
+    } catch (e: any) {
+      if (dto.canvas_json && e.message?.includes('column')) {
+        delete dto.canvas_json;
+        return await this.updateWithFallback(id, tenantId, dto);
+      }
+      throw e;
+    }
   }
 
   async delete(id: string, tenantId: string) {
@@ -82,7 +82,6 @@ export class BannersService {
       .delete()
       .eq('id', id)
       .eq('tenant_id', tenantId);
-
     if (error) throw new BadRequestException(error.message);
     return { message: 'Banner eliminado' };
   }
@@ -94,7 +93,6 @@ export class BannersService {
       .eq('id', id)
       .eq('tenant_id', tenantId)
       .single();
-
     if (fetchError || !current) throw new NotFoundException('Banner no encontrado');
 
     const { data, error } = await this.supabase
@@ -104,7 +102,6 @@ export class BannersService {
       .eq('tenant_id', tenantId)
       .select()
       .single();
-
     if (error) throw new BadRequestException(error.message);
     return data;
   }
