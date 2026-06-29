@@ -1,12 +1,20 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class UploadService {
+  private supabaseUrl: string;
+  private serviceKey: string;
+
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
-  ) {}
+    private readonly config: ConfigService,
+  ) {
+    this.supabaseUrl = this.config.getOrThrow('SUPABASE_URL');
+    this.serviceKey = this.config.getOrThrow('SUPABASE_SERVICE_KEY');
+  }
 
   async uploadImage(
     tenantId: string,
@@ -146,21 +154,25 @@ export class UploadService {
 
     const ext = filename.split('.').pop() || 'png';
     const filePath = `tenants/${tenantId}/${folder}/${fixedName}.${ext}`;
+    const url = `${this.supabaseUrl}/storage/v1/object/store-assets/${filePath}?upsert=true`;
 
-    const { error } = await this.supabase.storage
-      .from('store-assets')
-      .upload(filePath, file, {
-        contentType: mimetype,
-        upsert: true,
-      });
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.serviceKey}`,
+        'Content-Type': mimetype,
+        'x-upsert': 'true',
+      },
+      body: file,
+    });
 
-    if (error) throw new BadRequestException(`Error subiendo archivo: ${error.message}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      throw new BadRequestException(`Error subiendo archivo: ${err.message || res.statusText}`);
+    }
 
-    const { data: urlData } = this.supabase.storage
-      .from('store-assets')
-      .getPublicUrl(filePath);
-
-    return { url: urlData.publicUrl, path: filePath };
+    const publicUrl = `${this.supabaseUrl}/storage/v1/object/public/store-assets/${filePath}`;
+    return { url: publicUrl, path: filePath };
   }
 
   async deleteImage(path: string): Promise<void> {
