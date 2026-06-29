@@ -43,6 +43,7 @@ export default function BannerEditor({
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const historyRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number>(-1);
+  const imageLoadedRef = useRef<string | null>(null);
 
   const [canvasSize, setCanvasSize] = useState({ width: initialWidth, height: initialHeight });
   const [selectedObj, setSelectedObj] = useState<fabric.Object | null>(null);
@@ -57,7 +58,20 @@ export default function BannerEditor({
   const [historyLength, setHistoryLength] = useState(0);
   const [historyIdx, setHistoryIdx] = useState(-1);
 
-  // Initialize canvas
+  // Save history helper (stable ref)
+  const saveHistory = useCallback(() => {
+    const c = fabricRef.current;
+    if (!c) return;
+    const json = JSON.stringify(c.toJSON());
+    const idx = historyIndexRef.current;
+    historyRef.current = historyRef.current.slice(0, idx + 1);
+    historyRef.current.push(json);
+    historyIndexRef.current = historyRef.current.length - 1;
+    setHistoryLength(historyRef.current.length);
+    setHistoryIdx(historyIndexRef.current);
+  }, []);
+
+  // Initialize canvas ONCE
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
 
@@ -74,80 +88,21 @@ export default function BannerEditor({
     });
 
     fabricRef.current = c;
+    imageLoadedRef.current = null;
 
     c.on('selection:created', (e) => setSelectedObj(e.selected?.[0] || null));
     c.on('selection:updated', (e) => setSelectedObj(e.selected?.[0] || null));
     c.on('selection:cleared', () => setSelectedObj(null));
 
-    if (initialImageUrl) {
-      fabric.FabricImage.fromURL(initialImageUrl).then((img) => {
-        const scale = Math.min(canvasSize.width / (img.width || 1), canvasSize.height / (img.height || 1));
-        img.scale(scale);
-        img.set({ left: canvasSize.width / 2, top: canvasSize.height / 2, originX: 'center', originY: 'center' });
-        c.add(img);
-        c.renderAll();
-        saveHistory();
-      }).catch(() => {});
-    } else {
-      saveHistory();
-    }
-    return () => { c.dispose(); };
-  }, [canvasSize]);
+    saveHistory();
 
-  // History
-  const saveHistory = useCallback(() => {
-    const c = fabricRef.current;
-    if (!c) return;
-    const json = JSON.stringify(c.toJSON());
-    const idx = historyIndexRef.current;
-    historyRef.current = historyRef.current.slice(0, idx + 1);
-    historyRef.current.push(json);
-    historyIndexRef.current = historyRef.current.length - 1;
-    setHistoryLength(historyRef.current.length);
-    setHistoryIdx(historyIndexRef.current);
-  }, []);
-
-  const undo = useCallback(() => {
-    const c = fabricRef.current;
-    if (!c || historyIndexRef.current <= 0) return;
-    historyIndexRef.current--;
-    c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
-      c.renderAll();
-      setHistoryIdx(historyIndexRef.current);
-    });
-  }, []);
-
-  const redo = useCallback(() => {
-    const c = fabricRef.current;
-    if (!c || historyIndexRef.current >= historyRef.current.length - 1) return;
-    historyIndexRef.current++;
-    c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
-      c.renderAll();
-      setHistoryIdx(historyIndexRef.current);
-    });
-  }, []);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
-      if (e.ctrlKey && e.key === 'y') { e.preventDefault(); redo(); }
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        const c = fabricRef.current;
-        const obj = c?.getActiveObject();
-        if (c && obj) {
-          c.remove(obj);
-          c.renderAll();
-          setSelectedObj(null);
-          saveHistory();
-        }
-      }
+    return () => {
+      c.dispose();
+      fabricRef.current = null;
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo, saveHistory]);
+  }, []); // ← empty deps: create canvas ONCE
 
-  // Resize handler
+  // Resize canvas display on window resize
   useEffect(() => {
     const onResize = () => {
       const c = fabricRef.current;
@@ -163,15 +118,111 @@ export default function BannerEditor({
     return () => window.removeEventListener('resize', onResize);
   }, [canvasSize]);
 
+  // Resize canvas when canvasSize changes (without re-creating)
+  useEffect(() => {
+    const c = fabricRef.current;
+    const container = containerRef.current;
+    if (!c || !container) return;
+    const maxW = container.clientWidth - 32;
+    const s = Math.min(maxW / canvasSize.width, 0.8);
+    setScale(s);
+    c.setDimensions({ width: canvasSize.width * s, height: canvasSize.height * s });
+    c.backgroundColor = bgColor;
+    c.renderAll();
+  }, [canvasSize, bgColor]);
+
+  // Load initial image when it becomes available
+  useEffect(() => {
+    if (!initialImageUrl || imageLoadedRef.current === initialImageUrl) return;
+    const c = fabricRef.current;
+    if (!c) return;
+
+    imageLoadedRef.current = initialImageUrl;
+
+    // Clear canvas before loading new image
+    c.getObjects().forEach((obj) => c.remove(obj));
+
+    fabric.FabricImage.fromURL(initialImageUrl)
+      .then((img) => {
+        // Scale image to fit canvas logical dimensions
+        const scaleX = canvasSize.width / (img.width || 1);
+        const scaleY = canvasSize.height / (img.height || 1);
+        const fitScale = Math.min(scaleX, scaleY, 1);
+
+        img.scale(fitScale);
+        img.set({
+          left: canvasSize.width / 2,
+          top: canvasSize.height / 2,
+          originX: 'center',
+          originY: 'center',
+          selectable: true,
+          evented: true,
+        });
+
+        c.add(img);
+        c.renderAll();
+        saveHistory();
+      })
+      .catch((err) => {
+        console.error('Failed to load banner image:', err);
+      });
+  }, [initialImageUrl, canvasSize.width, canvasSize.height, saveHistory]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        const c = fabricRef.current;
+        const obj = c?.getActiveObject();
+        if (c && obj && !(obj instanceof fabric.IText && (obj as fabric.IText).isEditing)) {
+          c.remove(obj);
+          c.renderAll();
+          setSelectedObj(null);
+          saveHistory();
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [saveHistory]);
+
+  // Ctrl+Z / Ctrl+Y
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        const c = fabricRef.current;
+        if (!c || historyIndexRef.current <= 0) return;
+        historyIndexRef.current--;
+        c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
+          c.renderAll();
+          setHistoryIdx(historyIndexRef.current);
+        });
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        const c = fabricRef.current;
+        if (!c || historyIndexRef.current >= historyRef.current.length - 1) return;
+        historyIndexRef.current++;
+        c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
+          c.renderAll();
+          setHistoryIdx(historyIndexRef.current);
+        });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   // --- Actions ---
   const addText = () => {
     const c = fabricRef.current;
     if (!c) return;
     const text = new fabric.IText('Texto aquí', {
-      left: canvasSize.width * scale * 0.1,
-      top: canvasSize.height * scale * 0.4,
-      fontSize: fontSize,
-      fontFamily: fontFamily,
+      left: canvasSize.width * 0.1,
+      top: canvasSize.height * 0.4,
+      fontSize,
+      fontFamily,
       fill: textColor,
       fontWeight: bold ? 'bold' : 'normal',
       fontStyle: italic ? 'italic' : 'normal',
@@ -192,12 +243,9 @@ export default function BannerEditor({
       imgEl.onload = () => {
         const c = fabricRef.current;
         if (!c) return;
-        const img = new fabric.FabricImage(imgEl, {
-          left: 20,
-          top: 20,
-        });
-        const maxW = canvasSize.width * scale * 0.5;
-        const maxH = canvasSize.height * scale * 0.5;
+        const img = new fabric.FabricImage(imgEl, { left: 20, top: 20 });
+        const maxW = canvasSize.width * 0.5;
+        const maxH = canvasSize.height * 0.5;
         const ratio = Math.min(maxW / imgEl.width, maxH / imgEl.height, 1);
         img.scale(ratio);
         c.add(img);
@@ -216,8 +264,8 @@ export default function BannerEditor({
     if (!c) return;
     let obj: fabric.Object;
     const common = {
-      left: canvasSize.width * scale * 0.3,
-      top: canvasSize.height * scale * 0.3,
+      left: canvasSize.width * 0.3,
+      top: canvasSize.height * 0.3,
       fill: textColor,
       stroke: '',
       strokeWidth: 0,
@@ -229,8 +277,8 @@ export default function BannerEditor({
       obj = new fabric.Circle({ ...common, radius: 60 });
     } else {
       obj = new fabric.Line([0, 0, 200, 0], {
-        left: canvasSize.width * scale * 0.3,
-        top: canvasSize.height * scale * 0.5,
+        left: canvasSize.width * 0.3,
+        top: canvasSize.height * 0.5,
         stroke: textColor,
         strokeWidth: 4,
       });
@@ -298,17 +346,12 @@ export default function BannerEditor({
   const handleExport = () => {
     const c = fabricRef.current;
     if (!c) return;
-    // Temporarily remove selection and render at full size
     c.discardActiveObject();
     c.renderAll();
 
-    // Create a temporary canvas at full resolution
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvasSize.width;
-    tempCanvas.height = canvasSize.height;
-    const tempCtx = tempCanvas.getContext('2d')!;
-
-    // Scale the fabric canvas to full size
+    // multiplier = desired output px / display px
+    // display px = logical * scale, so multiplier = logical / (logical * scale) = 1/scale
+    // This gives us an output at canvasSize.width × canvasSize.height
     const dataUrl = c.toDataURL({
       format: 'png',
       quality: 1,
@@ -320,7 +363,6 @@ export default function BannerEditor({
 
   const changeSize = (w: number, h: number) => {
     setCanvasSize({ width: w, height: h });
-    // Re-initialize will happen via useEffect
   };
 
   const isTextSelected = selectedObj instanceof fabric.IText || selectedObj instanceof fabric.Textbox;
@@ -383,7 +425,7 @@ export default function BannerEditor({
         {activeTab === 'image' && (
           <div className="space-y-3">
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 hover:border-primary hover:text-primary">
-              📷 Subir Imagen
+              Subir Imagen
               <input type="file" accept="image/*" onChange={addImage} className="hidden" />
             </label>
             <p className="text-xs text-slate-400">La imagen se agregará al centro y podrás redimensionarla</p>
@@ -430,7 +472,7 @@ export default function BannerEditor({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-500">Tamaño del banner</label>
-              <select onChange={(e) => { const [w, h] = e.target.value.split('x').map(Number); changeSize(w, h); }} className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm">
+              <select value={`${canvasSize.width}x${canvasSize.height}`} onChange={(e) => { const [w, h] = e.target.value.split('x').map(Number); changeSize(w, h); }} className="w-full rounded-lg border border-slate-200 px-2 py-1.5 text-sm">
                 {BANNER_SIZES.map((s) => <option key={s.label} value={`${s.width}x${s.height}`}>{s.label}</option>)}
               </select>
             </div>
@@ -452,17 +494,33 @@ export default function BannerEditor({
       <div ref={containerRef} className="flex flex-1 flex-col items-center overflow-auto bg-slate-50 p-4">
         {/* Toolbar */}
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm">
-          <button onClick={undo} disabled={historyIdx <= 0} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30" title="Deshacer (Ctrl+Z)">
+          <button onClick={() => {
+            const c = fabricRef.current;
+            if (!c || historyIndexRef.current <= 0) return;
+            historyIndexRef.current--;
+            c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
+              c.renderAll();
+              setHistoryIdx(historyIndexRef.current);
+            });
+          }} disabled={historyIdx <= 0} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30" title="Deshacer (Ctrl+Z)">
             ↩️
           </button>
-          <button onClick={redo} disabled={historyIdx >= historyLength - 1} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30" title="Rehacer (Ctrl+Y)">
+          <button onClick={() => {
+            const c = fabricRef.current;
+            if (!c || historyIndexRef.current >= historyRef.current.length - 1) return;
+            historyIndexRef.current++;
+            c.loadFromJSON(JSON.parse(historyRef.current[historyIndexRef.current])).then(() => {
+              c.renderAll();
+              setHistoryIdx(historyIndexRef.current);
+            });
+          }} disabled={historyIdx >= historyLength - 1} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 disabled:opacity-30" title="Rehacer (Ctrl+Y)">
             ↪️
           </button>
           <div className="mx-1 h-6 w-px bg-slate-200" />
           <span className="text-xs text-slate-400">{canvasSize.width}×{canvasSize.height}</span>
           <div className="mx-1 h-6 w-px bg-slate-200" />
           <button onClick={handleExport} className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary/90">
-            💾 Guardar Banner
+            Guardar Banner
           </button>
         </div>
 
