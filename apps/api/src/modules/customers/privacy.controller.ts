@@ -44,4 +44,39 @@ export class PrivacyController {
       req.headers['user-agent'],
     );
   }
+
+  // ==================== LEY 21.719 - NUEVOS DERECHOS ====================
+
+  @Get('portability')
+  @UseGuards(CustomerGuard)
+  async portability(@Req() req: any) {
+    return this.privacyService.portability(req.customer.id, req.customer.tenant_id);
+  }
+
+  @Post('blocking')
+  @UseGuards(CustomerGuard)
+  async blocking(@Req() req: any, @Body() body: { reason: string }) {
+    return this.privacyService.blocking(req.customer.id, req.customer.tenant_id, body.reason);
+  }
+
+  @Post('unblock')
+  @UseGuards(CustomerGuard)
+  async unblock(@Req() req: any) {
+    return this.privacyService.unblock(req.customer.id, req.customer.tenant_id);
+  }
+
+  @Post('opposition')
+  @UseGuards(CustomerGuard)
+  async opposition(
+    @Req() req: any,
+    @Body() body: { marketing?: boolean; profiling?: boolean; other?: string },
+  ) {
+    return this.privacyService.opposition(req.customer.id, req.customer.tenant_id, body);
+  }
+
+  @Get('subject-requests')
+  @UseGuards(CustomerGuard)
+  async getSubjectRequests(@Req() req: any) {
+    return this.privacyService.getSubjectRequests(req.customer.id, req.customer.tenant_id);
+  }
 }

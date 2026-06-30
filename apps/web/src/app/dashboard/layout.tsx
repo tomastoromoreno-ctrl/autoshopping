@@ -34,6 +34,7 @@ const navItems = [
   { href: '/dashboard/users', label: 'Usuarios', icon: '♢', requiredPermission: 'users.read' },
   { href: '/dashboard/permissions', label: 'Roles y Permisos', icon: '🔐', requiredPermission: 'users.write' },
   { href: '/dashboard/legal', label: 'Documentos Legales', icon: '📋', requiredPermission: 'legal.read' },
+  { href: '/dashboard/privacy', label: 'Protección Datos', icon: '🛡', requiredPermission: 'legal.read' },
   { href: '/dashboard/backups', label: 'Backups', icon: '💾', requiredPermission: 'backups.read' },
   { href: '/dashboard/developer', label: 'Desarrolladores', icon: '🛠', requiredPermission: 'config.read' },
   { href: '/dashboard/international', label: 'Idiomas y Monedas', icon: '🌍', requiredPermission: 'config.read' },

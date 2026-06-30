@@ -30,6 +30,7 @@ import { SuperAdminModule } from './modules/superadmin/superadmin.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
+import { DataProtectionModule } from './modules/data-protection/data-protection.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
     BillingModule,
     CustomersModule,
     InventoryModule,
+    DataProtectionModule,
   ],
 })
 export class AppModule {}
