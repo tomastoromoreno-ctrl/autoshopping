@@ -192,7 +192,11 @@ export default function RegisterPage() {
                   <Link href={`/store/${subdomain}/privacy`} target="_blank" className="text-blue-600 hover:underline font-medium">
                     Política de Privacidad
                   </Link>{' '}
-                  y los Términos de Uso. *
+                  y los{' '}
+                  <Link href="/terminos" target="_blank" className="text-blue-600 hover:underline font-medium">
+                    Términos de Uso
+                  </Link>{' '}
+                  *
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Manual de Cumplimiento - Ley 21.719</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; color: #1e293b; background: #f8fafc; line-height: 1.6; }
+  .cover { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); color: #fff; padding: 80px 40px; text-align: center; position: relative; overflow: hidden; }
+  .cover::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 30% 50%, rgba(37,99,235,0.15) 0%, transparent 50%); }
+  .cover h1 { font-size: 2.5em; font-weight: 800; margin-bottom: 8px; position: relative; }
+  .cover .subtitle { font-size: 1.1em; color: #94a3b8; margin-bottom: 24px; position: relative; }
+  .cover .badge { display: inline-block; background: rgba(37,99,235,0.2); border: 1px solid rgba(37,99,235,0.4); padding: 6px 20px; border-radius: 20px; font-size: 0.85em; color: #60a5fa; position: relative; }
+  .cover .meta { margin-top: 40px; font-size: 0.85em; color: #64748b; position: relative; }
+  .page { max-width: 900px; margin: 0 auto; padding: 40px 32px; background: #fff; }
+  .page-header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+  .page-header .number { font-size: 0.85em; color: #94a3b8; font-weight: 600; }
+  h2 { font-size: 1.5em; font-weight: 700; color: #0f172a; margin: 32px 0 16px; }
+  h2:first-child { margin-top: 0; }
+  h3 { font-size: 1.1em; font-weight: 600; color: #1e293b; margin: 24px 0 12px; }
+  h4 { font-size: 0.95em; font-weight: 600; color: #334155; margin: 16px 0 8px; }
+  p { margin: 0 0 12px; color: #475569; font-size: 0.95em; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin: 6px 0; color: #475569; font-size: 0.95em; }
+  .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+  .card-blue { background: #eff6ff; border-color: #bfdbfe; }
+  .card-green { background: #f0fdf4; border-color: #bbf7d0; }
+  .card-amber { background: #fffbeb; border-color: #fde68a; }
+  .card-red { background: #fef2f2; border-color: #fecaca; }
+  .card-title { font-weight: 700; font-size: 0.9em; margin-bottom: 8px; color: #0f172a; }
+  code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #2563eb; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; font-size: 0.85em; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9em; }
+  th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-weight: 600; color: #0f172a; border: 1px solid #e2e8f0; }
+  td { padding: 10px 12px; border: 1px solid #e2e8f0; color: #475569; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75em; font-weight: 600; }
+  .tag-auto { background: #dcfce7; color: #15803d; }
+  .tag-manual { background: #fef3c7; color: #b45309; }
+  .tag-optional { background: #dbeafe; color: #1d4ed8; }
+  .step { display: flex; gap: 16px; margin: 16px 0; padding: 16px; background: #f8fafc; border-radius: 12px; border-left: 4px solid #2563eb; }
+  .step-num { width: 32px; height: 32px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9em; flex-shrink: 0; }
+  .step-content { flex: 1; }
+  .step-title { font-weight: 600; font-size: 0.95em; color: #0f172a; margin-bottom: 4px; }
+  .icon { display: inline-block; margin-right: 6px; }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 20px; }
+    .cover { padding: 60px 20px; }
+    .step { break-inside: avoid; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <h1>Manual de Cumplimiento</h1>
+  <div class="subtitle">Ley N° 21.719 de Protección de Datos Personales</div>
+  <div class="badge">Vigencia: 1 de diciembre de 2026</div>
+  <div class="meta">
+    AutoShopping SpA &mdash; Versión 1.0<br>
+    Preparado para dueños de tienda y clientes finales
+  </div>
+</div>
+
+<!-- PÁGINA 1: INTRODUCCIÓN -->
+<div class="page">
+  <div class="page-header">
+    <h2 style="margin:0;font-size:1.2em;">1. Introducción</h2>
+    <span class="number">Página 3</span>
+  </div>
+
+  <p>
+    La <strong>Ley N° 21.719</strong> (publicada el 13 de diciembre de 2024, vigente desde el 1 de diciembre de 2026)
+    moderniza la protección de datos personales en Chile, reemplazando el régimen de la Ley N° 19.628.
+    Esta normativa está alineada con el Reglamento General de Protección de Datos (RGPD) europeo y
+    crea la <strong>Agencia de Protección de Datos Personales (APDP)</strong> como autoridad fiscalizadora,
+    con multas de hasta <strong>20.000 UTM (~$1.400M CLP)</strong>.
+  </p>
+
+  <h3>¿Qué implementamos en AutoShopping?</h3>
+
+  <p>
+    Hemos desarrollado un <strong>módulo completo de cumplimiento</strong> que cubre todos los aspectos
+    de la Ley 21.719. El sistema opera en dos niveles:
+  </p>
+
+  <div class="card card-blue">
+    <div class="card-title">🤖 Automático (sin acción del usuario)</div>
+    <ul>
+      <li>Registro de consentimientos con IP, fecha y agente de usuario</li>
+      <li>Portabilidad de datos en formato JSON estructurado</li>
+      <li>Bloqueo y desbloqueo de datos personales</li>
+      <li>Oposición a marketing y profiling</li>
+      <li>Exportación y eliminación de datos (ARCO)</li>
+      <li>Auditoría de solicitudes de derechos (data_subject_requests)</li>
+      <li>Cifrado TLS en tránsito y AES-256 en reposo</li>
+    </ul>
+  </div>
+
+  <div class="card card-amber">
+    <div class="card-title">👤 Requiere acción del dueño de tienda</div>
+    <ul>
+      <li>Designar un Delegado de Protección de Datos (DPO)</li>
+      <li>Registrar las actividades de tratamiento de datos</li>
+      <li>Gestionar contratos con encargados de tratamiento</li>
+      <li>Notificar brechas de seguridad a la APDP</li>
+      <li>Realizar Evaluaciones de Impacto (DPIA) en actividades de alto riesgo</li>
+      <li>Mantener actualizado el registro de actividades</li>
+    </ul>
+  </div>
+
+  <div class="card card-green">
+    <div class="card-title">🛡️ Derechos del cliente final (ejercicio directo)</div>
+    <ul>
+      <li><strong>Acceso:</strong> Ver sus datos personales en "Mi Cuenta"</li>
+      <li><strong>Rectificación:</strong> Editar nombre, teléfono, dirección</li>
+      <li><strong>Cancelación:</strong> Solicitar eliminación de datos</li>
+      <li><strong>Oposición:</strong> Oponerse a marketing desde "Mis Datos"</li>
+      <li><strong>Portabilidad:</strong> Descargar datos en formato portable</li>
+      <li><strong>Bloqueo:</strong> Bloquear temporalmente el procesamiento</li>
+    </ul>
+  </div>
+</div>
+
+<!-- PÁGINA 2: ARQUITECTURA -->
+<div class="page">
+  <div class="page-header">
+    <h2 style="margin:0;font-size:1.2em;">2. Arquitectura de la Implementación</h2>
+    <span class="number">Página 4</span>
+  </div>
+
+  <h3>2.1 Base de datos (5 nuevas tablas)</h3>
+  <table>
+    <tr><th>Tabla</th><th>Propósito</th><th>Artículo Ley</th></tr>
+    <tr><td><code>processing_activities</code></td><td>Registro de actividades de tratamiento</td><td>Art. 14 ter</td></tr>
+    <tr><td><code>data_breaches</code></td><td>Notificación de brechas de datos</td><td>Art. 14 sexies</td></tr>
+    <tr><td><code>data_processor_contracts</code></td><td>Contratos con encargados de tratamiento</td><td>Art. 8</td></tr>
+    <tr><td><code>data_protection_officers</code></td><td>Delegado de Protección de Datos (DPO)</td><td>Art. 14 quáter</td></tr>
+    <tr><td><code>data_subject_requests</code></td><td>Auditoría de solicitudes ARCO-P-B</td><td>Art. 2</td></tr>
+    <tr><td><code>consent_records</code></td><td>Registro de consentimientos (migración 026)</td><td>Art. 5</td></tr>
+  </table>
+
+  <h3>2.2 Backend (NestJS) — Endpoints implementados</h3>
+  <table>
+    <tr><th>Módulo</th><th>Endpoint</th><th>Función</th></tr>
+    <tr><td><code>DataProtection</code></td><td><code>GET/POST/PATCH/DELETE /data-protection/dpo</code></td><td>CRUD del DPO</td></tr>
+    <tr><td><code>DataProtection</code></td><td><code>GET/POST/PATCH/DELETE /data-protection/activities</code></td><td>CRUD actividades de tratamiento</td></tr>
+    <tr><td><code>DataProtection</code></td><td><code>GET/POST/PATCH /data-protection/breaches</code></td><td>CRUD brechas de datos</td></tr>
+    <tr><td><code>DataProtection</code></td><td><code>GET/POST/PATCH/DELETE /data-protection/processors</code></td><td>CRUD encargados</td></tr>
+    <tr><td><code>DataProtection</code></td><td><code>POST /data-protection/dpia</code></td><td>Evaluación de impacto</td></tr>
+    <tr><td><code>Customers</code></td><td><code>GET /customers/portability</code></td><td>Portabilidad de datos</td></tr>
+    <tr><td><code>Customers</code></td><td><code>POST /customers/blocking</code></td><td>Bloqueo de datos</td></tr>
+    <tr><td><code>Customers</code></td><td><code>POST /customers/unblock</code></td><td>Desbloqueo de datos</td></tr>
+    <tr><td><code>Customers</code></td><td><code>POST /customers/opposition</code></td><td>Oposición al tratamiento</td></tr>
+    <tr><td><code>Customers</code></td><td><code>GET /customers/subject-requests</code></td><td>Historial de solicitudes</td></tr>
+  </table>
+
+  <h3>2.3 Frontend (Next.js) — Páginas nuevas</h3>
+  <table>
+    <tr><th>Ruta</th><th>Usuario</th><th>Qué hace</th></tr>
+    <tr><td><code>/dashboard/privacy</code></td><td>Dueño de tienda</td><td>Gestión completa: DPO, actividades, brechas, encargados</td></tr>
+    <tr><td><code>/store/[subdomain]/account/data</code></td><td>Cliente final</td><td>Portabilidad, bloqueo, oposición, historial ARCO-P-B</td></tr>
+    <tr><td><code>/privacy</code></td><td>Público</td><td>Política de privacidad actualizada Ley 21.719 (16 secciones)</td></tr>
+  </table>
+</div>
+
+<!-- PÁGINA 3: DUEÑO DE TIENDA -->
+<div class="page">
+  <div class="page-header">
+    <h2 style="margin:0;font-size:1.2em;">3. Guía para el Dueño de Tienda</h2>
+    <span class="number">Página 5</span>
+  </div>
+
+  <p>
+    Como dueño de una tienda en AutoShopping, eres el <strong>Responsable del Tratamiento</strong>
+    de los datos de tus clientes. La ley te exige mantener ciertos registros y designar un DPO.
+    Aquí está el paso a paso:
+  </p>
+
+  <!-- PASO 1: DPO -->
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Designar un Delegado de Protección de Datos (DPO)</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Ingresa a <strong>Dashboard → Protección Datos → pestaña DPO</strong>.
+        Completa nombre, email, teléfono del DPO. Puede ser interno o externo.
+        Esto es obligatorio si tratas datos sensibles o haces profiling a gran escala.
+      </p>
+      <div style="margin-top:8px;"><span class="tag tag-manual">Manual</span> <span class="tag tag-optional">Obligatorio en ciertos casos</span></div>
+    </div>
+  </div>
+
+  <!-- PASO 2: Actividades -->
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Registrar las Actividades de Tratamiento</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        En <strong>Dashboard → Protección Datos → pestaña Actividades</strong>, crea un registro
+        por cada finalidad (ej: "Gestión de pedidos", "Marketing", "Envío de boletas").
+        Especifica la <strong>base legal</strong> (consentimiento, ejecución contractual, obligación legal, interés legítimo),
+        las <strong>categorías de datos</strong>, el período de retención y las medidas de seguridad.
+      </p>
+      <div style="margin-top:8px;"><span class="tag tag-manual">Manual</span></div>
+    </div>
+  </div>
+
+  <!-- PASO 3: Encargados -->
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Gestionar Contratos con Encargados</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        En <strong>Dashboard → Protección Datos → pestaña Encargados</strong>, registra los terceros
+        que tratan datos por tu cuenta: servicios de pago (MercadoPago, Transbank),
+        transportistas (Chilexpress, Starken), email marketing, etc.
+        La ley exige un contrato que regule el tratamiento (Art. 8).
+      </p>
+      <div style="margin-top:8px;"><span class="tag tag-manual">Manual</span></div>
+    </div>
+  </div>
+
+  <!-- PASO 4: Brechas -->
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Notificar Brechas de Datos</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Si ocurre una violación de seguridad que afecte datos personales, debes
+        <strong>notificar a la APDP en un plazo máximo de 72 horas</strong>.
+        En <strong>Dashboard → Protección Datos → pestaña Brechas</strong>, crea un registro
+        describiendo el incidente, datos afectados, número de afectados y evaluación de riesgo.
+        Usa el botón "Notificar APDP" para dejar constancia.
+      </p>
+      <div style="margin-top:8px;"><span class="tag tag-manual">Manual</span></div>
+    </div>
+  </div>
+
+  <!-- PASO 5: DPIA -->
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-title">Evaluación de Impacto (DPIA)</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Para actividades de tratamiento que presenten un alto riesgo (datos sensibles,
+        profiling masivo), debes realizar una Evaluación de Impacto. Se registra desde
+        <strong>Dashboard → Protección Datos</strong> completando los campos de riesgos,
+        mitigación y resultado en cada actividad.
+      </p>
+      <div style="margin-top:8px;"><span class="tag tag-manual">Manual</span> <span class="tag tag-optional">Solo alto riesgo</span></div>
+    </div>
+  </div>
+
+  <!-- RESUMEN AUTOMÁTICO -->
+  <div class="card card-green">
+    <div class="card-title">✅ Funcionalidades automáticas para el dueño de tienda</div>
+    <ul>
+      <li>Registro de consentimiento con IP + user-agent por cada cliente</li>
+      <li>Endpoint de portabilidad de datos disponible para clientes</li>
+      <li>Endpoint de bloqueo/desbloqueo de datos</li>
+      <li>Endpoint de oposición al tratamiento</li>
+      <li>Auditoría automática de todas las solicitudes ARCO-P-B</li>
+      <li>Política de privacidad actualizada con todos los requisitos</li>
+      <li>Cifrado TLS y AES-256 en toda la plataforma</li>
+    </ul>
+  </div>
+</div>
+
+<!-- PÁGINA 4: CLIENTE FINAL -->
+<div class="page">
+  <div class="page-header">
+    <h2 style="margin:0;font-size:1.2em;">4. Guía para el Cliente Final</h2>
+    <span class="number">Página 6</span>
+  </div>
+
+  <p>
+    Como cliente de una tienda en AutoShopping, tienes <strong>6 derechos</strong> sobre tus datos
+    personales. La mayoría los puedes ejercer directamente desde tu cuenta.
+  </p>
+
+  <h3>Tus derechos ARCO-P-B</h3>
+
+  <table>
+    <tr><th>Derecho</th><th>¿Qué significa?</th><th>Cómo ejercerlo</th><th>Automático</th></tr>
+    <tr>
+      <td><strong>Acceso</strong></td>
+      <td>Saber qué datos tenemos de ti</td>
+      <td>Dashboard → Mi Cuenta → "Mis Datos" / Exportar</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+    <tr>
+      <td><strong>Rectificación</strong></td>
+      <td>Corregir datos incorrectos</td>
+      <td>Dashboard → Mi Cuenta → Editar perfil</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+    <tr>
+      <td><strong>Cancelación</strong></td>
+      <td>Eliminar tus datos personales</td>
+      <td>Dashboard → Mi Cuenta → "Mis Datos" → Solicitar Eliminación</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+    <tr>
+      <td><strong>Oposición</strong></td>
+      <td>Negarte a que usen tus datos para marketing</td>
+      <td>Dashboard → Mi Cuenta → "Mis Datos" → Oposición</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+    <tr>
+      <td><strong>Portabilidad</strong></td>
+      <td>Recibir tus datos en formato reutilizable</td>
+      <td>Dashboard → Mi Cuenta → "Mis Datos" → Portabilidad</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+    <tr>
+      <td><strong>Bloqueo</strong></td>
+      <td>Suspender temporalmente el procesamiento</td>
+      <td>Dashboard → Mi Cuenta → "Mis Datos" → Bloqueo</td>
+      <td><span class="tag tag-auto">Sí</span></td>
+    </tr>
+  </table>
+
+  <h3>Paso a paso: Ejercer tus derechos</h3>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Inicia sesión en tu cuenta</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Ve a la tienda donde compraste, haz clic en "Mi Cuenta" e inicia sesión.
+        Si no tienes cuenta, regístrate con tu email.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Ve a "Mis Datos"</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Dentro de Mi Cuenta, haz clic en "Mis Datos y Privacidad".
+        Verás todas las opciones de privacidad disponibles.
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Elige tu acción</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        <strong>Exportar datos:</strong> Descarga un JSON con tus datos personales, pedidos y consintimientos.<br>
+        <strong>Portabilidad:</strong> Descarga tus datos en formato portable estructurado (Ley 21.719).<br>
+        <strong>Bloquear:</strong> Activa el bloqueo temporal — tus datos no se procesarán hasta que lo levantes.<br>
+        <strong>Oponerse:</strong> Activa la oposición a marketing — dejarás de recibir comunicaciones promocionales.<br>
+        <strong>Eliminar:</strong> Solicita la eliminación completa de tus datos (se anonimizan pedidos por ley tributaria).
+      </p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Contacta al DPO si necesitas ayuda</div>
+      <p style="margin:4px 0 0;font-size:0.9em;">
+        Cada tienda tiene un DPO designado. El plazo legal de respuesta es de
+        <strong>máximo 30 días corridos</strong>. Si no recibes respuesta, puedes
+        recurrir a la <strong>Agencia de Protección de Datos Personales (APDP)</strong>.
+      </p>
+    </div>
+  </div>
+
+  <div class="card card-amber">
+    <div class="card-title">⚠️ Importante para los clientes</div>
+    <ul>
+      <li>El <strong>consentimiento de marketing</strong> es opcional y reversible en cualquier momento</li>
+      <li>La <strong>eliminación de datos</strong> conserva los pedidos anonimizados por 6 años (obligación tributaria SII)</li>
+      <li>El <strong>bloqueo</strong> no elimina tus datos, solo detiene su procesamiento</li>
+      <li>Tus datos están protegidos con <strong>cifrado TLS</strong> en tránsito y <strong>AES-256</strong> en reposo</li>
+      <li>Nunca vendemos ni comercializamos tus datos personales</li>
+    </ul>
+  </div>
+
+  <div class="card card-blue" style="margin-top:24px;">
+    <div class="card-title">📝 Resumen Legal</div>
+    <table>
+      <tr><th>Concepto</th><th>Ley 19.628 (anterior)</th><th>Ley 21.719 (actual)</th></tr>
+      <tr><td>Vigencia</td><td>Hasta 30 nov 2026</td><td><strong>Desde 1 dic 2026</strong></td></tr>
+      <tr><td>Autoridad</td><td>No existía</td><td><strong>APDP</strong> (Agencia de Protección de Datos)</td></tr>
+      <tr><td>Multa máxima</td><td>~50 UTM (vía judicial)</td><td><strong>20.000 UTM</strong> (~$1.400M CLP)</td></tr>
+      <tr><td>Derechos del titular</td><td>4 (ARCO)</td><td><strong>6</strong> (ARCO + Portabilidad + Bloqueo)</td></tr>
+      <tr><td>Plazo de respuesta</td><td>2 días hábiles</td><td><strong>30 días corridos</strong></td></tr>
+      <tr><td>Política de privacidad</td><td>Opcional</td><td><strong>Obligatoria</strong></td></tr>
+      <tr><td>Notificación de brechas</td><td>No obligatoria</td><td><strong>Obligatoria</strong> (72h ante APDP)</td></tr>
+      <tr><td>DPO</td><td>No existía</td><td><strong>Designación obligatoria</strong> en ciertos casos</td></tr>
+      <tr><td>Privacy by Design</td><td>No existía</td><td><strong>Exigible</strong></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- PÁGINA 5: REFERENCIA -->
+<div class="page">
+  <div class="page-header">
+    <h2 style="margin:0;font-size:1.2em;">5. Referencia Técnica</h2>
+    <span class="number">Página 7</span>
+  </div>
+
+  <h3>Archivos involucrados en la implementación</h3>
+  <table>
+    <tr><th>Archivo</th><th>Propósito</th></tr>
+    <tr><td><code>packages/database/migrations/026_privacy_consent.sql</code></td><td>Tabla consent_records + columnas marketing_consent, privacy_consent</td></tr>
+    <tr><td><code>packages/database/migrations/027_ley_21719.sql</code></td><td>5 tablas + columnas bloqueo/oposición + índices</td></tr>
+    <tr><td><code>apps/api/src/modules/data-protection/</code></td><td>Módulo completo: service, controller, dto, module</td></tr>
+    <tr><td><code>apps/api/src/modules/customers/privacy.controller.ts</code></td><td>Endpoints portabilidad, bloqueo, oposición, subject-requests</td></tr>
+    <tr><td><code>apps/api/src/modules/customers/privacy.service.ts</code></td><td>Lógica de portabilidad, bloqueo, oposición, logDsr</td></tr>
+    <tr><td><code>apps/api/src/app.module.ts</code></td><td>Registro de DataProtectionModule</td></tr>
+    <tr><td><code>apps/web/src/app/dashboard/privacy/page.tsx</code></td><td>Dashboard dueño tienda: DPO, actividades, brechas, encargados</td></tr>
+    <tr><td><code>apps/web/src/app/store/[subdomain]/account/data/page.tsx</code></td><td>Página cliente: portabilidad, bloqueo, oposición, historial</td></tr>
+    <tr><td><code>apps/web/src/app/(landing)/privacy/page.tsx</code></td><td>Política de privacidad actualizada (16 secciones)</td></tr>
+    <tr><td><code>apps/web/src/app/dashboard/layout.tsx</code></td><td>Nav item "Protección Datos" agregado</td></tr>
+  </table>
+
+  <h3>Migraciones SQL pendientes de ejecutar</h3>
+  <div class="card card-red">
+    <div class="card-title">⚠️ Requiere acción: Ejecutar en Supabase SQL Editor</div>
+    <p style="font-size:0.85em;">
+      Las migraciones 026 y 027 deben ejecutarse manualmente en el SQL Editor de Supabase:
+      <br><br>
+      <code>https://supabase.com/dashboard/project/tghomchdukigohcmgjwv/sql/new</code>
+      <br><br>
+      Pegar en orden: primero 026, luego 027. Son idempotentes (pueden ejecutarse múltiples veces).
+    </p>
+  </div>
+
+  <h3>Endpoints de la API (para desarrollo/integración)</h3>
+  <pre>
+# DPO
+GET    /api/v1/data-protection/dpo
+POST   /api/v1/data-protection/dpo
+DELETE /api/v1/data-protection/dpo
+
+# Actividades de tratamiento
+GET    /api/v1/data-protection/activities
+POST   /api/v1/data-protection/activities
+PATCH  /api/v1/data-protection/activities/:id
+DELETE /api/v1/data-protection/activities/:id
+
+# Brechas de datos
+GET    /api/v1/data-protection/breaches
+POST   /api/v1/data-protection/breaches
+GET    /api/v1/data-protection/breaches/:id
+PATCH  /api/v1/data-protection/breaches/:id
+
+# Encargados de tratamiento
+GET    /api/v1/data-protection/processors
+POST   /api/v1/data-protection/processors
+PATCH  /api/v1/data-protection/processors/:id
+DELETE /api/v1/data-protection/processors/:id
+
+# Evaluación de impacto (DPIA)
+POST   /api/v1/data-protection/dpia
+
+# Derechos del cliente final
+GET    /api/v1/customers/portability
+POST   /api/v1/customers/blocking
+POST   /api/v1/customers/unblock
+POST   /api/v1/customers/opposition
+GET    /api/v1/customers/subject-requests
+  </pre>
+
+  <div style="text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;">
+    <p style="font-size:0.8em;color:#94a3b8;">
+      AutoShopping SpA &mdash; Manual generado el 30 de junio de 2026<br>
+      Documentación de cumplimiento Ley N° 21.719 &mdash; Versión 1.0
+    </p>
+  </div>
+</div>
+
+</body>
+</html>
