@@ -598,6 +598,9 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                   <Link href={`/store/${params.subdomain}#productos`} className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
                     Productos
                   </Link>
+                  <Link href={`/store/${params.subdomain}/privacy`} className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
+                    Política de Privacidad
+                  </Link>
                 </div>
               </div>
               <div>
@@ -692,8 +695,11 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 </div>
               </div>
             </div>
-            <div className="mt-8 border-t border-white/10 pt-6 text-center text-xs text-slate-400">
-              &copy; {new Date().getFullYear()} {store.name}. Todos los derechos reservados.
+            <div className="mt-8 border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+              <span>&copy; {new Date().getFullYear()} {store.name}. Todos los derechos reservados.</span>
+              <Link href={`/store/${params.subdomain}/privacy`} className="hover:text-white transition-colors">
+                Política de Privacidad
+              </Link>
             </div>
           </div>
         </footer>
@@ -712,21 +718,23 @@ export default async function StoreLayout({ children, params }: StoreLayoutProps
                 <p className="mt-2 max-w-md text-sm text-slate-500">{store.description}</p>
               )}
               <div className="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
-                {(store.config?.sales_policy || store.config?.shipping_policy) && (
+                <Link href={`/store/${params.subdomain}/privacy`} className="transition-colors duration-200 hover:text-slate-600">
+                  Política de Privacidad
+                </Link>
+                {store.config?.sales_policy && (
                   <>
-                    {store.config?.sales_policy && (
-                      <Link href={`/store/${params.subdomain}/policies/sales`} className="transition-colors duration-200 hover:text-slate-600">
-                        Políticas de Venta
-                      </Link>
-                    )}
-                    {store.config?.sales_policy && store.config?.shipping_policy && (
-                      <span className="text-slate-300">|</span>
-                    )}
-                    {store.config?.shipping_policy && (
-                      <Link href={`/store/${params.subdomain}/policies/shipping`} className="transition-colors duration-200 hover:text-slate-600">
-                        Políticas de Envío
-                      </Link>
-                    )}
+                    <span className="text-slate-300">|</span>
+                    <Link href={`/store/${params.subdomain}/policies/sales`} className="transition-colors duration-200 hover:text-slate-600">
+                      Políticas de Venta
+                    </Link>
+                  </>
+                )}
+                {store.config?.shipping_policy && (
+                  <>
+                    <span className="text-slate-300">|</span>
+                    <Link href={`/store/${params.subdomain}/policies/shipping`} className="transition-colors duration-200 hover:text-slate-600">
+                      Políticas de Envío
+                    </Link>
                   </>
                 )}
               </div>

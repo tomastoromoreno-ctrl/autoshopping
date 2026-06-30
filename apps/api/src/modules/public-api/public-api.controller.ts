@@ -78,7 +78,6 @@ export class PublicApiController {
   // Core Web Vitals RUM logger
   @Post('internal/performance/vitals/:tenantId')
   logVitals(@Param('tenantId') tenantId: string, @Body() vitals: any) {
-    console.log(`[RUM Performance Vitals] Tenant: ${tenantId}`, vitals);
     return { success: true, message: 'Vitals logged' };
   }
 
@@ -89,7 +88,6 @@ export class PublicApiController {
     const tenantId = req.user?.tenant_id;
     if (!tenantId) throw new BadRequestException('No tenant associated with user');
     const tagsToPurge = body.tags || [`tenant-${tenantId}`];
-    console.log(`[Cache Invalidation] Purging CDN cache tags for tenant ${tenantId}:`, tagsToPurge);
     return { success: true, purged_tags: tagsToPurge, timestamp: new Date().toISOString() };
   }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Package, Truck, CreditCard, MapPin, ExternalLink, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, Truck, CreditCard, MapPin, ExternalLink, Loader2, Route } from 'lucide-react';
 import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
 import { formatPrice } from '@/lib/format';
 
@@ -150,6 +150,13 @@ export default function OrderDetailPage() {
               minute: '2-digit',
             })}
           </p>
+          <Link
+            href={`/store/${subdomain}/account/orders/${orderId}/tracking`}
+            className="mt-3 inline-flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+          >
+            <Route className="h-4 w-4" />
+            Ver seguimiento del pedido
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import { ArrowLeft, ArrowRight, CreditCard, Building2, Wallet, Truck, Shield, Check, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
 import { formatPrice } from '@/lib/format';
@@ -187,6 +188,20 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [selectedQuote, setSelectedQuote] = useState<{ id: string; name: string; cost: number; delivery_time: string; is_collect?: boolean } | null>(null);
   const [loadingQuotes, setLoadingQuotes] = useState(false);
 
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [acceptMarketing, setAcceptMarketing] = useState(false);
+
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount_type: 'percentage' | 'fixed';
+    discount_value: number;
+    discount_amount: number;
+    promotion_name: string;
+  } | null>(null);
+  const [couponError, setCouponError] = useState('');
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
   useEffect(() => {
     const saved = localStorage.getItem('customer_auth');
     if (saved) {
@@ -314,7 +329,50 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = selectedQuote ? selectedQuote.cost : 0;
-  const total = subtotal + shipping;
+  const discount = appliedCoupon ? appliedCoupon.discount_amount : 0;
+  const total = Math.max(0, subtotal - discount + shipping);
+
+  async function handleApplyCoupon() {
+    if (!couponCode.trim()) return;
+    setValidatingCoupon(true);
+    setCouponError('');
+    setAppliedCoupon(null);
+    try {
+      const res = await fetch(`${apiUrl}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          tenant_id: storeConfig?.id,
+          subtotal,
+          product_ids: items.map((item) => item.product_id),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAppliedCoupon({
+          code: couponCode.trim().toUpperCase(),
+          discount_type: data.discount_type,
+          discount_value: data.discount_value,
+          discount_amount: data.discount_amount,
+          promotion_name: data.promotion_name,
+        });
+      } else {
+        const err = await res.json().catch(() => ({ message: 'Cupón inválido' }));
+        setCouponError(err.message || 'Cupón inválido');
+      }
+    } catch {
+      setCouponError('Error de conexión');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  }
+
+  function handleRemoveCoupon() {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponError('');
+  }
 
   const stepsVisible = steps.filter((s) => s.key !== 'shipping' || storeConfig?.shipping_enabled);
 
@@ -329,6 +387,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
       return cityStateValid && shippingAddress.trim().length > 0;
     }
     if (step === 3) return selectedPayment.length > 0;
+    if (step === 4) return acceptPrivacy;
     return true;
   }
 
@@ -376,6 +435,7 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
             price: item.price,
           })),
           shipping_address: storeConfig?.shipping_enabled ? { address: shippingAddress, city: shippingCity, state: shippingState, zip: shippingZip } : undefined,
+          coupon_code: appliedCoupon?.code || undefined,
           shipping_provider: selectedQuote?.name || undefined,
           shipping_cost: selectedQuote?.cost !== undefined ? selectedQuote.cost : undefined,
           shipping_type: shippingType,
@@ -386,6 +446,34 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
         const order = await res.json();
         localStorage.removeItem(`cart_${params.subdomain}`);
         window.dispatchEvent(new Event('cart-updated'));
+
+        // Record privacy consent
+        try {
+          const saved = localStorage.getItem('customer_auth');
+          if (saved) {
+            const { token } = JSON.parse(saved);
+            const apiUrl2 = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+            await fetch(`${apiUrl2}/customers/consent`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ consent_type: 'privacy_policy', granted: true }),
+            });
+            if (acceptMarketing) {
+              await fetch(`${apiUrl2}/customers/consent`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ consent_type: 'marketing', granted: true }),
+              });
+            }
+          }
+        } catch {}
+
         if (order.payment_url) window.location.href = order.payment_url;
         else if (order.id) router.push(`/store/${params.subdomain}/orders`);
       } else {
@@ -798,6 +886,35 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         </div>
                       ))}
                     </div>
+
+                    <div className="space-y-3 pt-2">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={acceptPrivacy}
+                          onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-xs text-slate-600 leading-relaxed">
+                          He leído y acepto la{' '}
+                          <Link href={`/store/${params.subdomain}/privacy`} target="_blank" className="text-blue-600 hover:underline font-medium">
+                            Política de Privacidad
+                          </Link>
+                          . *
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={acceptMarketing}
+                          onChange={(e) => setAcceptMarketing(e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-xs text-slate-600 leading-relaxed">
+                          Acepto recibir comunicaciones de marketing sobre ofertas y novedades. (Opcional)
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   <div className="mt-6 flex justify-between">
@@ -844,11 +961,66 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
               ))}
             </div>
 
+            {/* Coupon input */}
+            <div className="border-t border-gray-100 pt-4 pb-4">
+              {appliedCoupon ? (
+                <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-700">
+                      {appliedCoupon.code}
+                    </p>
+                    <p className="text-xs text-emerald-600">
+                      {appliedCoupon.discount_type === 'percentage'
+                        ? `${appliedCoupon.discount_value}% de descuento`
+                        : `${formatPrice(appliedCoupon.discount_value)} de descuento`}
+                      {' '}— {formatPrice(appliedCoupon.discount_amount)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="text-xs font-medium text-emerald-700 hover:text-red-600 transition-colors"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
+                      placeholder="Código de descuento"
+                      className="input-modern flex-1 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyCoupon}
+                      disabled={validatingCoupon || !couponCode.trim()}
+                      className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50 transition-all"
+                    >
+                      {validatingCoupon ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <p className="mt-1.5 text-xs text-red-500">{couponError}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="border-t border-gray-100 pt-4 space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500">Subtotal</span>
                 <span className="font-medium">{formatPrice(subtotal)}</span>
               </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Descuento ({appliedCoupon.code})</span>
+                  <span className="font-medium">-{formatPrice(discount)}</span>
+                </div>
+              )}
               {storeConfig?.shipping_enabled && (
                 <div className="flex justify-between">
                   <span className="text-slate-500">Envío</span>

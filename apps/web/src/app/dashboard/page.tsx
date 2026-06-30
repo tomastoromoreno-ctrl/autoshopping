@@ -3,7 +3,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
-import { Copy, Check, Download, ExternalLink, Share2, TrendingUp, ShoppingBag, DollarSign, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Copy, Check, Download, ExternalLink, Share2, TrendingUp, ShoppingBag, DollarSign, Clock } from 'lucide-react';
+import QRCode from '@/components/QRCode';
 
 interface DashboardStats {
   totalProducts: number;
@@ -76,27 +77,41 @@ export default function DashboardPage() {
   const handleDownloadQR = async () => {
     const url = getStoreUrl();
     if (!url || !tenant?.subdomain) return;
-    const downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(url)}`;
     try {
-      const res = await fetch(downloadUrl);
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `qr_${tenant.subdomain}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
+      const svgEl = document.querySelector('#store-qr svg') as SVGSVGElement;
+      if (!svgEl) return;
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const canvas = document.createElement('canvas');
+      canvas.width = 500;
+      canvas.height = 500;
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      img.onload = () => {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, 500, 500);
+        ctx.drawImage(img, 0, 0, 500, 500);
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `qr_${tenant.subdomain}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+        });
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
     } catch (err) {
       console.error('Error al descargar QR:', err);
     }
   };
 
   const statCards = [
-    { label: 'Total productos', value: stats?.totalProducts ?? 0, icon: ShoppingBag, color: 'from-blue-500 to-blue-600', change: '+12%', up: true },
-    { label: 'Total órdenes', value: stats?.totalOrders ?? 0, icon: TrendingUp, color: 'from-indigo-500 to-indigo-600', change: '+8%', up: true },
-    { label: 'Ingresos totales', value: stats?.totalRevenue ?? 0, prefix: '$', icon: DollarSign, color: 'from-emerald-500 to-emerald-600', change: '+24%', up: true },
+    { label: 'Total productos', value: stats?.totalProducts ?? 0, icon: ShoppingBag, color: 'from-blue-500 to-blue-600' },
+    { label: 'Total órdenes', value: stats?.totalOrders ?? 0, icon: TrendingUp, color: 'from-indigo-500 to-indigo-600' },
+    { label: 'Ingresos totales', value: stats?.totalRevenue ?? 0, prefix: '$', icon: DollarSign, color: 'from-emerald-500 to-emerald-600' },
     { label: 'Órdenes pendientes', value: stats?.pendingOrders ?? 0, icon: Clock, color: 'from-amber-500 to-orange-500', change: stats?.pendingOrders ? `${stats.pendingOrders}` : '0', up: false },
   ];
 
@@ -151,10 +166,6 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                   <AnimatedNumber value={card.value} prefix={card.prefix} />
-                </span>
-                <span className={`flex items-center gap-0.5 text-[10px] font-bold ${card.up ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {card.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {card.change}
                 </span>
               </div>
             </motion.div>
@@ -255,13 +266,10 @@ export default function DashboardPage() {
               {/* QR Code Container */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
+                id="store-qr"
                 className="relative w-40 h-40 rounded-2xl border border-slate-200 bg-white overflow-hidden flex items-center justify-center p-2 shadow-inner"
               >
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(getStoreUrl())}`}
-                  alt="Código QR de la tienda"
-                  className="w-full h-full object-contain"
-                />
+                <QRCode value={getStoreUrl()} size={128} />
               </motion.div>
 
               <button

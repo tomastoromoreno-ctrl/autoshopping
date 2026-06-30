@@ -155,8 +155,6 @@ export class BillingService implements OnModuleInit {
 
   // Chequeo automático de facturación atrasada (Reglas globales de auto-suspensión)
   async checkSubscriptionOverdues() {
-    console.log('🤖 [Billing] Ejecutando verificación de suscripciones vencidas...');
-    
     // Obtener todas las suscripciones
     const { data: subs, error } = await this.supabase
       .from('subscriptions')
@@ -212,7 +210,6 @@ export class BillingService implements OnModuleInit {
           const paymentLink = `${this.config.get('APP_URL')}/dashboard/config/subscription`;
           await this.emailService.sendPaymentOverdueWarning(owner.email, 1, paymentLink);
           await this.emailService.sendPaymentFailed(owner.email, sub.price || 26900, paymentLink);
-          console.log(`⚠️ Suscripción de tienda ${tenant.name} marcada como OVERDUE (Día 1)`);
           continue;
         }
 
@@ -222,7 +219,6 @@ export class BillingService implements OnModuleInit {
           if (daysOverdue === 3) {
             // Alerta final día 3
             await this.emailService.sendPaymentOverdueWarning(owner.email, 3, paymentLink);
-            console.log(`⚠️ Suscripción de tienda ${tenant.name} en Día 3 de atraso (Alerta Final)`);
           } else if (daysOverdue >= 4) {
             // Auto-suspensión en día 4
             await this.supabase
@@ -239,7 +235,6 @@ export class BillingService implements OnModuleInit {
               .eq('id', sub.tenant_id);
 
             await this.emailService.sendSubscriptionSuspensionNotice(owner.email, tenant.name);
-            console.log(`🚫 Tienda ${tenant.name} SUSPENDIDA AUTOMÁTICAMENTE por falta de pago (Día 4)`);
           }
         }
       }

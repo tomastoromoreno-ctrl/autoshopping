@@ -18,6 +18,8 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,10 +35,42 @@ export default function RegisterPage() {
       setError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
+    if (!acceptPrivacy) {
+      setError('Debes aceptar la Política de Privacidad para continuar');
+      return;
+    }
 
     setLoading(true);
     try {
-      await register(email, password, name, phone || undefined, subdomain);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+      const result = await register(email, password, name, phone || undefined, subdomain);
+
+      // Record consent after successful registration
+      try {
+        const saved = localStorage.getItem('customer_auth');
+        if (saved) {
+          const { token } = JSON.parse(saved);
+          await fetch(`${apiUrl}/customers/consent`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ consent_type: 'privacy_policy', granted: true }),
+          });
+          if (acceptMarketing) {
+            await fetch(`${apiUrl}/customers/consent`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ consent_type: 'marketing', granted: true }),
+            });
+          }
+        }
+      } catch {}
+
       router.push(`/store/${subdomain}/account`);
     } catch (err: any) {
       setError(err.message || 'Error al crear cuenta');
@@ -143,6 +177,35 @@ export default function RegisterPage() {
                   className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm"
                 />
               </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptPrivacy}
+                  onChange={(e) => setAcceptPrivacy(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-xs text-slate-600 leading-relaxed">
+                  Acepto la{' '}
+                  <Link href={`/store/${subdomain}/privacy`} target="_blank" className="text-blue-600 hover:underline font-medium">
+                    Política de Privacidad
+                  </Link>{' '}
+                  y los Términos de Uso. *
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptMarketing}
+                  onChange={(e) => setAcceptMarketing(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-xs text-slate-600 leading-relaxed">
+                  Acepto recibir comunicaciones de marketing sobre ofertas y novedades. (Opcional)
+                </span>
+              </label>
             </div>
 
             <button

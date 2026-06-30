@@ -100,10 +100,10 @@ export default function LandingLayout({ children }: { children: React.ReactNode 
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-white">Compañía</h4>
+              <h4 className="text-sm font-semibold text-white">Legal</h4>
               <ul className="mt-3 space-y-2">
-                <li><span className="text-sm text-slate-400">Sobre nosotros</span></li>
-                <li><span className="text-sm text-slate-400">Blog</span></li>
+                <li><Link href="/privacy" className="text-sm text-slate-400 hover:text-white transition-colors">Política de Privacidad</Link></li>
+                <li><span className="text-sm text-slate-400">Términos y Condiciones</span></li>
               </ul>
             </div>
             <div>

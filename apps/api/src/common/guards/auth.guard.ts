@@ -29,7 +29,7 @@ export class AuthGuard implements CanActivate {
 
     // 1. Intentar validar como token de Modo Dios
     try {
-      const secret = this.config.get('JWT_SECRET') || 'autogastos-god-mode-secret-key-987654321';
+      const secret = this.config.getOrThrow('JWT_SECRET');
       const decoded = jwt.verify(token, secret) as any;
       if (decoded && decoded.targetUserId && decoded.targetStoreId) {
         const { data: session } = await this.adminSupabase

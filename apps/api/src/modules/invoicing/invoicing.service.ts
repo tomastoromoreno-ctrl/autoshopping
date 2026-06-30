@@ -2,13 +2,35 @@ import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { InvoicePdfService } from './invoice-pdf.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class InvoicingService {
+  private encryptionKey: string;
+
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
     private readonly invoicePdfService: InvoicePdfService,
-  ) {}
+  ) {
+    this.encryptionKey = process.env.CERTIFICATE_ENCRYPTION_KEY;
+    if (!this.encryptionKey) {
+      this.encryptionKey = crypto.randomBytes(32).toString('hex');
+      console.warn(
+        'WARNING: CERTIFICATE_ENCRYPTION_KEY not set. Generated random key. ' +
+        'Certificate passwords will NOT be recoverable after restart. ' +
+        'Set CERTIFICATE_ENCRYPTION_KEY in your environment for production.',
+      );
+    }
+  }
+
+  private encryptPassword(password: string): string {
+    const key = Buffer.from(this.encryptionKey, 'hex');
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = cipher.update(password, 'utf8', 'hex') + cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
+    return `${iv.toString('hex')}:${authTag}:${encrypted}`;
+  }
 
   async listInvoices(tenantId: string) {
     const { data, error } = await this.supabase
@@ -286,7 +308,7 @@ export class InvoicingService {
           tenant_id: tenantId,
           certificate_uploaded: true,
           certificate_path: `tenants/${tenantId}/certificates/${filename}`,
-          certificate_password_encrypted: password ? Buffer.from(password).toString('base64') : null,
+          certificate_password_encrypted: password ? this.encryptPassword(password) : null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'tenant_id' },

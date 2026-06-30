@@ -9,7 +9,7 @@ import ProductFilters from '@/components/ProductFilters';
 import BannerCarousel from '@/components/BannerCarousel';
 import FeaturedCarousel from '@/components/FeaturedCarousel';
 import CategoryShowcase from '@/components/CategoryShowcase';
-import { Package, Search, X, ChevronDown, SlidersHorizontal, ArrowRight } from 'lucide-react';
+import { Package, Search, X, ChevronDown, SlidersHorizontal, ArrowRight, Loader2 } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -76,6 +76,10 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [showError, setShowError] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 20;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -100,8 +104,13 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (page: number = 1, append: boolean = false) => {
     try {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
       const queryParams = new URLSearchParams();
       if (searchQuery) queryParams.set('search', searchQuery);
       if (selectedCategory) queryParams.set('category_id', selectedCategory);
@@ -110,19 +119,29 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       if (sortBy) queryParams.set('sort', sortBy);
       if (lang) queryParams.set('lang', lang);
       if (currency) queryParams.set('currency', currency);
-      queryParams.set('limit', '50');
+      queryParams.set('page', String(page));
+      queryParams.set('limit', String(PAGE_SIZE));
 
       const res = await fetch(`${apiUrl}/products/${params.subdomain}?${queryParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
         const items = Array.isArray(data) ? data : data.data || data.products || [];
-        setProducts(items);
-        setTotalCount(data.total || items.length);
+        const total = data.total || items.length;
+
+        if (append) {
+          setProducts((prev) => [...prev, ...items]);
+        } else {
+          setProducts(items);
+        }
+        setTotalCount(total);
+        setHasMore(page * PAGE_SIZE < total);
+        setCurrentPage(page);
       }
     } catch (err) {
       console.error('Error fetching products:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [searchQuery, selectedCategory, priceRange, sortBy, apiUrl, params.subdomain, lang, currency]);
 
@@ -183,7 +202,9 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   }, [loading, store]);
 
   useEffect(() => {
-    fetchProducts();
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchProducts(1, false);
   }, [fetchProducts]);
 
   const handleSearch = useCallback((query: string) => {
@@ -195,7 +216,9 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   }, []);
 
   const handleApplyFilters = useCallback(() => {
-    fetchProducts();
+    setCurrentPage(1);
+    setHasMore(true);
+    fetchProducts(1, false);
   }, [fetchProducts]);
 
   const handleClearFilters = useCallback(() => {
@@ -585,7 +608,11 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
         <div className="mx-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-heading font-bold store-text">Todos los productos</h2>
-            <span className="text-sm text-slate-500 font-medium">{totalCount} productos</span>
+            <span className="text-sm text-slate-500 font-medium">
+              {totalCount > 0
+                ? `Mostrando ${Math.min(currentPage * PAGE_SIZE, totalCount)} de ${totalCount} productos`
+                : `${totalCount} productos`}
+            </span>
           </div>
         </div>
       </section>
@@ -622,6 +649,24 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                 </Link>
               ))}
             </div>
+            {hasMore && (
+              <div className="mt-8 flex justify-center">
+                <button
+                  onClick={() => fetchProducts(currentPage + 1, true)}
+                  disabled={loadingMore}
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow disabled:opacity-50 disabled:cursor-wait active:scale-[0.98]"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Cargando...
+                    </>
+                  ) : (
+                    'Cargar más productos'
+                  )}
+                </button>
+              </div>
+            )}
           )}
         </div>
       </section>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, Package, LogOut, Loader2, Save, ChevronRight, ExternalLink } from 'lucide-react';
+import { User, Mail, Phone, Package, LogOut, Loader2, Save, ChevronRight, ExternalLink, Shield } from 'lucide-react';
 import { useCustomerAuth } from '@/contexts/CustomerAuthContext';
 import { formatPrice } from '@/lib/format';
 
@@ -279,6 +279,14 @@ export default function AccountPage() {
               </div>
             )}
           </div>
+
+          <Link
+            href={`/store/${subdomain}/account/data`}
+            className="w-full py-3 px-4 bg-white border border-slate-200 rounded-2xl text-slate-700 font-medium hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition flex items-center justify-center gap-2 text-sm"
+          >
+            <Shield className="w-4 h-4" />
+            Mis Datos y Privacidad
+          </Link>
 
           <button
             onClick={handleLogout}
