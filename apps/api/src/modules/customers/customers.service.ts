@@ -1,11 +1,15 @@
-import { Inject, Injectable, BadRequestException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException, NotFoundException, UnauthorizedException, Logger } from '@nestjs/common';
 import { SUPABASE_CLIENT } from '../../common/supabase.module';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { EmailService } from '../notifications/email.service';
 
 @Injectable()
 export class CustomersService {
+  private readonly logger = new Logger(CustomersService.name);
+
   constructor(
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(subdomain: string, dto: { email: string; password: string; name: string; phone?: string }) {
@@ -48,6 +52,19 @@ export class CustomersService {
 
     if (insertError) {
       throw new BadRequestException(insertError.message);
+    }
+
+    // Send welcome email asynchronously
+    const { data: tenantRecord } = await this.supabase
+      .from('tenants')
+      .select('name')
+      .eq('id', tenant.id)
+      .single();
+
+    if (tenantRecord) {
+      this.emailService.sendWelcome(dto.name, dto.email, tenantRecord.name).catch((err) =>
+        this.logger.error(`Welcome email failed for ${dto.email}: ${err.message}`),
+      );
     }
 
     return {

@@ -163,7 +163,7 @@ export class UploadService {
         'Content-Type': mimetype,
         'x-upsert': 'true',
       },
-      body: file,
+      body: file as unknown as BodyInit,
     });
 
     if (!res.ok) {

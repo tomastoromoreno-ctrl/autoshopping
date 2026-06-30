@@ -12,7 +12,7 @@ export class InvoicingService {
     @Inject(SUPABASE_CLIENT) private readonly supabase: SupabaseClient,
     private readonly invoicePdfService: InvoicePdfService,
   ) {
-    this.encryptionKey = process.env.CERTIFICATE_ENCRYPTION_KEY;
+    this.encryptionKey = process.env.CERTIFICATE_ENCRYPTION_KEY!;
     if (!this.encryptionKey) {
       this.encryptionKey = crypto.randomBytes(32).toString('hex');
       console.warn(

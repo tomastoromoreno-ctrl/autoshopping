@@ -388,6 +388,14 @@ export class OrdersService {
       );
     }
 
+    // Send status change notification for confirmed, processing, delivered
+    const notifyStatuses = ['confirmed', 'processing', 'delivered'];
+    if (dto.status && notifyStatuses.includes(dto.status) && previousOrder?.status !== dto.status) {
+      this.sendOrderStatusChangedEmail(data.tenant_id, data, dto.status).catch((err) =>
+        this.logger.error(`Failed to send status email: ${err.message}`),
+      );
+    }
+
     return data;
   }
 
@@ -414,6 +422,12 @@ export class OrdersService {
     if (Object.keys(updateData).length === 0) return { message: 'No changes' };
     updateData.updated_at = new Date().toISOString();
 
+    const { data: previousOrder } = await this.supabase
+      .from('orders')
+      .select('status')
+      .eq('id', orderId)
+      .single();
+
     const { data, error } = await this.supabase
       .from('orders')
       .update(updateData)
@@ -424,9 +438,17 @@ export class OrdersService {
     if (error) throw new BadRequestException(error.message);
 
     // If status changed to shipped, send email
-    if (dto.status === 'shipped') {
+    if (dto.status === 'shipped' && previousOrder?.status !== 'shipped') {
       this.sendOrderShippedEmail(tenantId, data, dto.tracking || data.tracking_number).catch(err =>
         this.logger.error(`Failed to send shipped email: ${err.message}`),
+      );
+    }
+
+    // Send status change notification for confirmed, processing, delivered
+    const notifyStatuses = ['confirmed', 'processing', 'delivered'];
+    if (dto.status && notifyStatuses.includes(dto.status) && previousOrder?.status !== dto.status) {
+      this.sendOrderStatusChangedEmail(tenantId, data, dto.status).catch(err =>
+        this.logger.error(`Failed to send status email: ${err.message}`),
       );
     }
 
@@ -543,6 +565,31 @@ export class OrdersService {
     });
     if (!shippedResult.sent) {
       this.logger.error(`Shipping notification email failed for order ${order.id}: ${shippedResult.error}`);
+    }
+  }
+
+  private async sendOrderStatusChangedEmail(tenantId: string, order: any, newStatus: string) {
+    const { data: tenant } = await this.supabase
+      .from('tenants')
+      .select('name, subdomain')
+      .eq('id', tenantId)
+      .single();
+
+    if (!tenant) {
+      this.logger.error(`Tenant ${tenantId} not found for order status email`);
+      return;
+    }
+
+    const result = await this.emailService.sendOrderStatusChanged({
+      orderId: order.id,
+      customerName: order.customer_name,
+      customerEmail: order.customer_email,
+      newStatus,
+      storeName: tenant.name,
+      storeUrl: `https://${tenant.subdomain}.autoshopping.cl`,
+    });
+    if (!result.sent) {
+      this.logger.error(`Status notification email failed for order ${order.id}: ${result.error}`);
     }
   }
 }

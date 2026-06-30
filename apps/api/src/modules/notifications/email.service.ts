@@ -26,6 +26,15 @@ interface ShippedEmailData {
   storeUrl: string;
 }
 
+interface StatusEmailData {
+  orderId: string;
+  customerName: string;
+  customerEmail: string;
+  newStatus: string;
+  storeName: string;
+  storeUrl: string;
+}
+
 interface MerchantOrderEmailData {
   orderId: string;
   customerName: string;
@@ -131,6 +140,44 @@ export class EmailService {
     }
   }
 
+  async sendOrderStatusChanged(data: StatusEmailData): Promise<{ sent: boolean; id?: string; error?: string }> {
+    const statusLabels: Record<string, string> = {
+      confirmed: 'confirmado',
+      processing: 'en preparación',
+      shipped: 'enviado',
+      delivered: 'entregado',
+      cancelled: 'cancelado',
+      refunded: 'reembolsado',
+    };
+
+    const label = statusLabels[data.newStatus] || data.newStatus;
+    const subject = `Pedido #${data.orderId.slice(0, 8)} ${label} - ${data.storeName}`;
+
+    try {
+      const html = this.buildStatusChangedHtml(data, label);
+      const result = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [data.customerEmail],
+        subject,
+        html,
+      });
+
+      if (result.error) {
+        this.logger.error(`Failed to send status email: ${result.error.message}`);
+        await this.logEmail(data.customerEmail, subject, `order_${data.newStatus}`, 'failed', { error: result.error.message });
+        return { sent: false, error: result.error.message };
+      }
+
+      this.logger.log(`Status email sent to ${data.customerEmail} (id: ${result.data?.id})`);
+      await this.logEmail(data.customerEmail, subject, `order_${data.newStatus}`, 'sent', { id: result.data?.id });
+      return { sent: true, id: result.data?.id };
+    } catch (error) {
+      this.logger.error(`Status email error: ${error.message}`);
+      await this.logEmail(data.customerEmail, subject, `order_${data.newStatus}`, 'failed', { error: error.message });
+      return { sent: false, error: error.message };
+    }
+  }
+
   private buildOrderConfirmationHtml(data: OrderEmailData): string {
     const itemsHtml = data.items
       .map(
@@ -226,6 +273,37 @@ export class EmailService {
           <a href="${data.storeUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:14px;font-weight:600;padding:12px 32px;border-radius:8px;text-decoration:none;">Ver mi pedido</a>
         </div>
         <p style="text-align:center;font-size:12px;color:#94a3b8;">Gracias por tu compra en ${data.storeName}</p>
+      </div>
+    </body>
+    </html>`;
+  }
+
+  private buildStatusChangedHtml(data: StatusEmailData, label: string): string {
+    return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+    <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+        <div style="text-align:center;margin-bottom:32px;">
+          <h1 style="font-size:24px;font-weight:700;color:#0f172a;margin:0;">${data.storeName}</h1>
+        </div>
+        <div style="background:#ffffff;border-radius:12px;border:1px solid #e2e8f0;padding:32px;margin-bottom:16px;">
+          <div style="text-align:center;margin-bottom:24px;">
+            <div style="width:56px;height:56px;background:#dbeafe;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:28px;">🔄</span>
+            </div>
+            <h2 style="font-size:20px;font-weight:600;color:#0f172a;margin:0 0 8px;">Pedido ${label}</h2>
+            <p style="font-size:14px;color:#64748b;margin:0;">Pedido #${data.orderId.slice(0, 8)}</p>
+          </div>
+          <p style="font-size:14px;color:#334155;line-height:1.6;text-align:center;">
+            Hola ${data.customerName}, tu pedido #${data.orderId.slice(0, 8)} ha sido <strong>${label}</strong>.
+          </p>
+          <div style="text-align:center;margin-top:24px;">
+            <a href="${data.storeUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#ffffff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">Visitar tienda</a>
+          </div>
+        </div>
+        <p style="text-align:center;font-size:12px;color:#94a3b8;">Gracias por tu preferencia</p>
       </div>
     </body>
     </html>`;

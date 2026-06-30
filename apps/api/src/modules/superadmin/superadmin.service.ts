@@ -362,7 +362,7 @@ export class SuperAdminService {
       return { message: 'Correo de restablecimiento enviado exitosamente.' };
     } else {
       // Login Link de un solo uso
-      const tempToken = jwt.sign({ userId: owner.id, tenantId: storeId, tempLogin: true }, this.config.getOrThrow('JWT_SECRET'), { expiresIn: '1h' });
+      const tempToken = jwt.sign({ userId: owner.id, tenantId: storeId, tempLogin: true }, this.config.getOrThrow<string>('JWT_SECRET'), { expiresIn: '1h' });
       const tempLink = `${this.config.get('APP_URL')}/auth/login/temp?token=${tempToken}`;
       await this.logAction(operatorId, storeId, 'PASSWORD_RESET', 'Enlace temporal generado', `Enlace copiado por superadmin`);
       return { tempLink };
