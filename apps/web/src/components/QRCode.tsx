@@ -117,11 +117,11 @@ function encodeText(text: string): boolean[] {
   bits.push(false, true, false, false);
 
   // Character count (8 bits for version 1-9)
-  for (let i = 7; i >= 0; i--) bits.push((bytes.length >> i) & 1 === 1);
+  for (let i = 7; i >= 0; i--) bits.push(((bytes.length >> i) & 1) === 1);
 
   // Data bytes
   for (const byte of bytes) {
-    for (let i = 7; i >= 0; i--) bits.push((byte >> i) & 1 === 1);
+    for (let i = 7; i >= 0; i--) bits.push(((byte >> i) & 1) === 1);
   }
 
   // Terminator
@@ -135,7 +135,7 @@ function encodeText(text: string): boolean[] {
   let padIdx = 0;
   while (bits.length < 25 * 8) {
     const pb = padBytes[padIdx % 2];
-    for (let i = 7; i >= 0; i--) bits.push((pb >> i) & 1 === 1);
+    for (let i = 7; i >= 0; i--) bits.push(((pb >> i) & 1) === 1);
     padIdx++;
   }
 

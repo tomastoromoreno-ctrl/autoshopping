@@ -641,33 +641,35 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
                 </button>
               )}
             </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 lg:gap-6">
-              {products.map((product) => (
-                <Link key={product.id} href={`/store/${params.subdomain}/product/${product.slug}`}>
-                  <ProductCard product={product} onAddToCart={handleAddToCart} cardStyle={store.card_style} />
-                </Link>
-              ))}
-            </div>
-            {hasMore && (
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={() => fetchProducts(currentPage + 1, true)}
-                  disabled={loadingMore}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow disabled:opacity-50 disabled:cursor-wait active:scale-[0.98]"
-                >
-                  {loadingMore ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Cargando...
-                    </>
-                  ) : (
-                    'Cargar más productos'
-                  )}
-                </button>
+           ) : (
+             <>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 lg:gap-6">
+                {products.map((product) => (
+                  <Link key={product.id} href={`/store/${params.subdomain}/product/${product.slug}`}>
+                    <ProductCard product={product} onAddToCart={handleAddToCart} cardStyle={store.card_style} />
+                  </Link>
+                ))}
               </div>
-            )}
-          )}
+              {hasMore && (
+                <div className="mt-8 flex justify-center">
+                  <button
+                    onClick={() => fetchProducts(currentPage + 1, true)}
+                    disabled={loadingMore}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:shadow disabled:opacity-50 disabled:cursor-wait active:scale-[0.98]"
+                  >
+                    {loadingMore ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Cargando...
+                      </>
+                    ) : (
+                      'Cargar más productos'
+                    )}
+                  </button>
+                </div>
+              )}
+             </>
+           )}
         </div>
       </section>
 
