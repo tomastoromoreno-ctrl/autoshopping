@@ -98,7 +98,12 @@ function LoginForm() {
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-600" required />
             </div>
             <div>
-              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">Contraseña</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">Contraseña</label>
+                <Link href="/auth/forgot-password" className="text-xs font-medium text-blue-600 hover:underline">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
               <input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-600" required />
             </div>
