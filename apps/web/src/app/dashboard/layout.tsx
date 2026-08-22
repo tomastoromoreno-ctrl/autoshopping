@@ -159,7 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Banner de Modo Dios */}
       {isGodMode && (
         <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 px-6 py-2.5 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-3 sm:gap-4 shadow-md sticky top-0 z-50">
-          <span>⚡ Modo Dios — Estás administrando la tienda <strong className="underline decoration-wavy">{godStoreName}</strong> en representación de AutoGastos</span>
+          <span>⚡ Modo Dios — Estás administrando la tienda <strong className="underline decoration-wavy">{godStoreName}</strong> en representación de AutoShopping</span>
           <button
             onClick={handleExitGodMode}
             className="bg-slate-950 hover:bg-slate-900 text-white px-3 py-1 rounded-lg text-[10px] sm:text-xs font-extrabold shadow-sm transition-all"

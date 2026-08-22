@@ -421,7 +421,7 @@ export default function SuperAdminDashboard() {
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-100">SuperAdmin Dashboard</h1>
-          <p className="text-slate-400 text-sm mt-1">Monitorea y administra de forma global todas las tiendas clientes de AutoGastos.</p>
+          <p className="text-slate-400 text-sm mt-1">Monitorea y administra de forma global todas las tiendas clientes de AutoShopping.</p>
         </div>
       </div>
 

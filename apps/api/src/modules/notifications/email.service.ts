@@ -460,7 +460,7 @@ export class EmailService {
     <body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
       <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
         <div style="background-color:#022759;padding:24px;border-top-left-radius:12px;border-top-right-radius:12px;text-align:center;">
-          <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0;letter-spacing:1px;">AutoGastos</h1>
+          <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0;letter-spacing:1px;">AutoShopping</h1>
         </div>
         <div style="background:#ffffff;border-bottom-left-radius:12px;border-bottom-right-radius:12px;border:1px solid #e2e8f0;border-top:none;padding:32px;box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
           <h2 style="font-size:20px;font-weight:600;color:#0f172a;margin-top:0;margin-bottom:18px;">${title}</h2>
@@ -468,8 +468,8 @@ export class EmailService {
             ${bodyContent}
           </div>
           <div style="border-top:1px solid #e2e8f0;padding-top:20px;text-align:center;font-size:12px;color:#94a3b8;">
-            Este es un correo transaccional automático enviado por AutoGastos.<br/>
-            Si tienes dudas, contáctanos en soporte@autogastos.com.
+            Este es un correo transaccional automático enviado por AutoShopping.<br/>
+            Si tienes dudas, contáctanos en soporte@autoshopping.cl.
           </div>
         </div>
       </div>
@@ -492,7 +492,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `⚠️ Tu tienda ${storeName} ha sido suspendida - AutoGastos`,
+        subject: `⚠️ Tu tienda ${storeName} ha sido suspendida - AutoShopping`,
         html,
       });
       await this.logEmail(email, `Tienda ${storeName} suspendida`, 'store_suspended', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -518,7 +518,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `✅ Acceso restablecido: Tienda ${storeName} reactivada - AutoGastos`,
+        subject: `✅ Acceso restablecido: Tienda ${storeName} reactivada - AutoShopping`,
         html,
       });
       await this.logEmail(email, `Tienda ${storeName} reactivada`, 'store_reactivated', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -542,7 +542,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `🚨 Alerta de seguridad: Tienda ${storeName} reiniciada a cero - AutoGastos`,
+        subject: `🚨 Alerta de seguridad: Tienda ${storeName} reiniciada a cero - AutoShopping`,
         html,
       });
       await this.logEmail(email, `Tienda ${storeName} reiniciada`, 'store_reset', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -557,7 +557,7 @@ export class EmailService {
     const title = 'Restablecer contraseña';
     const content = `
       <p>Hola,</p>
-      <p>Se ha solicitado un enlace para restablecer la contraseña de tu cuenta asociada en AutoGastos.</p>
+      <p>Se ha solicitado un enlace para restablecer la contraseña de tu cuenta asociada en AutoShopping.</p>
       <p>Haz clic en el siguiente enlace para establecer una nueva contraseña (este enlace es válido por 1 hora):</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="${resetLink}" style="background:#022759;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Restablecer Contraseña</a>
@@ -569,7 +569,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `🔑 Restablecer tu contraseña - AutoGastos`,
+        subject: `🔑 Restablecer tu contraseña - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Restablecer contraseña', 'password_reset', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -597,7 +597,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `⚡ Enlace de ingreso temporal - AutoGastos`,
+        subject: `⚡ Enlace de ingreso temporal - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Ingreso temporal', 'temp_login', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -612,7 +612,7 @@ export class EmailService {
     const title = 'Pago rechazado';
     const content = `
       <p>Hola,</p>
-      <p>Lamentamos informarte que el cobro automático de tu suscripción de AutoGastos por un monto de <strong>$${amount.toLocaleString('es-CL')}</strong> ha sido rechazado por tu entidad financiera.</p>
+      <p>Lamentamos informarte que el cobro automático de tu suscripción de AutoShopping por un monto de <strong>$${amount.toLocaleString('es-CL')}</strong> ha sido rechazado por tu entidad financiera.</p>
       <p>Por favor, actualiza tu método de pago ingresando a tu portal de facturación en el siguiente botón para evitar interrupciones en el servicio:</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="${retryLink}" style="background:#e11d48;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Actualizar Método de Pago</a>
@@ -623,7 +623,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `❌ Falló el pago de tu suscripción - AutoGastos`,
+        subject: `❌ Falló el pago de tu suscripción - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Pago fallido', 'payment_failed', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -638,7 +638,7 @@ export class EmailService {
     const title = `Tu suscripción tiene un retraso de ${daysOverdue} días`;
     const content = `
       <p>Hola,</p>
-      <p>Este es un recordatorio amistoso de que tu pago de AutoGastos se encuentra vencido desde hace <strong>${daysOverdue}</strong> días.</p>
+      <p>Este es un recordatorio amistoso de que tu pago de AutoShopping se encuentra vencido desde hace <strong>${daysOverdue}</strong> días.</p>
       <p>Te solicitamos regularizar tu estado de pagos para asegurar la continuidad del servicio y evitar la suspensión automática de tu tienda.</p>
       <div style="text-align:center;margin:24px 0;">
         <a href="${paymentLink}" style="background:#d97706;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:14px;">Regularizar Pago</a>
@@ -649,7 +649,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `⚠️ Recordatorio de pago atrasado (${daysOverdue} días) - AutoGastos`,
+        subject: `⚠️ Recordatorio de pago atrasado (${daysOverdue} días) - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Pago atrasado', 'payment_overdue', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -673,7 +673,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `🚫 Tienda suspendida por no pago: ${storeName} - AutoGastos`,
+        subject: `🚫 Tienda suspendida por no pago: ${storeName} - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Aviso de suspensión por pago', 'suspension_no_payment', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -697,7 +697,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `🔄 Actualización de suscripción: Nuevo plan ${newPlanName} - AutoGastos`,
+        subject: `🔄 Actualización de suscripción: Nuevo plan ${newPlanName} - AutoShopping`,
         html,
       });
       await this.logEmail(email, `Plan cambiado a ${newPlanName}`, 'plan_changed', !result.error ? 'sent' : 'failed', { error: result.error?.message });
@@ -712,7 +712,7 @@ export class EmailService {
     const title = 'Acceso de soporte a tu cuenta';
     const content = `
       <p>Hola,</p>
-      <p>Te informamos que un operador del equipo de soporte de AutoGastos ha accedido de forma temporal a la administración de tu tienda <strong>${storeName}</strong> bajo el Modo Dios.</p>
+      <p>Te informamos que un operador del equipo de soporte de AutoShopping ha accedido de forma temporal a la administración de tu tienda <strong>${storeName}</strong> bajo el Modo Dios.</p>
       <p><strong>Motivo declarado:</strong> ${reason}</p>
       <p>Esta es una notificación de seguridad estándar para asegurar la transparencia e integridad de tus datos. Si no solicitaste asistencia, repórtalo de inmediato.</p>
     `;
@@ -721,7 +721,7 @@ export class EmailService {
       const result = await this.resend.emails.send({
         from: this.fromEmail,
         to: [email],
-        subject: `⚡ Notificación de seguridad: Acceso de soporte a tu cuenta - AutoGastos`,
+        subject: `⚡ Notificación de seguridad: Acceso de soporte a tu cuenta - AutoShopping`,
         html,
       });
       await this.logEmail(email, 'Acceso Modo Dios', 'god_mode_alert', !result.error ? 'sent' : 'failed', { error: result.error?.message });

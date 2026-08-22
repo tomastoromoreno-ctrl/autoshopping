@@ -88,7 +88,7 @@ export default function OperatorsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-extrabold text-slate-100">Operadores y Roles</h1>
-        <p className="text-slate-400 text-sm mt-1">Invita y gestiona las cuentas de los operadores del equipo de AutoGastos.</p>
+        <p className="text-slate-400 text-sm mt-1">Invita y gestiona las cuentas de los operadores del equipo de AutoShopping.</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -103,7 +103,7 @@ export default function OperatorsPage() {
                 <input
                   type="email"
                   required
-                  placeholder="ejemplo@autogastos.com"
+                  placeholder="ejemplo@autoshopping.cl"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="mt-2 w-full rounded-lg bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 text-sm outline-none focus:border-amber-500"

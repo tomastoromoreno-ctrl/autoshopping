@@ -238,7 +238,7 @@ export default function ClientSubscriptionPage() {
           <div className="w-full max-w-4xl rounded-2xl border bg-white p-6 shadow-2xl space-y-6 flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center border-b pb-4">
               <div>
-                <h3 className="text-xl font-black text-slate-900">Mejorar Plan de AutoGastos</h3>
+                <h3 className="text-xl font-black text-slate-900">Mejorar Plan de AutoShopping</h3>
                 <p className="text-xs text-slate-500 mt-1">Elige el plan ideal para expandir las ventas de tu negocio.</p>
               </div>
               <button onClick={() => setShowUpgradeModal(false)} className="text-slate-400 hover:text-slate-900 text-xl font-bold">×</button>
@@ -328,7 +328,7 @@ export default function ClientSubscriptionPage() {
             {!retentionApplied && (
               <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 space-y-3">
                 <p className="text-xs font-bold text-blue-700">🎁 ¡Oferta de retención especial!</p>
-                <p className="text-xs text-slate-600">Te obsequiamos <strong>1 mes totalmente gratuito</strong> de AutoGastos si decides conservar tu suscripción hoy.</p>
+                <p className="text-xs text-slate-600">Te obsequiamos <strong>1 mes totalmente gratuito</strong> de AutoShopping si decides conservar tu suscripción hoy.</p>
                 <button
                   onClick={applyRetention}
                   className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 text-xs shadow-sm"

@@ -23,7 +23,7 @@ export default function BusinessRulesPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h1 className="text-3xl font-extrabold text-slate-100">Reglas de Negocio</h1>
-        <p className="text-slate-400 text-sm mt-1">Configura las políticas automáticas de facturación y suspensión global de AutoGastos.</p>
+        <p className="text-slate-400 text-sm mt-1">Configura las políticas automáticas de facturación y suspensión global de AutoShopping.</p>
       </div>
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-xl space-y-6">

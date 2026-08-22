@@ -66,7 +66,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r border-slate-800 bg-slate-900 transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex h-16 items-center border-b border-slate-800 px-6">
           <Link href="/superadmin" className="text-xl font-bold tracking-wider text-amber-500 flex items-center gap-2">
-            ⚡ AutoGastos
+            ⚡ AutoShopping <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-mono">SUPERADMIN</span>
           </Link>
         </div>
         <div className="px-6 py-4">
