@@ -4,12 +4,14 @@ import { Suspense, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 function ResetPasswordForm() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -110,30 +112,52 @@ function ResetPasswordForm() {
               <label htmlFor="new-password" className="block text-sm font-medium text-slate-700">
                 Nueva Contraseña
               </label>
-              <input
-                id="new-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
-                required
-              />
+              <div className="relative mt-1">
+                <input
+                  id="new-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-10 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label htmlFor="confirm-new-password" className="block text-sm font-medium text-slate-700">
                 Confirmar Contraseña
               </label>
-              <input
-                id="confirm-new-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repite la contraseña"
-                className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
-                required
-              />
+              <div className="relative mt-1">
+                <input
+                  id="confirm-new-password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Repite la contraseña"
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 pr-10 text-sm outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
+                  tabIndex={-1}
+                  aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -157,3 +181,4 @@ export default function ResetPasswordPage() {
     </Suspense>
   );
 }
+
