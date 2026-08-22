@@ -284,14 +284,14 @@ export default function Hero() {
             >
               <Sparkles className="h-3.5 w-3.5" />
             </motion.div>
-            <span>SaaS Multitienda Inteligente para E-Commerce</span>
+            <span>La plataforma más rápida y completa para vender online</span>
           </motion.div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.1]">
-            <RevealText text="Lanza tu tienda online," delay={0.2} />
+            <RevealText text="Tu tienda online profesional," delay={0.2} />
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-              <RevealText text="sin límites." delay={0.8} />
+              <RevealText text="lista para vender hoy." delay={0.8} />
             </span>
           </h1>
 
@@ -301,7 +301,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 1.4 }}
             className="text-slate-400 text-base sm:text-lg max-w-xl mx-auto lg:mx-0 leading-relaxed"
           >
-            La plataforma multi-tenant definitiva para vender en minutos. Configuración automática de subdominios, facturación SII simplificada e integraciones de pago integradas.
+            Crea una tienda increíble en minutos con tu propia marca, recibe pagos automáticos con Webpay y Mercado Pago, y gestiona tus pedidos desde un solo lugar. Sin enredos técnicos ni comisiones abusivas.
           </motion.p>
 
           {/* Interactive CTAs with magnetic behavior */}
@@ -356,9 +356,9 @@ export default function Hero() {
             className="flex items-center gap-6 justify-center lg:justify-start pt-4"
           >
             {[
-              { icon: '⚡', text: 'Setup en 2 min' },
-              { icon: '🔒', text: 'Pago seguro' },
-              { icon: '🇨🇱', text: 'Hecho en Chile' },
+              { icon: '⚡', text: 'Tienda lista en 2 min' },
+              { icon: '💳', text: 'Webpay y Mercado Pago' },
+              { icon: '🇨🇱', text: '100% Creado para Chile' },
             ].map((item, i) => (
               <motion.div
                 key={i}

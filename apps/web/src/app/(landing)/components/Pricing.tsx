@@ -26,7 +26,7 @@ const plans = [
       'MercadoPago + Webpay Plus',
       'Soporte prioritario 24/7',
       'Analíticas avanzadas de venta',
-      'Facturación SII integrada',
+      'Control total de inventario y stock',
     ],
     cta: 'Probar gratis 14 días',
     featured: true,
@@ -35,7 +35,7 @@ const plans = [
     name: 'Empresarial',
     price: '$89.900',
     period: '/mes',
-    description: 'Para operaciones multitienda grandes',
+    description: 'Para marcas consolidadas y alto volumen',
     features: [
       'Tiendas ilimitadas',
       'Productos ilimitados',
