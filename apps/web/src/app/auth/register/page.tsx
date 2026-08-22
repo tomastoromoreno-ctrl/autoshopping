@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 
 function RegisterForm() {
   const searchParams = useSearchParams();
@@ -26,10 +26,36 @@ function RegisterForm() {
       return;
     }
     try {
-      await api.post('/auth/signup', { name, email, password });
+      const cleanEmail = email.trim();
+      const supabase = createClient();
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: { name: name.trim(), role: 'store_owner' },
+        },
+      });
+
+      if (signUpError) {
+        throw new Error(signUpError.message);
+      }
+
+      if (data.user) {
+        try {
+          await supabase.from('users').upsert({
+            id: data.user.id,
+            email: cleanEmail,
+            name: name.trim(),
+            role: 'store_owner',
+            email_confirmed: true,
+          });
+        } catch {}
+      }
+
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error al registrar usuario');
     } finally {
       setLoading(false);
     }

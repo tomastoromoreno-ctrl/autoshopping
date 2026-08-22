@@ -3,7 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 
 function LoginForm() {
   const router = useRouter();
@@ -19,29 +19,64 @@ function LoginForm() {
     setLoading(true);
     setError('');
     try {
-      const res = await api.post<{ access_token: string; refresh_token?: string; user: any }>('/auth/signin', { email, password });
-      localStorage.setItem('access_token', res.access_token);
-      if (res.refresh_token) {
-        localStorage.setItem('refresh_token', res.refresh_token);
+      const cleanEmail = email.trim();
+      const supabase = createClient();
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (authError) {
+        if (authError.message.includes('Invalid login credentials')) {
+          throw new Error('Correo o contraseña incorrectos. Verifica tus datos e intenta nuevamente.');
+        }
+        if (authError.message.includes('Email not confirmed')) {
+          throw new Error('Tu correo electrónico no ha sido confirmado aún. Por favor revisa tu bandeja de entrada.');
+        }
+        throw new Error(authError.message);
       }
 
-      const payload = JSON.parse(atob(res.access_token.split('.')[1]));
-      const role = payload.user_metadata?.role || payload.role;
-      const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
+      if (!data?.session) {
+        throw new Error('No se pudo iniciar sesión. Por favor intenta nuevamente.');
+      }
 
-      // If there's a redirect URL (e.g. from invitation), go there first
+      const accessToken = data.session.access_token;
+      const refreshToken = data.session.refresh_token;
+
+      localStorage.setItem('access_token', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+      }
+
+      // Check role and tenant from profile or metadata
+      let role = data.user?.user_metadata?.role;
+      let tenantId = data.user?.user_metadata?.tenant_id;
+
+      if (!role || !tenantId) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role, tenant_id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (profile) {
+          role = role || profile.role;
+          tenantId = tenantId || profile.tenant_id;
+        }
+      }
+
       if (redirectTo) {
         router.push(redirectTo);
       } else if (role === 'super_admin' || role === 'support_agent') {
         router.push('/superadmin');
       } else if (tenantId) {
-        // Any user with a tenant (owner, admin, manager, editor, viewer) goes to dashboard
         router.push('/dashboard');
       } else {
         router.push('/onboarding');
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error inesperado al iniciar sesión');
     } finally {
       setLoading(false);
     }
