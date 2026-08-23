@@ -201,6 +201,45 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
   }
 
+  // Profile Modal states
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const handleOpenProfile = () => {
+    setEditName(user?.name || '');
+    setShowProfileModal(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editName.trim()) return;
+    setSavingProfile(true);
+    try {
+      const supabase = createClient();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+
+      if (authUser) {
+        await supabase.auth.updateUser({
+          data: { name: editName.trim() }
+        });
+
+        await supabase
+          .from('users')
+          .update({ name: editName.trim() })
+          .eq('id', authUser.id);
+      }
+
+      setUser((prev) => prev ? { ...prev, name: editName.trim() } : null);
+      setShowProfileModal(false);
+      alert('¡Perfil actualizado con éxito!');
+    } catch (err: any) {
+      alert('Error al actualizar perfil: ' + (err.message || 'Inténtalo de nuevo'));
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   const visibleNavItems = navItems.filter((item) => {
     if (!item.requiredPermission) return true;
     return hasPermission(item.requiredPermission);
@@ -316,12 +355,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
               <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm border border-white">
+              <button
+                type="button"
+                onClick={handleOpenProfile}
+                className="flex items-center gap-2.5 hover:bg-slate-100 p-1.5 rounded-xl transition-all cursor-pointer group"
+                title="Haz clic para editar tu perfil"
+              >
+                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm border border-white group-hover:scale-105 transition-transform">
                   {(user?.name || 'U')[0].toUpperCase()}
                 </div>
-                <div className="hidden md:flex flex-col">
-                  <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
+                <div className="hidden md:flex flex-col text-left">
+                  <span className="text-xs font-bold text-slate-900 leading-none group-hover:text-blue-600 transition-colors flex items-center gap-1">
+                    {user?.name}
+                    <span className="text-[10px] text-slate-400">✏️</span>
+                  </span>
                   <span className="text-[10px] text-slate-500 font-mono leading-tight mt-0.5">{user?.email}</span>
                 </div>
                 {roleInfo && (
@@ -329,7 +376,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     {roleInfo.label}
                   </span>
                 )}
-              </div>
+              </button>
 
               <button
                 onClick={handleLogout}
@@ -402,6 +449,75 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 space-y-5 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold">👤</div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Editar Perfil</h3>
+                  <p className="text-xs text-slate-500">Actualiza tu nombre e información personal.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Nombre Completo
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Ej: Tomas Toro"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Correo Electrónico
+                </label>
+                <input
+                  type="email"
+                  disabled
+                  value={user?.email || ''}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm font-mono text-slate-500 cursor-not-allowed opacity-80"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingProfile}
+                  className="rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2 text-xs font-bold text-white shadow-md disabled:opacity-50 transition-all"
+                >
+                  {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
