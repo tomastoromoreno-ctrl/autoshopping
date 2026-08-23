@@ -40,13 +40,16 @@ const navItems = [
   { href: '/dashboard/international', label: 'Idiomas y Monedas', icon: '🌍', requiredPermission: 'config.read' },
 ];
 
+import { createClient } from '@/lib/supabase';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string; role: string; tenant_id: string | null } | null>(null);
+  const [tenant, setTenant] = useState<{ name: string; subdomain: string; logo_url?: string; logo?: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checking, setChecking] = useState(true);
-  const { hasPermission, loading: permissionsLoading, role: permRole } = usePermissions();
+  const { hasPermission, loading: permissionsLoading } = usePermissions();
 
   // God Mode & Suspension states
   const [isGodMode, setIsGodMode] = useState(false);
@@ -56,57 +59,112 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notices, setNotices] = useState<any[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) { router.push('/auth/login'); return; }
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const role = payload.user_metadata?.role || payload.role;
-      const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
+    async function loadIdentity() {
+      try {
+        const supabase = createClient();
+        const { data: { user: authUser } } = await supabase.auth.getUser();
 
-      // Detectar Modo Dios
-      if (payload.isGodMode) {
-        setIsGodMode(true);
-        setGodStoreName(payload.tenantName || 'Tienda');
-        
-        setUser({
-          name: payload.email || 'Super Admin (Soporte)',
-          email: payload.email || '',
-          role: 'store_owner', // Permitir rol completo para soporte
-          tenant_id: tenantId,
-        });
+        if (authUser) {
+          let tenantId = authUser.user_metadata?.tenant_id;
+          let role = authUser.user_metadata?.role || 'store_owner';
+          let name = authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Tomas Prueba';
+
+          if (!tenantId) {
+            const { data: profile } = await supabase
+              .from('users')
+              .select('tenant_id, role, name')
+              .eq('id', authUser.id)
+              .maybeSingle();
+            if (profile) {
+              if (profile.tenant_id) tenantId = profile.tenant_id;
+              if (profile.role) role = profile.role;
+              if (profile.name) name = profile.name;
+            }
+          }
+
+          setUser({
+            name,
+            email: authUser.email || '',
+            role: role || 'store_owner',
+            tenant_id: tenantId || null,
+          });
+
+          if (tenantId) {
+            const { data: tData } = await supabase
+              .from('tenants')
+              .select('name, subdomain, logo_url, logo')
+              .eq('id', tenantId)
+              .maybeSingle();
+
+            if (tData) {
+              setTenant(tData);
+            }
+          }
+          setChecking(false);
+          return;
+        }
+      } catch (err) {
+        console.error('Error loading identity from Supabase:', err);
+      }
+
+      // JWT fallback
+      const token = localStorage.getItem('access_token');
+      if (!token) {
         setChecking(false);
         return;
       }
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const role = payload.user_metadata?.role || payload.role;
+        const tenantId = payload.user_metadata?.tenant_id || payload.tenant_id;
 
-      if (role === 'super_admin' || role === 'support_agent') { router.push('/superadmin'); return; }
-      if (!tenantId) { router.push('/onboarding'); return; }
-
-      setUser({
-        name: payload.user_metadata?.name || payload.email || 'Usuario',
-        email: payload.email || '',
-        role: role || 'store_owner',
-        tenant_id: tenantId,
-      });
-
-      // Verificar si la tienda está suspendida (solo para usuarios normales)
-      api.get<{ subscription: any }>('/billing/subscription').then((res) => {
-        if (res?.subscription?.status === 'suspended') {
-          setIsSuspended(true);
-          setSuspensionReason(res.subscription.suspension_reason || 'Incumplimiento en facturación');
+        if (payload.isGodMode) {
+          setIsGodMode(true);
+          setGodStoreName(payload.tenantName || 'Tienda');
+          setUser({
+            name: payload.email || 'Super Admin (Soporte)',
+            email: payload.email || '',
+            role: 'store_owner',
+            tenant_id: tenantId,
+          });
+          setChecking(false);
+          return;
         }
-      }).catch(() => {});
 
-      // Obtener avisos activos para el tenant
-      api.get<any[]>(`/tenants/${tenantId}/active-notices`).then((res) => {
-        if (Array.isArray(res)) setNotices(res);
-      }).catch(() => {});
+        if (role === 'super_admin' || role === 'support_agent') { router.push('/superadmin'); return; }
+        if (!tenantId) { router.push('/onboarding'); return; }
 
-    } catch { router.push('/auth/login'); return; }
-    setChecking(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        setUser({
+          name: payload.user_metadata?.name || payload.email || 'Usuario',
+          email: payload.email || '',
+          role: role || 'store_owner',
+          tenant_id: tenantId,
+        });
 
-  const handleLogout = () => {
+        api.get<{ subscription: any }>('/billing/subscription').then((res) => {
+          if (res?.subscription?.status === 'suspended') {
+            setIsSuspended(true);
+            setSuspensionReason(res.subscription.suspension_reason || 'Incumplimiento en facturación');
+          }
+        }).catch(() => {});
+
+        api.get<any[]>(`/tenants/${tenantId}/active-notices`).then((res) => {
+          if (Array.isArray(res)) setNotices(res);
+        }).catch(() => {});
+      } catch {
+        // Safe fallback
+      }
+      setChecking(false);
+    }
+
+    loadIdentity();
+  }, [router]);
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {}
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('superadmin_access_token');
@@ -135,9 +193,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       localStorage.setItem('refresh_token', saRefresh);
     }
 
-    // Clear cached permissions to force recalculation back to SuperAdmin
     sessionStorage.removeItem('user_permissions');
-
     router.push('/superadmin');
   };
 
@@ -145,13 +201,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
   }
 
-  // Filter navigation items based on user permissions
   const visibleNavItems = navItems.filter((item) => {
     if (!item.requiredPermission) return true;
     return hasPermission(item.requiredPermission);
   });
 
-  const roleInfo = user ? ROLE_LABELS[user.role] : null;
+  const roleInfo = user ? ROLE_LABELS[user.role] || ROLE_LABELS.store_owner : null;
   const isSuspendedRoute = pathname === '/dashboard/config/subscription';
 
   return (
@@ -172,16 +227,50 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         <aside className={`fixed inset-y-0 left-0 z-40 w-64 border-r bg-white transition-transform duration-200 lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} ${isGodMode ? 'pt-11' : ''}`}>
-          <div className="flex h-16 items-center border-b px-6">
-            <Link href="/dashboard" className="text-lg font-bold text-blue-600">AutoShopping</Link>
+          {/* Header Identidad de Marca de la Tienda */}
+          <div className="flex flex-col border-b bg-slate-900 text-white p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              {tenant?.logo_url || tenant?.logo ? (
+                <img
+                  src={tenant.logo_url || tenant.logo}
+                  alt={tenant.name}
+                  className="h-10 w-10 rounded-xl object-cover bg-white p-0.5 border border-slate-700 shadow-sm flex-shrink-0"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white flex items-center justify-center font-black text-lg shadow-md flex-shrink-0">
+                  {(tenant?.name || 'A')[0].toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm font-black text-white truncate tracking-tight">
+                  {tenant?.name || 'AutoShopping'}
+                </h2>
+                <p className="text-[11px] font-mono text-slate-400 truncate">
+                  {tenant?.subdomain ? `${tenant.subdomain}.autoshopping` : 'Tu Tienda Online'}
+                </p>
+              </div>
+            </div>
+
+            {tenant?.subdomain && (
+              <a
+                href={`/store/${tenant.subdomain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full rounded-xl bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-bold text-white transition-all flex items-center justify-center gap-1.5 backdrop-blur-sm shadow-sm"
+              >
+                <span>Visitar Tienda Pública</span>
+                <span className="text-[10px]">↗</span>
+              </a>
+            )}
           </div>
-          <nav className="mt-4 space-y-1 px-3 overflow-y-auto max-h-[calc(100vh-8rem)]">
+
+          <nav className="mt-3 space-y-1 px-3 overflow-y-auto max-h-[calc(100vh-10rem)]">
             {!isSuspended ? (
               visibleNavItems.map((item) => {
                 const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
                 return (
                   <Link key={item.href} href={item.href} onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}>
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}>
                     <span>{item.icon}</span> {item.label}
                   </Link>
                 );
@@ -198,22 +287,57 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className={`fixed inset-0 z-30 bg-black/50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)} />
         
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex h-14 sm:h-16 items-center gap-3 sm:gap-4 border-b bg-white px-3 sm:px-6">
+          <header className="sticky top-0 z-20 flex h-14 sm:h-16 items-center gap-3 sm:gap-4 border-b bg-white px-3 sm:px-6 shadow-xs">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Menú">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
+            
+            <div className="flex items-center gap-2">
+              <h1 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+                {tenant?.name || 'Mi Tienda'}
+              </h1>
+            </div>
+
             <div className="flex-1" />
-            {user && (
-              <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-3">
+              {tenant?.subdomain && (
+                <a
+                  href={`/store/${tenant.subdomain}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden sm:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 transition-all shadow-xs"
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Ver Tienda</span>
+                  <span className="text-[10px]">↗</span>
+                </a>
+              )}
+
+              <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm border border-white">
+                  {(user?.name || 'U')[0].toUpperCase()}
+                </div>
+                <div className="hidden md:flex flex-col">
+                  <span className="text-xs font-bold text-slate-900 leading-none">{user?.name}</span>
+                  <span className="text-[10px] text-slate-500 font-mono leading-tight mt-0.5">{user?.email}</span>
+                </div>
                 {roleInfo && (
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${roleInfo.color}`}>
+                  <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider ${roleInfo.color}`}>
                     {roleInfo.label}
                   </span>
                 )}
-                <span className="text-sm text-slate-600">{user.name}</span>
-                <button onClick={handleLogout} className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-200">Salir</button>
               </div>
-            )}
+
+              <button
+                onClick={handleLogout}
+                className="rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+              >
+                Salir
+              </button>
+            </div>
           </header>
 
           {/* Active Notices Banners */}
