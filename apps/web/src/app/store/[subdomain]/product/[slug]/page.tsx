@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Minus, Plus, ShoppingCart, Truck, Star, Flame, Eye, Clock, Shield, CreditCard, Package } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
 import ProductJsonLd from '@/components/JsonLd';
 import ProductReviews from '@/components/ProductReviews';
@@ -114,7 +115,32 @@ export default function ProductDetailPage({
   useEffect(() => {
     async function loadProduct() {
       try {
-        // Always fetch the product list and find by slug
+        const supabase = createClient();
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('id')
+          .ilike('subdomain', params.subdomain)
+          .maybeSingle();
+
+        if (tenant) {
+          const { data: pData } = await supabase
+            .from('products')
+            .select('*, product_variants(*)')
+            .eq('tenant_id', tenant.id)
+            .or(`slug.eq.${params.slug},id.eq.${params.slug}`)
+            .maybeSingle();
+
+          if (pData) {
+            setProduct(pData as any);
+            updateSeoMeta(pData as any);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching product from Supabase:', err);
+      }
+
+      try {
         const queryParams = new URLSearchParams();
         if (lang) queryParams.set('lang', lang);
         if (currency) queryParams.set('currency', currency);
@@ -131,28 +157,9 @@ export default function ProductDetailPage({
         if (p) {
           setProduct(p);
           updateSeoMeta(p);
-
-          // Track view
-          fetch(`${apiUrl}/products/${p.id}/view`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ visitor_id: getVisitorId() }),
-          }).catch(() => {});
-
-          // Load stats
-          fetch(`${apiUrl}/products/${p.id}/stats`)
-            .then((r) => r.ok ? r.json() : null)
-            .then((data) => { if (data) setStats(data); setVisitorCount(data?.recent_viewers || 0); })
-            .catch(() => {});
-
-          // Load prev/next
-          fetch(`${apiUrl}/products/${p.id}/prev-next`)
-            .then((r) => r.ok ? r.json() : null)
-            .then((data) => { if (data) setPrevNext(data); })
-            .catch(() => {});
         }
       } catch (err) {
-        console.error('Error loading product:', err);
+        console.error('Error loading product from API:', err);
       } finally {
         setLoading(false);
       }

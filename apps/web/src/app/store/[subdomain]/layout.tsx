@@ -47,14 +47,90 @@ interface StoreData {
   };
 }
 
-export async function generateMetadata({ params }: StoreLayoutProps): Promise<Metadata> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+import { createClient } from '@supabase/supabase-js';
 
-  let store: StoreData | null = null;
+const SUPABASE_URL = 'https://tghomchdukigohcmgjwv.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRnaG9tY2hkdWtpZ29oY21nand2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MTgwMjIsImV4cCI6MjA5NzM5NDAyMn0.iD2qstk6G49kOq4ujazQc-M2QhnJAvfLJQ_EueqRpec';
+
+async function fetchStore(subdomain: string): Promise<StoreData | null> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl) {
+    try {
+      const res = await fetch(`${apiUrl}/stores/${subdomain}/public`, { cache: 'no-store' });
+      if (res.ok) return await res.json();
+    } catch {}
+  }
+
   try {
-    const res = await fetch(`${apiUrl}/stores/${params.subdomain}/public`, { cache: 'no-store' });
-    if (res.ok) store = await res.json();
-  } catch {}
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('*')
+      .ilike('subdomain', subdomain)
+      .maybeSingle();
+
+    if (!tenant) return null;
+
+    return {
+      id: tenant.id,
+      name: tenant.name || 'Mi Tienda',
+      logo: tenant.logo_url || tenant.logo,
+      logo_url: tenant.logo_url || tenant.logo,
+      primary_color: tenant.primary_color || '#3b82f6',
+      description: tenant.description || '',
+      slogan: tenant.slogan || '',
+      font_family: tenant.font_family || 'Inter',
+      bg_color: tenant.bg_color || '#ffffff',
+      btn_color: tenant.btn_color || '#2563eb',
+      btn_text_color: tenant.btn_text_color || '#ffffff',
+      text_color: tenant.text_color || '#0f172a',
+      header_style: tenant.header_style || 'classic',
+      footer_style: tenant.footer_style || 'columns',
+      card_style: tenant.card_style || 'standard',
+      social_instagram: tenant.social_instagram,
+      social_facebook: tenant.social_facebook,
+      social_whatsapp: tenant.social_whatsapp,
+      social_twitter: tenant.social_twitter,
+      social_tiktok: tenant.social_tiktok,
+      config: tenant.config || {},
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchCategories(subdomain: string): Promise<Category[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (apiUrl) {
+    try {
+      const res = await fetch(`${apiUrl}/categories/${subdomain}`, { cache: 'no-store' });
+      if (res.ok) return await res.json();
+    } catch {}
+  }
+
+  try {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: tenant } = await supabase
+      .from('tenants')
+      .select('id')
+      .ilike('subdomain', subdomain)
+      .maybeSingle();
+
+    if (!tenant) return [];
+
+    const { data: categories } = await supabase
+      .from('categories')
+      .select('id, name, slug')
+      .eq('tenant_id', tenant.id);
+
+    return categories || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function generateMetadata({ params }: StoreLayoutProps): Promise<Metadata> {
+  const store = await fetchStore(params.subdomain);
 
   if (!store) {
     return {
@@ -64,7 +140,7 @@ export async function generateMetadata({ params }: StoreLayoutProps): Promise<Me
 
   const title = store.slogan ? `${store.name} | ${store.slogan}` : store.name;
   const favicon = store.logo_url || store.logo || '/favicon.ico';
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://web-autoshopping.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://autoshopping-app.vercel.app';
   const storeUrl = `${siteUrl}/store/${params.subdomain}`;
   const imageUrl = store.logo_url || store.logo || `${siteUrl}/og-store.png`;
 
@@ -112,21 +188,8 @@ export async function generateMetadata({ params }: StoreLayoutProps): Promise<Me
 }
 
 export default async function StoreLayout({ children, params }: StoreLayoutProps) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
-
-  let store: StoreData | null = null;
-  try {
-    const res = await fetch(`${apiUrl}/stores/${params.subdomain}/public`, { cache: 'no-store' });
-    if (res.ok) store = await res.json();
-  } catch {}
-
-  let categories: Category[] = [];
-  try {
-    const res = await fetch(`${apiUrl}/categories/${params.subdomain}`, { cache: 'no-store' });
-    if (res.ok) categories = await res.json();
-  } catch (err) {
-    console.error('Error fetching categories in layout:', err);
-  }
+  const store = await fetchStore(params.subdomain);
+  const categories = await fetchCategories(params.subdomain);
 
   if (!store) {
     return (

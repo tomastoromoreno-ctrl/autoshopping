@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { createClient } from '@/lib/supabase';
 import ProductCard from '@/components/ProductCard';
 import SearchBar from '@/components/SearchBar';
 import ProductFilters from '@/components/ProductFilters';
@@ -111,6 +112,65 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
       } else {
         setLoading(true);
       }
+
+      // Try Supabase direct query first for 100% reliability in production
+      try {
+        const supabase = createClient();
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('id')
+          .ilike('subdomain', params.subdomain)
+          .maybeSingle();
+
+        if (tenant) {
+          let query = supabase
+            .from('products')
+            .select('*', { count: 'exact' })
+            .eq('tenant_id', tenant.id)
+            .eq('is_active', true);
+
+          if (searchQuery) {
+            query = query.ilike('name', `%${searchQuery}%`);
+          }
+          if (selectedCategory) {
+            query = query.eq('category_id', selectedCategory);
+          }
+
+          const from = (page - 1) * PAGE_SIZE;
+          const to = from + PAGE_SIZE - 1;
+
+          if (sortBy === 'price_asc') {
+            query = query.order('price', { ascending: true });
+          } else if (sortBy === 'price_desc') {
+            query = query.order('price', { ascending: false });
+          } else if (sortBy === 'name_asc') {
+            query = query.order('name', { ascending: true });
+          } else {
+            query = query.order('created_at', { ascending: false });
+          }
+
+          const { data: items, count } = await query.range(from, to);
+
+          if (items && items.length > 0) {
+            if (append) {
+              setProducts((prev) => [...prev, ...(items as any)]);
+            } else {
+              setProducts(items as any);
+            }
+            const total = count || items.length;
+            setTotalCount(total);
+            setHasMore(page * PAGE_SIZE < total);
+            setCurrentPage(page);
+            setLoading(false);
+            setLoadingMore(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error querying products directly from Supabase:', err);
+      }
+
+      // API fallback
       const queryParams = new URLSearchParams();
       if (searchQuery) queryParams.set('search', searchQuery);
       if (selectedCategory) queryParams.set('category_id', selectedCategory);
@@ -148,15 +208,70 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
   useEffect(() => {
     async function load() {
       try {
+        const supabase = createClient();
+        const { data: tenant } = await supabase
+          .from('tenants')
+          .select('*')
+          .ilike('subdomain', params.subdomain)
+          .maybeSingle();
+
+        if (tenant) {
+          setStore({
+            id: tenant.id,
+            name: tenant.name || 'Mi Tienda',
+            logo: tenant.logo_url || tenant.logo,
+            primary_color: tenant.primary_color || '#3b82f6',
+            description: tenant.description || '',
+            card_style: tenant.card_style || 'standard',
+          });
+
+          // Fetch categories
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('id, name, slug')
+            .eq('tenant_id', tenant.id);
+          if (catData) setCategories(catData);
+
+          // Fetch banners
+          const { data: bannerData } = await supabase
+            .from('banners')
+            .select('*')
+            .eq('tenant_id', tenant.id)
+            .eq('is_active', true);
+          if (bannerData) setBanners(bannerData as any);
+
+          // Fetch featured products
+          const { data: featData } = await supabase
+            .from('products')
+            .select('*')
+            .eq('tenant_id', tenant.id)
+            .eq('is_active', true)
+            .eq('is_featured', true)
+            .limit(8);
+          if (featData) setFeatured(featData as any);
+
+          // Fetch promotions
+          const { data: promoData } = await supabase
+            .from('promotions')
+            .select('*')
+            .eq('tenant_id', tenant.id)
+            .eq('is_active', true);
+          if (promoData) setPromotions(promoData as any);
+        }
+      } catch (err) {
+        console.error('Error loading store data from Supabase:', err);
+      }
+
+      try {
         const [storeRes, categoriesRes, bannersRes, featuredRes] = await Promise.all([
-          fetch(`${apiUrl}/stores/${params.subdomain}/public`),
+          fetch(`${apiUrl}/stores/${params.subdomain}/public`).catch(() => null),
           fetch(`${apiUrl}/categories/${params.subdomain}`).catch(() => null),
           fetch(`${apiUrl}/stores/${params.subdomain}/banners`).catch(() => null),
           fetch(`${apiUrl}/products/${params.subdomain}/featured?limit=8`).catch(() => null),
         ]);
 
         let storeId: string | null = null;
-        if (storeRes.ok) {
+        if (storeRes?.ok) {
           const storeData = await storeRes.json();
           setStore(storeData);
           storeId = storeData.id;
@@ -177,7 +292,6 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
           setFeatured(Array.isArray(data) ? data : data.data || data.products || []);
         }
 
-        // Fetch active promotions
         if (storeId) {
           fetch(`${apiUrl}/promotions/${storeId}/active`)
             .then((r) => r.ok ? r.json() : [])
@@ -185,7 +299,7 @@ export default function StoreHomePage({ params }: { params: { subdomain: string 
             .catch(() => {});
         }
       } catch (err) {
-        console.error('Error loading store data:', err);
+        console.error('Error loading store data from API:', err);
       }
     }
 
