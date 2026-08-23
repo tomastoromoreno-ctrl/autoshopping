@@ -4,6 +4,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import { Eye, EyeOff } from 'lucide-react';
 
 function LoginForm() {
@@ -24,27 +25,56 @@ function LoginForm() {
       const cleanEmail = email.trim();
       const supabase = createClient();
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      });
+      let sessionData: any = null;
+      let userData: any = null;
 
-      if (authError) {
-        if (authError.message.includes('Invalid login credentials')) {
-          throw new Error('Correo o contraseña incorrectos. Verifica tus datos e intenta nuevamente.');
+      try {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (authError) {
+          if (authError.message.includes('Invalid login credentials')) {
+            throw new Error('Correo o contraseña incorrectos. Verifica tus datos e intenta nuevamente.');
+          }
+          if (authError.message.includes('Email not confirmed')) {
+            throw new Error('Tu correo electrónico no ha sido confirmado aún. Por favor revisa tu bandeja de entrada.');
+          }
+          throw new Error(authError.message);
         }
-        if (authError.message.includes('Email not confirmed')) {
-          throw new Error('Tu correo electrónico no ha sido confirmado aún. Por favor revisa tu bandeja de entrada.');
+
+        sessionData = data.session;
+        userData = data.user;
+      } catch (err: any) {
+        // If error is specific credential/confirmation error, rethrow immediately
+        if (err.message.includes('Correo o contraseña incorrectos') || err.message.includes('confirmado')) {
+          throw err;
         }
-        throw new Error(authError.message);
+
+        // Try API proxy fallback if browser direct fetch to Supabase failed
+        try {
+          const apiRes = await api.post<any>('/auth/signin', { email: cleanEmail, password });
+          if (apiRes && apiRes.access_token) {
+            sessionData = { access_token: apiRes.access_token, refresh_token: apiRes.refresh_token };
+            userData = apiRes.user;
+          } else {
+            throw err;
+          }
+        } catch {
+          if (err.message === 'Failed to fetch') {
+            throw new Error('Error de conexión a la base de datos o bloqueador de publicidad activo (AdBlock / Brave Shield) en tu navegador. Por favor desactívalo para este sitio e intenta de nuevo.');
+          }
+          throw err;
+        }
       }
 
-      if (!data?.session) {
+      if (!sessionData) {
         throw new Error('No se pudo iniciar sesión. Por favor intenta nuevamente.');
       }
 
-      const accessToken = data.session.access_token;
-      const refreshToken = data.session.refresh_token;
+      const accessToken = sessionData.access_token;
+      const refreshToken = sessionData.refresh_token;
 
       localStorage.setItem('access_token', accessToken);
       if (refreshToken) {
@@ -52,20 +82,22 @@ function LoginForm() {
       }
 
       // Check role and tenant from profile or metadata
-      let role = data.user?.user_metadata?.role;
-      let tenantId = data.user?.user_metadata?.tenant_id;
+      let role = userData?.user_metadata?.role;
+      let tenantId = userData?.user_metadata?.tenant_id;
 
       if (!role || !tenantId) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('role, tenant_id')
-          .eq('id', data.user.id)
-          .maybeSingle();
+        try {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('role, tenant_id')
+            .eq('id', userData?.id)
+            .maybeSingle();
 
-        if (profile) {
-          role = role || profile.role;
-          tenantId = tenantId || profile.tenant_id;
-        }
+          if (profile) {
+            role = role || profile.role;
+            tenantId = tenantId || profile.tenant_id;
+          }
+        } catch {}
       }
 
       if (redirectTo) {
