@@ -1,10 +1,9 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
-import { api } from '@/lib/api';
 import { Eye, EyeOff } from 'lucide-react';
 
 function LoginForm() {
@@ -16,6 +15,26 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        if (registrations && registrations.length > 0) {
+          Promise.all(registrations.map((r) => r.unregister())).then(() => {
+            if ('caches' in window) {
+              caches.keys().then((keys) => {
+                Promise.all(keys.map((k) => caches.delete(k))).then(() => {
+                  (window as any).location.reload();
+                });
+              });
+            } else {
+              (window as any).location.reload();
+            }
+          });
+        }
+      });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
