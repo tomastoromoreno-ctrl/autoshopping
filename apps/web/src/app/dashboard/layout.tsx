@@ -58,6 +58,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [suspensionReason, setSuspensionReason] = useState('');
   const [notices, setNotices] = useState<any[]>([]);
 
+  // Profile Modal states
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
   useEffect(() => {
     async function loadIdentity() {
       try {
@@ -200,11 +205,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (checking || permissionsLoading) {
     return <div className="flex min-h-screen items-center justify-center bg-slate-50"><div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" /></div>;
   }
-
-  // Profile Modal states
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [savingProfile, setSavingProfile] = useState(false);
 
   const handleOpenProfile = () => {
     setEditName(user?.name || '');
