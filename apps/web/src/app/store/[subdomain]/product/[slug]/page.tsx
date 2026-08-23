@@ -123,16 +123,24 @@ export default function ProductDetailPage({
           .maybeSingle();
 
         if (tenant) {
-          const { data: pData } = await supabase
+          const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.slug);
+          let query = supabase
             .from('products')
-            .select('*, product_variants(*)')
-            .eq('tenant_id', tenant.id)
-            .or(`slug.eq.${params.slug},id.eq.${params.slug}`)
-            .maybeSingle();
+            .select('*')
+            .eq('tenant_id', tenant.id);
+
+          if (isUUID) {
+            query = query.eq('id', params.slug);
+          } else {
+            query = query.eq('slug', params.slug);
+          }
+
+          const { data: pData } = await query.maybeSingle();
 
           if (pData) {
             setProduct(pData as any);
             updateSeoMeta(pData as any);
+            setLoading(false);
             return;
           }
         }
