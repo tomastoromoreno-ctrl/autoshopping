@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </I18nWrapper>
         </I18nProvider>
         <script dangerouslySetInnerHTML={{
-          __html: `if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js')})}`,
+          __html: `if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){for(let r of regs){r.unregister()}})}if('caches' in window){caches.keys().then(function(names){for(let n of names)caches.delete(n)})}`,
         }} />
       </body>
     </html>
