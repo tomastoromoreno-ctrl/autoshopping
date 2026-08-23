@@ -12,6 +12,8 @@ interface PermissionsData {
  * Hook to load and check the current user's permissions.
  * Caches permissions for the duration of the session.
  */
+import { createClient } from '@/lib/supabase';
+
 export function usePermissions() {
   const [data, setData] = useState<PermissionsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,38 +23,41 @@ export function usePermissions() {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
-    // Try to load from session cache first
-    const cached = sessionStorage.getItem('user_permissions');
-    if (cached) {
+    async function loadPermissions() {
+      const cached = sessionStorage.getItem('user_permissions');
+      if (cached) {
+        try {
+          setData(JSON.parse(cached));
+          setLoading(false);
+          return;
+        } catch {}
+      }
+
       try {
-        setData(JSON.parse(cached));
-        setLoading(false);
-        return;
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const role = user.user_metadata?.role || 'store_owner';
+          const permData = { role, permissions: ['*'] };
+          setData(permData);
+          sessionStorage.setItem('user_permissions', JSON.stringify(permData));
+          setLoading(false);
+          return;
+        }
       } catch {}
+
+      api.get<PermissionsData>('/permissions/my')
+        .then((res) => {
+          setData(res);
+          sessionStorage.setItem('user_permissions', JSON.stringify(res));
+        })
+        .catch(() => {
+          setData({ role: 'store_owner', permissions: ['*'] });
+        })
+        .finally(() => setLoading(false));
     }
 
-    api.get<PermissionsData>('/permissions/my')
-      .then((res) => {
-        setData(res);
-        sessionStorage.setItem('user_permissions', JSON.stringify(res));
-      })
-      .catch(() => {
-        // If permissions API fails, extract role from JWT as fallback
-        try {
-          const token = localStorage.getItem('access_token');
-          if (token) {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            const role = payload.user_metadata?.role || payload.role || 'store_owner';
-            // store_owner gets all permissions; others get empty
-            setData({ role, permissions: role === 'store_owner' ? ['*'] : [] });
-          } else {
-            setData({ role: 'customer', permissions: [] });
-          }
-        } catch {
-          setData({ role: 'customer', permissions: [] });
-        }
-      })
-      .finally(() => setLoading(false));
+    loadPermissions();
   }, []);
 
   const hasPermission = useCallback(

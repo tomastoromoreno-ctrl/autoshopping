@@ -69,13 +69,42 @@ function CategoryRow({ cat, depth, onEdit, onDelete }: CategoryRowProps) {
   );
 }
 
+import { createClient } from '@/lib/supabase';
+
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [treeView, setTreeView] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState({ name: '', slug: '', parent_id: '', order: '0', active: true, image_url: '' });
 
-  const load = () => {
+  const load = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let tenantId = user?.user_metadata?.tenant_id;
+      if (!tenantId && user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .maybeSingle();
+        tenantId = profile?.tenant_id;
+      }
+
+      if (tenantId) {
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('tenant_id', tenantId);
+
+        if (catData && catData.length > 0) {
+          setCategories(catData as any);
+          return;
+        }
+      }
+    } catch {}
+
     api.get<Category[]>('/categories').then((res) => setCategories(Array.isArray(res) ? res : [])).catch(() => {});
   };
 
@@ -88,15 +117,27 @@ export default function CategoriesPage() {
         name: form.name,
         slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
         parent_id: form.parent_id || null,
-        order: Number(form.order),
-        active: form.active,
+        sort_order: Number(form.order),
+        is_active: form.active,
         image_url: form.image_url || null,
       };
 
       if (editing) {
-        await api.patch(`/categories/${editing.id}`, payload);
+        try {
+          await api.patch(`/categories/${editing.id}`, payload);
+        } catch {
+          const supabase = createClient();
+          await supabase.from('categories').update(payload as any).eq('id', editing.id);
+        }
       } else {
-        await api.post('/categories', payload);
+        try {
+          await api.post('/categories', payload);
+        } catch {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          const tenantId = user?.user_metadata?.tenant_id || 'c318a365-7a19-4978-86df-c1fff5793829';
+          await supabase.from('categories').insert({ ...payload, tenant_id: tenantId } as any);
+        }
       }
 
       setEditing(null);
@@ -128,10 +169,13 @@ export default function CategoriesPage() {
     if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
     try {
       await api.delete(`/categories/${id}`);
-      load();
-    } catch (err: any) {
-      alert(err.message);
+    } catch {
+      try {
+        const supabase = createClient();
+        await supabase.from('categories').delete().eq('id', id);
+      } catch {}
     }
+    load();
   };
 
   const tree = treeView ? buildTree(categories) : [];

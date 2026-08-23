@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 import { Upload, Move, ZoomIn, Sparkles, Palette, Type, Layout, CreditCard, Instagram, Facebook, MessageCircle, Twitter, Music } from 'lucide-react';
 
 const GoogleFontsImport = () => (
@@ -173,32 +174,87 @@ export default function AppearancePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    api.get<any>('/config/appearance').then((res) => {
-      setForm({
-        name: res.name || '',
-        slogan: res.slogan || '',
-        logo_url: res.logo_url || '',
-        font_family: res.font_family || 'Inter',
-        primary_color: res.primary_color || '#3b82f6',
-        bg_color: res.bg_color || '#ffffff',
-        btn_color: res.btn_color || '#3b82f6',
-        btn_text_color: res.btn_text_color || '#ffffff',
-        text_color: res.text_color || '#1e293b',
-        header_style: res.header_style || 'classic',
-        footer_style: res.footer_style || 'minimal',
-        card_style: res.card_style || 'standard',
-        social_instagram: res.social_instagram || '',
-        social_facebook: res.social_facebook || '',
-        social_whatsapp: res.social_whatsapp || '',
-        social_twitter: res.social_twitter || '',
-        social_tiktok: res.social_tiktok || '',
-        color_preset: res.color_preset || '',
-        template_id: res.template_id || 'classic',
-      });
-      if (res.logo_url) {
-        setOriginalLogo(res.logo_url);
-      }
-    }).catch(() => {});
+    async function loadAppearance() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        let tenantId = user?.user_metadata?.tenant_id;
+        if (!tenantId && user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('tenant_id')
+            .eq('id', user.id)
+            .maybeSingle();
+          tenantId = profile?.tenant_id;
+        }
+
+        if (tenantId) {
+          const { data: res } = await supabase
+            .from('tenants')
+            .select('*')
+            .eq('id', tenantId)
+            .maybeSingle();
+
+          if (res) {
+            setForm({
+              name: res.name || '',
+              slogan: res.slogan || '',
+              logo_url: res.logo_url || res.logo || '',
+              font_family: res.font_family || 'Inter',
+              primary_color: res.primary_color || '#3b82f6',
+              bg_color: res.bg_color || '#ffffff',
+              btn_color: res.btn_color || '#3b82f6',
+              btn_text_color: res.btn_text_color || '#ffffff',
+              text_color: res.text_color || '#1e293b',
+              header_style: res.header_style || 'classic',
+              footer_style: res.footer_style || 'minimal',
+              card_style: res.card_style || 'standard',
+              social_instagram: res.social_instagram || '',
+              social_facebook: res.social_facebook || '',
+              social_whatsapp: res.social_whatsapp || '',
+              social_twitter: res.social_twitter || '',
+              social_tiktok: res.social_tiktok || '',
+              color_preset: res.color_preset || '',
+              template_id: res.template_id || 'classic',
+            });
+            if (res.logo_url || res.logo) {
+              setOriginalLogo(res.logo_url || res.logo);
+            }
+            return;
+          }
+        }
+      } catch {}
+
+      api.get<any>('/config/appearance').then((res) => {
+        setForm({
+          name: res.name || '',
+          slogan: res.slogan || '',
+          logo_url: res.logo_url || '',
+          font_family: res.font_family || 'Inter',
+          primary_color: res.primary_color || '#3b82f6',
+          bg_color: res.bg_color || '#ffffff',
+          btn_color: res.btn_color || '#3b82f6',
+          btn_text_color: res.btn_text_color || '#ffffff',
+          text_color: res.text_color || '#1e293b',
+          header_style: res.header_style || 'classic',
+          footer_style: res.footer_style || 'minimal',
+          card_style: res.card_style || 'standard',
+          social_instagram: res.social_instagram || '',
+          social_facebook: res.social_facebook || '',
+          social_whatsapp: res.social_whatsapp || '',
+          social_twitter: res.social_twitter || '',
+          social_tiktok: res.social_tiktok || '',
+          color_preset: res.color_preset || '',
+          template_id: res.template_id || 'classic',
+        });
+        if (res.logo_url) {
+          setOriginalLogo(res.logo_url);
+        }
+      }).catch(() => {});
+    }
+
+    loadAppearance();
   }, []);
 
   useEffect(() => {
@@ -262,7 +318,44 @@ export default function AppearancePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.patch('/config/appearance', form);
+      try {
+        await api.patch('/config/appearance', form);
+      } catch {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        let tenantId = user?.user_metadata?.tenant_id;
+        if (!tenantId && user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('tenant_id')
+            .eq('id', user.id)
+            .maybeSingle();
+          tenantId = profile?.tenant_id;
+        }
+
+        if (tenantId) {
+          await supabase.from('tenants').update({
+            name: form.name,
+            slogan: form.slogan,
+            logo_url: form.logo_url,
+            font_family: form.font_family,
+            primary_color: form.primary_color,
+            bg_color: form.bg_color,
+            btn_color: form.btn_color,
+            btn_text_color: form.btn_text_color,
+            text_color: form.text_color,
+            header_style: form.header_style,
+            footer_style: form.footer_style,
+            card_style: form.card_style,
+            social_instagram: form.social_instagram,
+            social_facebook: form.social_facebook,
+            social_whatsapp: form.social_whatsapp,
+            social_twitter: form.social_twitter,
+            social_tiktok: form.social_tiktok,
+            template_id: form.template_id,
+          } as any).eq('id', tenantId);
+        }
+      }
       setOriginalLogo(form.logo_url);
       setImageSrc(null);
       alert('Cambios guardados con éxito');

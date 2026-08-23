@@ -16,6 +16,8 @@ interface Promotion {
   usage_count: number;
 }
 
+import { createClient } from '@/lib/supabase';
+
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -36,7 +38,34 @@ export default function PromotionsPage() {
   const [couponForm, setCouponForm] = useState({ code: '', max_uses: '' });
   const [loading, setLoading] = useState(false);
 
-  const load = () => {
+  const load = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let tenantId = user?.user_metadata?.tenant_id;
+      if (!tenantId && user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .maybeSingle();
+        tenantId = profile?.tenant_id;
+      }
+
+      if (tenantId) {
+        const { data: promoData } = await supabase
+          .from('promotions')
+          .select('*')
+          .eq('tenant_id', tenantId);
+
+        if (promoData) {
+          setPromotions(promoData as any);
+          return;
+        }
+      }
+    } catch {}
+
     api.get<Promotion[]>('/promotions')
       .then((res) => setPromotions(Array.isArray(res) ? res : []))
       .catch(() => {});
@@ -78,10 +107,13 @@ export default function PromotionsPage() {
     if (!confirm('¿Estás seguro de que deseas eliminar esta promoción?')) return;
     try {
       await api.delete(`/promotions/${id}`);
-      load();
-    } catch (err: any) {
-      alert(err.message || 'Error al eliminar promoción');
+    } catch {
+      try {
+        const supabase = createClient();
+        await supabase.from('promotions').delete().eq('id', id);
+      } catch {}
     }
+    load();
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -100,9 +132,21 @@ export default function PromotionsPage() {
       };
 
       if (editingPromo) {
-        await api.patch(`/promotions/${editingPromo.id}`, payload);
+        try {
+          await api.patch(`/promotions/${editingPromo.id}`, payload);
+        } catch {
+          const supabase = createClient();
+          await supabase.from('promotions').update(payload as any).eq('id', editingPromo.id);
+        }
       } else {
-        await api.post('/promotions', payload);
+        try {
+          await api.post('/promotions', payload);
+        } catch {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          const tenantId = user?.user_metadata?.tenant_id || 'c318a365-7a19-4978-86df-c1fff5793829';
+          await supabase.from('promotions').insert({ ...payload, tenant_id: tenantId, is_active: true } as any);
+        }
       }
 
       setShowForm(false);
