@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 import { formatPrice } from '@/lib/format';
 import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
 import { InvoiceModal } from '@/components/InvoiceModal';
@@ -113,11 +114,48 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalOrders, setTotalOrders] = useState(0);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let tenantId = user?.user_metadata?.tenant_id;
+      if (!tenantId && user) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .maybeSingle();
+        tenantId = profile?.tenant_id;
+      }
+
+      if (tenantId) {
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('tenant_id', tenantId)
+          .order('created_at', { ascending: false });
+
+        if (ordersData && ordersData.length > 0) {
+          const formattedOrders = ordersData.map((o: any) => ({
+            ...o,
+            items: o.order_items || o.items || [],
+          }));
+          setOrders(formattedOrders as any);
+          setTotalOrders(formattedOrders.length);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading orders directly from Supabase:', err);
+    }
+
+    // Fallback to API if available
     api.get<{ data: Order[] }>('/orders').then((res) => {
       const allOrders = res.data || [];
-      setTotalOrders(allOrders.length);
-      setOrders(allOrders);
+      if (allOrders.length > 0) {
+        setTotalOrders(allOrders.length);
+        setOrders(allOrders);
+      }
     }).catch(() => {});
     api.get('/invoicing/config').then(setInvoiceConfig).catch(() => {});
   }, []);

@@ -46,6 +46,8 @@ function AnimatedNumber({ value, prefix = '' }: { value: number; prefix?: string
   return <span>{prefix}{display.toLocaleString('es-CL')}</span>;
 }
 
+import { createClient } from '@/lib/supabase';
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
@@ -53,11 +55,74 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    api.get<DashboardStats>('/dashboard/stats').then(setStats).catch(() => {});
-    api.get<RecentOrder[]>('/orders?limit=5').then(setRecentOrders).catch(() => {});
-    api.get<any>('/config/appearance')
-      .then((res) => setTenant({ subdomain: res.subdomain, name: res.name }))
-      .catch(() => {});
+    async function loadDashboardData() {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        let tenantId = user?.user_metadata?.tenant_id;
+        if (!tenantId && user) {
+          const { data: profile } = await supabase
+            .from('users')
+            .select('tenant_id')
+            .eq('id', user.id)
+            .maybeSingle();
+          tenantId = profile?.tenant_id;
+        }
+
+        if (tenantId) {
+          // Fetch tenant info
+          const { data: tenantData } = await supabase
+            .from('tenants')
+            .select('subdomain, name')
+            .eq('id', tenantId)
+            .maybeSingle();
+
+          if (tenantData) {
+            setTenant({ subdomain: tenantData.subdomain, name: tenantData.name });
+          }
+
+          // Fetch products count
+          const { count: productCount } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('tenant_id', tenantId);
+
+          // Fetch orders
+          const { data: ordersData } = await supabase
+            .from('orders')
+            .select('id, customer_name, total, status, created_at')
+            .eq('tenant_id', tenantId)
+            .order('created_at', { ascending: false });
+
+          const allOrders = ordersData || [];
+          const totalOrders = allOrders.length;
+          const pendingOrders = allOrders.filter(o => o.status === 'pending').length;
+          const totalRevenue = allOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+          setStats({
+            totalProducts: productCount || 0,
+            totalOrders,
+            totalRevenue,
+            pendingOrders,
+          });
+
+          setRecentOrders(allOrders.slice(0, 5));
+          return;
+        }
+      } catch (err) {
+        console.error('Supabase direct load error:', err);
+      }
+
+      // API fallback
+      api.get<DashboardStats>('/dashboard/stats').then(setStats).catch(() => {});
+      api.get<RecentOrder[]>('/orders?limit=5').then(setRecentOrders).catch(() => {});
+      api.get<any>('/config/appearance')
+        .then((res) => setTenant({ subdomain: res.subdomain, name: res.name }))
+        .catch(() => {});
+    }
+
+    loadDashboardData();
   }, []);
 
   const getStoreUrl = () => {
