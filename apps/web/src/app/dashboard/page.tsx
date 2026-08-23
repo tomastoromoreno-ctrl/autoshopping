@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 import { Copy, Check, Download, ExternalLink, Share2, TrendingUp, ShoppingBag, DollarSign, Clock } from 'lucide-react';
 import QRCode from '@/components/QRCode';
 
@@ -45,8 +46,6 @@ function AnimatedNumber({ value, prefix = '' }: { value: number; prefix?: string
 
   return <span>{prefix}{display.toLocaleString('es-CL')}</span>;
 }
-
-import { createClient } from '@/lib/supabase';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);

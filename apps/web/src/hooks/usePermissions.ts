@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 
 interface PermissionsData {
   role: string;
@@ -12,7 +13,6 @@ interface PermissionsData {
  * Hook to load and check the current user's permissions.
  * Caches permissions for the duration of the session.
  */
-import { createClient } from '@/lib/supabase';
 
 export function usePermissions() {
   const [data, setData] = useState<PermissionsData | null>(null);
