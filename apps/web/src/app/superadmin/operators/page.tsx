@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { createClient } from '@/lib/supabase';
 
 interface Operator {
   id: string;
@@ -36,8 +37,22 @@ export default function OperatorsPage() {
   const fetchOperators = async () => {
     setLoading(true);
     try {
-      const res = await api.get<Operator[]>('/superadmin/operators');
-      setOperators(res);
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .or('role.eq.super_admin,role.eq.support_agent');
+
+      if (data) {
+        setOperators(data.map((u: any) => ({
+          id: u.id,
+          name: u.name || u.email?.split('@')[0] || 'Operador',
+          email: u.email,
+          role: u.role,
+          email_confirmed: true,
+          created_at: u.created_at || new Date().toISOString(),
+        })));
+      }
     } catch (err: any) {
       console.error(err);
     } finally {

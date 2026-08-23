@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { api } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, FileText } from 'lucide-react';
+import { InvoiceModal } from '@/components/InvoiceModal';
 
 interface OrderItem {
   product_name: string;
@@ -20,6 +21,12 @@ interface Order {
   total: number;
   status: string;
   created_at: string;
+  document_type?: string;
+  customer_rut?: string;
+  razon_social?: string;
+  giro?: string;
+  direccion_tributaria?: string;
+  comuna_tributaria?: string;
   items?: OrderItem[];
   shipping_address?: any;
   shipping_provider?: string;
@@ -93,6 +100,8 @@ export default function OrdersPage() {
   const [trackInputs, setTrackInputs] = useState<Record<string, string>>({});
   const [providerInputs, setProviderInputs] = useState<Record<string, string>>({});
   const [activeLabelOrder, setActiveLabelOrder] = useState<Order | null>(null);
+  const [activeInvoiceOrder, setActiveInvoiceOrder] = useState<Order | null>(null);
+  const [invoiceConfig, setInvoiceConfig] = useState<any>(null);
   const [notesInputs, setNotesInputs] = useState<Record<string, string>>({});
   const [refInputs, setRefInputs] = useState<Record<string, string>>({});
   const [savingNotes, setSavingNotes] = useState<string | null>(null);
@@ -110,6 +119,7 @@ export default function OrdersPage() {
       setTotalOrders(allOrders.length);
       setOrders(allOrders);
     }).catch(() => {});
+    api.get('/invoicing/config').then(setInvoiceConfig).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -379,16 +389,27 @@ export default function OrdersPage() {
                           </a>
                         )}
 
-                        <button
-                          type="button"
-                          onClick={() => setActiveLabelOrder(order)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                          </svg>
-                          Imprimir Etiqueta
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveInvoiceOrder(order)}
+                            className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors shadow-sm"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Ver / Emitir DTE (Boleta/Factura)
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setActiveLabelOrder(order)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-sm"
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Imprimir Etiqueta
+                          </button>
+                        </div>
                       </div>
 
                       <div className="space-y-5">
@@ -680,6 +701,16 @@ export default function OrdersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeInvoiceOrder && (
+        <InvoiceModal
+          isOpen={!!activeInvoiceOrder}
+          onClose={() => setActiveInvoiceOrder(null)}
+          order={activeInvoiceOrder}
+          invoiceConfig={invoiceConfig}
+          onInvoiceEmitted={() => load()}
+        />
       )}
     </div>
   );

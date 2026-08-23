@@ -117,7 +117,7 @@ export class InvoicingService {
     // Get invoicing config for the tenant
     const config = await this.getConfig(tenantId);
 
-    const isFactura = !!order.customer_rut;
+    const isFactura = order.document_type === 'factura' || !!order.customer_rut;
     const docType = isFactura ? 33 : 39; // SII: 33 = Factura, 39 = Boleta
 
     // Calculate tax breakdown (IVA 19%)

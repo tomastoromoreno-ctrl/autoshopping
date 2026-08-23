@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, CreditCard, Building2, Wallet, Truck, Shield, Check, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CreditCard, Building2, Wallet, Truck, Shield, Check, ChevronLeft, ChevronRight, ShoppingBag, FileText } from 'lucide-react';
 import { getSessionId } from '@/lib/session';
 import { formatPrice } from '@/lib/format';
+import { formatRut, validateRut } from '@/lib/rut';
 
 const REGIONS_AND_COMMUNES = [
   {
@@ -176,6 +177,14 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [selectedPayment, setSelectedPayment] = useState('');
+
+  const [documentType, setDocumentType] = useState<'boleta' | 'factura'>('boleta');
+  const [customerRut, setCustomerRut] = useState('');
+  const [razonSocial, setRazonSocial] = useState('');
+  const [giro, setGiro] = useState('');
+  const [direccionTributaria, setDireccionTributaria] = useState('');
+  const [comunaTributaria, setComunaTributaria] = useState('');
+  const [rutError, setRutError] = useState('');
 
   const [shippingAddress, setShippingAddress] = useState('');
   const [shippingCity, setShippingCity] = useState('');
@@ -377,7 +386,19 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
   const stepsVisible = steps.filter((s) => s.key !== 'shipping' || storeConfig?.shipping_enabled);
 
   function canProceed(step: number): boolean {
-    if (step === 1) return customerName.trim().length > 0 && customerEmail.trim().length > 0;
+    if (step === 1) {
+      const basicValid = customerName.trim().length > 0 && customerEmail.trim().length > 0;
+      if (!basicValid) return false;
+      if (documentType === 'factura') {
+        return (
+          validateRut(customerRut) &&
+          razonSocial.trim().length > 0 &&
+          giro.trim().length > 0 &&
+          direccionTributaria.trim().length > 0
+        );
+      }
+      return true;
+    }
     if (step === 2) {
       if (!storeConfig?.shipping_enabled) return true;
       const cityStateValid = shippingCity.trim().length > 0 && shippingState.trim().length > 0 && selectedQuote !== null;
@@ -440,6 +461,12 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
           shipping_cost: selectedQuote?.cost !== undefined ? selectedQuote.cost : undefined,
           shipping_type: shippingType,
           shipping_branch: shippingType === 'branch' ? shippingBranch : undefined,
+          document_type: documentType,
+          customer_rut: documentType === 'factura' ? customerRut : undefined,
+          razon_social: documentType === 'factura' ? razonSocial : undefined,
+          giro: documentType === 'factura' ? giro : undefined,
+          direccion_tributaria: documentType === 'factura' ? direccionTributaria : undefined,
+          comuna_tributaria: documentType === 'factura' ? comunaTributaria : undefined,
         }),
       });
       if (res.ok) {
@@ -553,6 +580,147 @@ export default function CheckoutPage({ params }: { params: { subdomain: string }
                         <input id="phone" type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} aria-label="Teléfono" className="input-modern" placeholder="+56 9 1234 5678" />
                       </div>
                     </div>
+
+                    {/* Document Type Selector (Boleta vs Factura) */}
+                    <div className="pt-4 border-t border-slate-100">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Tipo de Documento Tributario *
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <label
+                          className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 text-sm font-semibold transition-all ${
+                            documentType === 'boleta'
+                              ? 'border-blue-600 bg-blue-50/60 text-blue-900 ring-1 ring-blue-600'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="documentType"
+                            value="boleta"
+                            checked={documentType === 'boleta'}
+                            onChange={() => {
+                              setDocumentType('boleta');
+                              setRutError('');
+                            }}
+                            className="sr-only"
+                          />
+                          <FileText className="h-4 w-4 text-blue-600" />
+                          Boleta Electrónica
+                        </label>
+
+                        <label
+                          className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 text-sm font-semibold transition-all ${
+                            documentType === 'factura'
+                              ? 'border-blue-600 bg-blue-50/60 text-blue-900 ring-1 ring-blue-600'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="documentType"
+                            value="factura"
+                            checked={documentType === 'factura'}
+                            onChange={() => setDocumentType('factura')}
+                            className="sr-only"
+                          />
+                          <Building2 className="h-4 w-4 text-blue-600" />
+                          Factura Electrónica
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Factura Fields */}
+                    {documentType === 'factura' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-4 pt-2 border-t border-slate-100"
+                      >
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              RUT Empresa *
+                            </label>
+                            <input
+                              type="text"
+                              value={customerRut}
+                              onChange={(e) => {
+                                const formatted = formatRut(e.target.value);
+                                setCustomerRut(formatted);
+                                if (formatted.length >= 8 && !validateRut(formatted)) {
+                                  setRutError('RUT inválido. Verifica el dígito verificador.');
+                                } else {
+                                  setRutError('');
+                                }
+                              }}
+                              placeholder="76.543.210-K"
+                              required
+                              className={`input-modern ${rutError ? 'border-red-500 ring-1 ring-red-500' : ''}`}
+                            />
+                            {rutError && <p className="mt-1 text-xs text-red-500 font-medium">{rutError}</p>}
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Razón Social *
+                            </label>
+                            <input
+                              type="text"
+                              value={razonSocial}
+                              onChange={(e) => setRazonSocial(e.target.value)}
+                              placeholder="Mi Empresa SpA"
+                              required
+                              className="input-modern"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1">
+                            Giro Comercial *
+                          </label>
+                          <input
+                            type="text"
+                            value={giro}
+                            onChange={(e) => setGiro(e.target.value)}
+                            placeholder="Servicios de informática / Comercio"
+                            required
+                            className="input-modern"
+                          />
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Dirección Tributaria *
+                            </label>
+                            <input
+                              type="text"
+                              value={direccionTributaria}
+                              onChange={(e) => setDireccionTributaria(e.target.value)}
+                              placeholder="Av. Providencia 1234, Of 500"
+                              required
+                              className="input-modern"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                              Comuna Tributaria
+                            </label>
+                            <input
+                              type="text"
+                              value={comunaTributaria}
+                              onChange={(e) => setComunaTributaria(e.target.value)}
+                              placeholder="Providencia"
+                              className="input-modern"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                   <div className="mt-6 flex justify-end">
                     <button type="button" onClick={nextStep} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition-all duration-200">

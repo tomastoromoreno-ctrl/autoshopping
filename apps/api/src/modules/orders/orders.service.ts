@@ -33,6 +33,12 @@ export class OrdersService {
     shipping_cost?: number;
     shipping_type?: string;
     shipping_branch?: string;
+    document_type?: string;
+    customer_rut?: string;
+    razon_social?: string;
+    giro?: string;
+    direccion_tributaria?: string;
+    comuna_tributaria?: string;
   }) {
     // Ensure cart exists in Supabase if frontend sent items
     if (dto.items && dto.items.length > 0) {
@@ -224,6 +230,12 @@ export class OrdersService {
         shipping_provider: dto.shipping_provider || null,
         shipping_type: dto.shipping_type || 'home',
         shipping_branch: dto.shipping_branch || null,
+        document_type: dto.document_type || (dto.customer_rut ? 'factura' : 'boleta'),
+        customer_rut: dto.customer_rut || null,
+        razon_social: dto.razon_social || null,
+        giro: dto.giro || null,
+        direccion_tributaria: dto.direccion_tributaria || null,
+        comuna_tributaria: dto.comuna_tributaria || null,
       })
       .select()
       .single();

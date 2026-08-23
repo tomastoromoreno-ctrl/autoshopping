@@ -56,6 +56,30 @@ class CreateOrderDto {
   @IsString()
   @IsOptional()
   shipping_branch?: string;
+
+  @IsString()
+  @IsOptional()
+  document_type?: string;
+
+  @IsString()
+  @IsOptional()
+  customer_rut?: string;
+
+  @IsString()
+  @IsOptional()
+  razon_social?: string;
+
+  @IsString()
+  @IsOptional()
+  giro?: string;
+
+  @IsString()
+  @IsOptional()
+  direccion_tributaria?: string;
+
+  @IsString()
+  @IsOptional()
+  comuna_tributaria?: string;
 }
 
 class ListOrdersQuery {
